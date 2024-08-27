@@ -34,7 +34,13 @@
 
   <ItemGroup>
     
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
+    
     <PackageReference Include="Volo.Abp.PermissionManagement.Application.Contracts" Version="8.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Business.Domain\Business.Domain.csproj" />
   </ItemGroup>
 
 </Project>
