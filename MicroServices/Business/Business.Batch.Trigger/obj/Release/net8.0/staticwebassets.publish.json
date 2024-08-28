@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "vO4bLunElDgdceHAtt5a4waENlnecvJhBLyTCaxOAks=",
+  "Source": "Business.Batch.Trigger",
+  "BasePath": "_content/Business.Batch.Trigger",
+  "Mode": "Default",
+  "ManifestType": "Publish",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

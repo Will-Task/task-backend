@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "F9EKp3bJPe64EfB9wNcXcFjF2PBZa/80kOp/pYKH3hE=",
+  "Source": "Business.Batch.Trigger",
+  "BasePath": "_content/Business.Batch.Trigger",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

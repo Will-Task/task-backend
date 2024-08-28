@@ -1,0 +1,12 @@
+D:\Side Project\TaskManagement(ABP)\MicroServices\Business\Business.Batch.Trigger\bin\Release\net8.0\publish\Business.Batch.Trigger.exe
+D:\Side Project\TaskManagement(ABP)\MicroServices\Business\Business.Batch.Trigger\bin\Release\net8.0\publish\appsettings.Development.json
+D:\Side Project\TaskManagement(ABP)\MicroServices\Business\Business.Batch.Trigger\bin\Release\net8.0\publish\appsettings.json
+D:\Side Project\TaskManagement(ABP)\MicroServices\Business\Business.Batch.Trigger\bin\Release\net8.0\publish\Business.Batch.Trigger.dll
+D:\Side Project\TaskManagement(ABP)\MicroServices\Business\Business.Batch.Trigger\bin\Release\net8.0\publish\Business.Batch.Trigger.deps.json
+D:\Side Project\TaskManagement(ABP)\MicroServices\Business\Business.Batch.Trigger\bin\Release\net8.0\publish\Business.Batch.Trigger.runtimeconfig.json
+D:\Side Project\TaskManagement(ABP)\MicroServices\Business\Business.Batch.Trigger\bin\Release\net8.0\publish\Business.Batch.Trigger.pdb
+D:\Side Project\TaskManagement(ABP)\MicroServices\Business\Business.Batch.Trigger\bin\Release\net8.0\publish\Microsoft.AspNetCore.OpenApi.dll
+D:\Side Project\TaskManagement(ABP)\MicroServices\Business\Business.Batch.Trigger\bin\Release\net8.0\publish\Microsoft.OpenApi.dll
+D:\Side Project\TaskManagement(ABP)\MicroServices\Business\Business.Batch.Trigger\bin\Release\net8.0\publish\Swashbuckle.AspNetCore.Swagger.dll
+D:\Side Project\TaskManagement(ABP)\MicroServices\Business\Business.Batch.Trigger\bin\Release\net8.0\publish\Swashbuckle.AspNetCore.SwaggerGen.dll
+D:\Side Project\TaskManagement(ABP)\MicroServices\Business\Business.Batch.Trigger\bin\Release\net8.0\publish\Swashbuckle.AspNetCore.SwaggerUI.dll
