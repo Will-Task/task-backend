@@ -15,17 +15,18 @@ namespace Business.MissionCategoryManagement;
 [RemoteService(false)]
 public class MissionCategoryAppService : ApplicationService, IMissionCategoryAppService
 {
-    private readonly IRepository<MissionCategory, Guid> _MissionCategoryRepository;
-    private readonly IRepository<MissionCategoryI18N, Guid> _MissionCategoryI18NRepository;
-    private readonly IRepository<MissionCategoryView> _MissionCategoryViewRepository;
 
-    public MissionCategoryAppService(IRepository<MissionCategory, Guid> MissionCategoryRepository,
-        IRepository<MissionCategoryI18N, Guid> MissionCategoryI18NRepository,
-        IRepository<MissionCategoryView> MissionCategoryViewRepository)
+    private (
+         IRepository<MissionCategory, Guid> MissionCategory,
+         IRepository<MissionCategoryI18N, Guid> MissionCategoryI18N,
+         IRepository<MissionCategoryView> MissionCategoryView
+    ) _repositorys;
+    
+    public MissionCategoryAppService(IRepository<MissionCategory, Guid> MissionCategory,
+        IRepository<MissionCategoryI18N, Guid> MissionCategoryI18N,
+        IRepository<MissionCategoryView> MissionCategoryView)
     {
-        _MissionCategoryRepository = MissionCategoryRepository;
-        _MissionCategoryI18NRepository = MissionCategoryI18NRepository;
-        _MissionCategoryViewRepository = MissionCategoryViewRepository;
+        _repositorys = (MissionCategory,MissionCategoryI18N,MissionCategoryView);
     }
 
     /// <summary>
@@ -36,7 +37,7 @@ public class MissionCategoryAppService : ApplicationService, IMissionCategoryApp
 
         // 1. 取出當前使用者Id
         var currentUserId = CurrentUser.Id;
-        var missionCategoryViews = await _MissionCategoryViewRepository.GetListAsync(mcv => mcv.UserId == currentUserId);
+        var missionCategoryViews = await _repositorys.MissionCategoryView.GetListAsync(mcv => mcv.UserId == currentUserId);
         return ObjectMapper.Map<List<MissionCategoryView>,List<MissionCategoryViewDto>>(missionCategoryViews);
     }
 
@@ -60,8 +61,8 @@ public class MissionCategoryAppService : ApplicationService, IMissionCategoryApp
         if (input.Id.HasValue)
         {
             // 取出category和對應I18N(若有的話)
-            var missionCategory = await _MissionCategoryRepository.GetAsync(input.Id.Value);
-            await _MissionCategoryRepository.EnsureCollectionLoadedAsync(missionCategory, c
+            var missionCategory = await _repositorys.MissionCategory.GetAsync(input.Id.Value);
+            await _repositorys.MissionCategory.EnsureCollectionLoadedAsync(missionCategory, c
                 => c.MissionCategoryI18Ns);
 
             var missionCategoryI18Ns = missionCategory.MissionCategoryI18Ns;
@@ -80,7 +81,7 @@ public class MissionCategoryAppService : ApplicationService, IMissionCategoryApp
                 missionCategoryI18Ns.Add(newMissionCategoryI18N);
             }
 
-            await _MissionCategoryRepository.UpdateAsync(missionCategory);
+            await _repositorys.MissionCategory.UpdateAsync(missionCategory);
         }
         // 新增categeory
         else
@@ -90,7 +91,7 @@ public class MissionCategoryAppService : ApplicationService, IMissionCategoryApp
             newMissionCategory.MissionCategoryI18Ns = new List<MissionCategoryI18N>();
             
             newMissionCategory.MissionCategoryI18Ns.Add(newMissionCategoryI18N);
-            await _MissionCategoryRepository.InsertAsync(newMissionCategory,autoSave:true);
+            await _repositorys.MissionCategory.InsertAsync(newMissionCategory,autoSave:true);
             input.Id = newMissionCategory.Id;
         }
 
@@ -103,13 +104,13 @@ public class MissionCategoryAppService : ApplicationService, IMissionCategoryApp
     public async Task Delete(Guid id)
     {
         // 1. 刪除任務類別I18N
-        await _MissionCategoryI18NRepository.DeleteAsync(id);
-        var num = await _MissionCategoryI18NRepository.GetCountAsync();
+        await _repositorys.MissionCategoryI18N.DeleteAsync(id);
+        var num = await _repositorys.MissionCategoryI18N.GetCountAsync();
         
         // 2. 沒有關聯I18N刪除
         if (num == 0)
         {
-            await _MissionCategoryRepository.DeleteAsync(id);
+            await _repositorys.MissionCategory.DeleteAsync(id);
         }
     }
 }

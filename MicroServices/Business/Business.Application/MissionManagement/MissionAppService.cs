@@ -31,12 +31,17 @@ namespace Business.MissionManagement;
 [RemoteService(false)]
 public class MissionAppService : ApplicationService, IMissionAppService
 {
-    private readonly IRepository<Mission, Guid> _MissionRepository;
-    private readonly IRepository<MissionI18N, Guid> _MissionI18NRepository;
-    private readonly IRepository<MissionView> _MissionViewRepository;
-    private readonly IRepository<MissionCategoryI18N, Guid> _MissionCategoryI18NRepository;
-    private readonly IRepository<MissionCategoryView> _MissionCategoryViewRepository;
+
+    private (
+        IRepository<Mission, Guid> Mission,
+        IRepository<MissionI18N, Guid> MissionI18N,
+        IRepository<MissionView> MissionView,
+        IRepository<MissionCategoryI18N, Guid> MissionCategoryI18N,
+        IRepository<MissionCategoryView> MissionCategoryView
+    ) _repositoys;
+    
     // private readonly IRepository<IdentityUser, Guid> _UserRepository;
+    private readonly UserManager<IdentityUser> _userManager;
     private readonly IFileAppService _fileAppService;
     private readonly IConfiguration _Configuration;
     private readonly ILogger<MissionAppService> _logger;
@@ -44,24 +49,18 @@ public class MissionAppService : ApplicationService, IMissionAppService
     private readonly int ExcelBeginLine = 4;
     private readonly int ExcelEndLine = 13;
 
-    public MissionAppService(IRepository<Mission, Guid> MissionRepository,
-        IRepository<MissionI18N, Guid> MissionI18NRepository,
-        IRepository<MissionView> MissionViewRepository,
-        IRepository<MissionCategoryI18N, Guid> MissionCategoryI18NRepository,
-        IRepository<MissionCategoryView> MissionCategoryViewRepository,
-        // IRepository<IdentityUser, Guid> UserRepository,
+    public MissionAppService(IRepository<Mission, Guid> Mission,
+        IRepository<MissionI18N, Guid> MissionI18N,
+        IRepository<MissionView> MissionView,
+        IRepository<MissionCategoryI18N, Guid> MissionCategoryI18N,
+        IRepository<MissionCategoryView> MissionCategoryView,
         IFileAppService fileAppService,
         IConfiguration Configuration,
         IDataFilter dataFilter,
         ILogger<MissionAppService> logger)
     {
-        _MissionRepository = MissionRepository;
-        _MissionI18NRepository = MissionI18NRepository;
-        _MissionViewRepository = MissionViewRepository;
-        _MissionCategoryI18NRepository = MissionCategoryI18NRepository;
-        _MissionCategoryViewRepository = MissionCategoryViewRepository;
-        _MissionI18NRepository = MissionI18NRepository;
-        // _UserRepository = UserRepository;
+        _repositoys = (Mission, MissionI18N, MissionView, MissionCategoryI18N,
+            MissionCategoryView);
         _fileAppService = fileAppService;
         _Configuration = Configuration;
         _dataFilter = dataFilter;
@@ -74,7 +73,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
     public async Task<IEnumerable<MissionViewDto>> GetSubMission(Guid id)
     {
         // 抓特定富任務下的子任務(直接透過sql中的view抓)
-        var subMissions = await _MissionViewRepository.GetListAsync(mv => mv.ParentMissionId == id);
+        var subMissions = await _repositoys.MissionView.GetListAsync(mv => mv.ParentMissionId == id);
         return ObjectMapper.Map<List<MissionView>, List<MissionViewDto>>(subMissions);
     }
 
@@ -85,7 +84,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
     {
         // 1. 抓該當前使用者mission & 所有parentId為null的(直接透過sql中的view抓)
         var currentUserId = CurrentUser.Id;
-        var parentMissions = await _MissionViewRepository.GetListAsync(
+        var parentMissions = await _repositoys.MissionView.GetListAsync(
             mv => mv.ParentMissionId == null && mv.UserId == currentUserId);
         return ObjectMapper.Map<List<MissionView>, List<MissionViewDto>>(parentMissions);
     }
@@ -96,7 +95,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
     public async Task<IEnumerable<MissionViewDto>> GetParentMissionByCategoryId(Guid categoryId)
     {
         // 根據類別取得父任務(parentId = null)
-        var missionViews = await _MissionViewRepository.GetListAsync(mv =>
+        var missionViews = await _repositoys.MissionView.GetListAsync(mv =>
             mv.ParentMissionId == null && mv.MissionCategoryId == categoryId);
         return ObjectMapper.Map<List<MissionView>, List<MissionViewDto>>(missionViews);
     }
@@ -107,7 +106,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
     public async Task<IEnumerable<MissionViewDto>> GetMission(Guid id)
     {
         // 1. 撈特定類別的任務(直接透過sql中的view抓)
-        var missionViews = await _MissionViewRepository.GetListAsync(
+        var missionViews = await _repositoys.MissionView.GetListAsync(
             mv => mv.MissionCategoryId == id);
         return ObjectMapper.Map<List<MissionView>, List<MissionViewDto>>(missionViews);
     }
@@ -117,7 +116,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// </summary>
     public async Task MissionReminder()
     {
-        var missions = await _MissionRepository.GetListAsync();
+        var missions = await _repositoys.Mission.GetListAsync();
 
         foreach (var mission in missions)
         {
@@ -140,7 +139,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// </summary>
     public async Task setRemindTime(Guid id, int hour)
     {
-        var mission = await _MissionRepository.GetAsync(id);
+        var mission = await _repositoys.Mission.GetAsync(id);
         mission.MissionBeforeEnd = hour;
     }
 
@@ -171,9 +170,9 @@ public class MissionAppService : ApplicationService, IMissionAppService
         // 修改
         if (input.Id.HasValue)
         {
-            var mission = await _MissionRepository.GetAsync(input.Id.Value);
+            var mission = await _repositoys.Mission.GetAsync(input.Id.Value);
             // 加載關聯I18N資訊
-            await _MissionRepository.EnsureCollectionLoadedAsync(mission, m => m.MissionI18Ns);
+            await _repositoys.Mission.EnsureCollectionLoadedAsync(mission, m => m.MissionI18Ns);
             var missionI18Ns = mission.MissionI18Ns;
             var missionI18N = missionI18Ns.FirstOrDefault(mn => mn.MissionId == input.Id && mn.Lang == input.Lang);
 
@@ -195,7 +194,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
                 missionI18Ns.Add(newMissionI18N);
             }
 
-            await _MissionRepository.UpdateAsync(mission);
+            await _repositoys.Mission.UpdateAsync(mission);
         }
         // 新增任務(不管任何語系，該任務皆不存在)
         else
@@ -209,7 +208,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
             newMission.MissionI18Ns.Add(newMissionI18N);
 
             // 儲存任務I18N(newMission就會有值且此時Guid是有優化過順具的)
-            await _MissionRepository.InsertAsync(newMission, autoSave: true);
+            await _repositoys.Mission.InsertAsync(newMission, autoSave: true);
             // 指定剛剛新增的任務ID
             input.Id = newMission.Id;
         }
@@ -222,7 +221,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// </summary>
     public async Task UpdateMissionState(Guid missionId, int state)
     {
-        var mission = await _MissionRepository.GetAsync(missionId);
+        var mission = await _repositoys.Mission.GetAsync(missionId);
         mission.MissionState = (MissionState)state;
     }
 
@@ -233,14 +232,14 @@ public class MissionAppService : ApplicationService, IMissionAppService
     public async Task Delete(Guid id, int lang)
     {
         // 透過missionId和lang共同判斷要刪除的I18N
-        await _MissionI18NRepository.DeleteAsync(x => x.MissionId == id
-                                                      && x.Lang == lang, autoSave: true);
+        await _repositoys.MissionI18N.DeleteAsync(x => x.MissionId == id
+                                                   && x.Lang == lang, autoSave: true);
 
         // 若該任務不存在任何語系則刪除任務本體
-        var num = await _MissionI18NRepository.CountAsync(x => x.MissionId == id);
+        var num = await _repositoys.MissionI18N.CountAsync(x => x.MissionId == id);
         if (num == 0)
         {
-            await _MissionRepository.DeleteAsync(id, autoSave: true);
+            await _repositoys.Mission.DeleteAsync(id, autoSave: true);
         }
     }
 
@@ -249,17 +248,17 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// </summary>
     public async Task DeleteGroup(List<Guid> subIds, Guid parentId)
     {
-        await _MissionI18NRepository.DeleteManyAsync(subIds, autoSave: true);
+        await _repositoys.MissionI18N.DeleteManyAsync(subIds, autoSave: true);
 
         // 若沒有關聯I18N，刪除mission本體
-        var num = await _MissionRepository.GetCountAsync();
+        var num = await _repositoys.Mission.GetCountAsync();
 
         _logger.LogInformation(
             $"===============================mission還有關聯的I18N資料，共有{num}筆================================================");
 
         if (num == 0)
         {
-            await _MissionRepository.DeleteAsync(parentId);
+            await _repositoys.Mission.DeleteAsync(parentId);
         }
     }
 
@@ -284,14 +283,14 @@ public class MissionAppService : ApplicationService, IMissionAppService
         worksheet.Name = myFileInfo.FileName;
 
         // 父類別任務名稱下拉選單設定
-        var parentMissions = await _MissionViewRepository.GetQueryableAsync();
+        var parentMissions = await _repositoys.MissionView.GetQueryableAsync();
         var parentNames = parentMissions
             .Where(pn => pn.UserId == currentUserId && pn.ParentMissionId == null && pn.Lang == lang)
             .Select(p => p.MissionName).ToList();
         SetExcelFormattion(ref worksheet, parentNames, 'A');
 
         // 類別下拉選單設定
-        var categories = await _MissionCategoryViewRepository.GetQueryableAsync();
+        var categories = await _repositoys.MissionCategoryView.GetQueryableAsync();
         var categoryNames = categories.Where(c => c.UserId == currentUserId && c.Lang == lang)
             .Select(mcn => mcn.MissionCategoryName).ToList();
         SetExcelFormattion(ref worksheet, categoryNames, 'B');
@@ -361,7 +360,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
                     if (extraKey == "MissionCategoryName")
                     {
                         var categoryName = $"{worksheet.Cell($"{nextchar}{i}").Value}";
-                        var query = await _MissionCategoryI18NRepository.GetQueryableAsync();
+                        var query = await _repositoys.MissionCategoryI18N.GetQueryableAsync();
                         var categoryId = query.AsNoTracking().Where(mcn =>
                                 mcn.MissionCategoryName == categoryName && mcn.Lang == lang)
                             .Select(mcn => mcn.MissionCategoryId).First();
@@ -374,7 +373,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
                         var parentMissionName = $"{worksheet.Cell($"{nextchar}{i}").Value}";
                         if (!parentMissionName.IsNullOrEmpty())
                         {
-                            var query = await _MissionViewRepository.GetQueryableAsync();
+                            var query = await _repositoys.MissionView.GetQueryableAsync();
                             var parentMissionId = query.AsNoTracking().Where(mv =>
                                     mv.MissionName == parentMissionName && mv.Lang == lang)
                                 .Select(mv => mv.ParentMissionId).First();
@@ -429,7 +428,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
                 missions.Add(mission);
             }
 
-            await _MissionRepository.InsertManyAsync(missions);
+            await _repositoys.Mission.InsertManyAsync(missions);
             return importDtos;
         }
         catch (Exception e)
@@ -450,10 +449,10 @@ public class MissionAppService : ApplicationService, IMissionAppService
         extraKeys = ExcelKeys.Concat(extraKeys).ToList();
 
         // 取得父任務
-        var parentMission = await _MissionViewRepository.FirstAsync(mv =>
+        var parentMission = await _repositoys.MissionView.FirstAsync(mv =>
             mv.MissionId == parentId && mv.Lang == lang);
         // 取得parentId的子任務
-        var subMissions = await _MissionViewRepository.GetListAsync(mv =>
+        var subMissions = await _repositoys.MissionView.GetListAsync(mv =>
             mv.ParentMissionId == parentId && mv.Lang == lang);
 
         // 取得欲寫入的範本檔案
@@ -544,14 +543,14 @@ public class MissionAppService : ApplicationService, IMissionAppService
         // 避免讓條件過於複雜，使sql無法解析
         var oneDayLater = now.AddDays(1);
         // 結束時間扣掉當前時間小於1天
-        var query = await _MissionRepository.GetQueryableAsync();
+        var query = await _repositoys.Mission.GetQueryableAsync();
         var missionIds = query.Where(m => m.MissionEndTime <= oneDayLater && m.MissionFinishTime == null)
             .Select(m => m.Id).ToList();
 
         foreach (var missionId in missionIds)
         {
             // 默認隨便拿一個寄
-            var i18NQuery = await _MissionI18NRepository.GetQueryableAsync();
+            var i18NQuery = await _repositoys.MissionI18N.GetQueryableAsync();
             var misssionName = i18NQuery.Where(mn => mn.MissionId == missionId)
                 .Select(mn => mn.MissionName).FirstOrDefault();
             // 因為可能 Mission 中 isActive = false 的會找不到
@@ -589,7 +588,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         var worksheet = workBook.Worksheet(1);
         
         // 根據不同子任務寫不同tab中，tab以父任務名稱為主
-        var query = await _MissionViewRepository.GetQueryableAsync();
+        var query = await _repositoys.MissionView.GetQueryableAsync();
         // key : userId , value : subMissions
         var submissions = query.Where(m => m.ParentMissionId != null && m.UserId != null)
             .GroupBy(m => m.UserId)
@@ -610,7 +609,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
 
                 var tabName = "";
                 var parentMissionI18N =
-                    await _MissionI18NRepository.FirstOrDefaultAsync(m => m.Id == submission.ParentMissionId);
+                    await _repositoys.MissionI18N.FirstOrDefaultAsync(m => m.Id == submission.ParentMissionId);
                 if (parentMissionI18N == null)
                 {
                     tabName = "empty";
@@ -652,7 +651,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
     {
         // 檢查到期任務，若到期將IsActive設為false
         var now = Clock.Now;
-        var missions = await _MissionRepository.GetListAsync(m =>
+        var missions = await _repositoys.Mission.GetListAsync(m =>
             m.MissionEndTime.CompareTo(now) == -1 && m.MissionFinishTime == null);
         missions.ForEach(m => m.IsActive = false);
     }

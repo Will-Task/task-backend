@@ -17,20 +17,20 @@ namespace Business.MissionTagManagement;
 [RemoteService(false)]
 public class MissionTagAppService : ApplicationService, IMissionTagAppService
 {
-    private readonly IRepository<MissionTag, Guid> _MissionTagRepository;
-    private readonly IRepository<MissionTagI18N, Guid> _MissionTagI18NRepository;
-    private readonly IRepository<Mission, Guid> _MissionRepository;
-    private readonly IRepository<MissionView> _MissionViewRepository;
 
-    public MissionTagAppService(IRepository<MissionTag, Guid> missionTagRepository,
-        IRepository<MissionTagI18N, Guid> missionTagI18NRepository,
-        IRepository<Mission, Guid> MissionRepository,
-        IRepository<MissionView> MissionViewRepository)
+    private (
+        IRepository<MissionTag, Guid> MissionTag,
+        IRepository<MissionTagI18N, Guid> MissionTagI18N,
+        IRepository<Mission, Guid> Mission,
+        IRepository<MissionView> MissionView
+    ) _repositorys;
+
+    public MissionTagAppService(IRepository<MissionTag, Guid> MissionTag,
+        IRepository<MissionTagI18N, Guid> MissionTagI18N,
+        IRepository<Mission, Guid> Mission,
+        IRepository<MissionView> MissionView)
     {
-        _MissionTagRepository = missionTagRepository;
-        _MissionTagI18NRepository = missionTagI18NRepository;
-        _MissionRepository = MissionRepository;
-        _MissionViewRepository = MissionViewRepository;
+        _repositorys = (MissionTag, MissionTagI18N, Mission, MissionView);
     }
 
     /// <summary>
@@ -50,9 +50,9 @@ public class MissionTagAppService : ApplicationService, IMissionTagAppService
         if (input.Id.HasValue)
         {
             // 找存在的tag
-            var missionTag = await _MissionTagRepository.GetAsync(t => t.Id == input.Id);
+            var missionTag = await _repositorys.MissionTag.GetAsync(t => t.Id == input.Id);
             // 加載關聯tag I18N
-            await _MissionTagRepository.EnsureCollectionLoadedAsync(missionTag, t => t.MissionTagI18Ns);
+            await _repositorys.MissionTag.EnsureCollectionLoadedAsync(missionTag, t => t.MissionTagI18Ns);
             var missionTagMissionTagI18Ns = missionTag.MissionTagI18Ns;
             var missionTagI18N =
                 missionTagMissionTagI18Ns.FirstOrDefault(tn => tn.MissionTagId == input.Id && tn.Lang == input.Lang);
@@ -69,7 +69,7 @@ public class MissionTagAppService : ApplicationService, IMissionTagAppService
                 missionTagI18N.Lang = input.Lang;
             }
 
-            await _MissionTagRepository.UpdateAsync(missionTag);
+            await _repositorys.MissionTag.UpdateAsync(missionTag);
         }
         // 新增標籤
         else
@@ -82,7 +82,7 @@ public class MissionTagAppService : ApplicationService, IMissionTagAppService
             newMissionTag.MissionTagI18Ns = new List<MissionTagI18N>();
             newMissionTag.MissionTagI18Ns.Add(newMissionTagI18N);
             
-            await _MissionTagRepository.InsertAsync(newMissionTag, autoSave: true);
+            await _repositorys.MissionTag.InsertAsync(newMissionTag, autoSave: true);
             input.Id = newMissionTag.Id;
         }
 
@@ -95,11 +95,11 @@ public class MissionTagAppService : ApplicationService, IMissionTagAppService
     public async Task<IEnumerable<MissionViewDto>> FilterTag(Guid id)
     {
         // 取得對應tag & 他所放到的mission
-        var missionTag = await _MissionTagRepository.GetAsync(id);
-        await _MissionTagRepository.EnsureCollectionLoadedAsync(missionTag, t => t.Missions);
+        var missionTag = await _repositorys.MissionTag.GetAsync(id);
+        await _repositorys.MissionTag.EnsureCollectionLoadedAsync(missionTag, t => t.Missions);
         var ids = missionTag.Missions.Select(m => m.Id);
 
-        var missionViews = await _MissionViewRepository.GetListAsync(mv => ids.Contains(mv.MissionId));
+        var missionViews = await _repositorys.MissionView.GetListAsync(mv => ids.Contains(mv.MissionId));
 
         return ObjectMapper.Map<List<MissionView>,List<MissionViewDto>>(missionViews);
     }
@@ -127,11 +127,11 @@ public class MissionTagAppService : ApplicationService, IMissionTagAppService
     private async Task EditTagOnMission(Guid id, Guid missionId, int opt)
     {
         // 1. 撈tag & 他所放到的mission
-        var missionTag = await _MissionTagRepository.GetAsync(id);
-        await _MissionTagRepository.EnsureCollectionLoadedAsync(missionTag, t => t.Missions);
+        var missionTag = await _repositorys.MissionTag.GetAsync(id);
+        await _repositorys.MissionTag.EnsureCollectionLoadedAsync(missionTag, t => t.Missions);
 
         // 2. 撈mission
-        var mission = await _MissionRepository.GetAsync(missionId);
+        var mission = await _repositorys.Mission.GetAsync(missionId);
 
         // 3. 為任務加上標籤
         if (opt == 1)
@@ -143,7 +143,7 @@ public class MissionTagAppService : ApplicationService, IMissionTagAppService
         {
             missionTag.Missions.Remove(mission);
         }
-        await _MissionTagRepository.UpdateAsync(missionTag);
+        await _repositorys.MissionTag.UpdateAsync(missionTag);
     }
 
     /// <summary>
@@ -151,6 +151,6 @@ public class MissionTagAppService : ApplicationService, IMissionTagAppService
     /// </summary>
     public async Task Delete(Guid id, int lang)
     {
-        await _MissionTagI18NRepository.DeleteAsync(tn => tn.MissionTagId == id && tn.Lang == lang);
+        await _repositorys.MissionTagI18N.DeleteAsync(tn => tn.MissionTagId == id && tn.Lang == lang);
     }
 }
