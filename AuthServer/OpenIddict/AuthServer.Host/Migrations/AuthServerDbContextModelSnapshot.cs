@@ -19,7 +19,7 @@ namespace AuthServer.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("_Abp_DatabaseProvider", EfCoreDatabaseProvider.SqlServer)
-                .HasAnnotation("ProductVersion", "8.0.4")
+                .HasAnnotation("ProductVersion", "6.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -30,10 +30,6 @@ namespace AuthServer.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("ApplicationType")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.Property<string>("ClientId")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -41,16 +37,11 @@ namespace AuthServer.Migrations
                     b.Property<string>("ClientSecret")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ClientType")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.Property<string>("ClientUri")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .HasMaxLength(40)
                         .HasColumnType("nvarchar(40)")
                         .HasColumnName("ConcurrencyStamp");
@@ -82,7 +73,6 @@ namespace AuthServer.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ExtraProperties")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("ExtraProperties");
 
@@ -91,9 +81,6 @@ namespace AuthServer.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false)
                         .HasColumnName("IsDeleted");
-
-                    b.Property<string>("JsonWebKeySet")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("LastModificationTime")
                         .HasColumnType("datetime2")
@@ -121,8 +108,9 @@ namespace AuthServer.Migrations
                     b.Property<string>("Requirements")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Settings")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<string>("Type")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
 
@@ -142,7 +130,6 @@ namespace AuthServer.Migrations
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .HasMaxLength(40)
                         .HasColumnType("nvarchar(40)")
                         .HasColumnName("ConcurrencyStamp");
@@ -167,7 +154,6 @@ namespace AuthServer.Migrations
                         .HasColumnName("DeletionTime");
 
                     b.Property<string>("ExtraProperties")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("ExtraProperties");
 
@@ -218,7 +204,6 @@ namespace AuthServer.Migrations
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .HasMaxLength(40)
                         .HasColumnType("nvarchar(40)")
                         .HasColumnName("ConcurrencyStamp");
@@ -252,7 +237,6 @@ namespace AuthServer.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ExtraProperties")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("ExtraProperties");
 
@@ -301,7 +285,6 @@ namespace AuthServer.Migrations
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .HasMaxLength(40)
                         .HasColumnType("nvarchar(40)")
                         .HasColumnName("ConcurrencyStamp");
@@ -329,7 +312,6 @@ namespace AuthServer.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ExtraProperties")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("ExtraProperties");
 

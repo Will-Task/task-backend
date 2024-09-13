@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>BaseService</RootNamespace>
+    <UserSecretsId>614bd171-0324-41b2-8f1f-96069880be71</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
