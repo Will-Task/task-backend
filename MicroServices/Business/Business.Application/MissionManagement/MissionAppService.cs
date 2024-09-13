@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Mail;
 using System.Reflection;
 using System.Threading.Tasks;
+using BaseService.Systems.UserManagement;
 using Business.Enums;
 using Business.FileManagement;
 using Business.FileManagement.Dto;
@@ -31,7 +32,6 @@ namespace Business.MissionManagement;
 [RemoteService(false)]
 public class MissionAppService : ApplicationService, IMissionAppService
 {
-
     private (
         IRepository<Mission, Guid> Mission,
         IRepository<MissionI18N, Guid> MissionI18N,
@@ -40,8 +40,6 @@ public class MissionAppService : ApplicationService, IMissionAppService
         IRepository<MissionCategoryView> MissionCategoryView
     ) _repositoys;
     
-    // private readonly IRepository<IdentityUser, Guid> _UserRepository;
-    private readonly UserManager<IdentityUser> _userManager;
     private readonly IFileAppService _fileAppService;
     private readonly IConfiguration _Configuration;
     private readonly ILogger<MissionAppService> _logger;
@@ -114,6 +112,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// <summary>
     /// 任務提醒通知(寄email)
     /// </summary>
+    [AllowAnonymous]
     public async Task MissionReminder()
     {
         var missions = await _repositoys.Mission.GetListAsync();
@@ -128,10 +127,12 @@ public class MissionAppService : ApplicationService, IMissionAppService
                 continue;
             }
 
+            // var user = await _UserAppService.Get(mission.UserId.Value);
+            // var user = await _userManager.FindByIdAsync(mission.UserId.ToString());
             // var query = await _UserRepository.GetQueryableAsync();
             // var email = await query.Select(u => u.Email).FirstAsync();
-            // await SendEmail("任務提醒通知", "你的任務快到期了喔，趕緊完成!", email, null);
-        }
+            await SendEmail("任務提醒通知", "你的任務快到期了喔，趕緊完成!", mission.Email, null);
+        } 
     }
 
     /// <summary>
@@ -204,6 +205,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
             // 新建任務為TODO
             newMission.MissionState = MissionState.TO_DO;
             newMission.UserId = CurrentUser.Id;
+            newMission.Email = CurrentUser.Email;
             newMission.MissionI18Ns = new List<MissionI18N>();
             newMission.MissionI18Ns.Add(newMissionI18N);
 
@@ -544,14 +546,14 @@ public class MissionAppService : ApplicationService, IMissionAppService
         var oneDayLater = now.AddDays(1);
         // 結束時間扣掉當前時間小於1天
         var query = await _repositoys.Mission.GetQueryableAsync();
-        var missionIds = query.Where(m => m.MissionEndTime <= oneDayLater && m.MissionFinishTime == null)
-            .Select(m => m.Id).ToList();
+        var missionMap = query.Where(m => m.MissionEndTime <= oneDayLater && m.MissionFinishTime == null)
+            .GroupBy(m => m.Id).ToDictionary(g => g.Key , g => g.First().Email);
 
-        foreach (var missionId in missionIds)
+        foreach (var mission in missionMap)
         {
             // 默認隨便拿一個寄
             var i18NQuery = await _repositoys.MissionI18N.GetQueryableAsync();
-            var misssionName = i18NQuery.Where(mn => mn.MissionId == missionId)
+            var misssionName = i18NQuery.Where(mn => mn.MissionId == mission.Key)
                 .Select(mn => mn.MissionName).FirstOrDefault();
             // 因為可能 Mission 中 isActive = false 的會找不到
             if (misssionName.IsNullOrEmpty())
@@ -560,7 +562,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
             }
 
             // 寄發email(之後放入使用者email)
-            await SendEmail(misssionName + "任務24小時內即將到期", "任務快過期了喔，趕緊去完成", "will582145@gmail.com");
+            await SendEmail(misssionName + "任務24小時內即將到期", "任務快過期了喔，趕緊去完成", mission.Value);
         }
     }
 
@@ -597,6 +599,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         foreach (var key in submissions.Keys)
         {
             int i = ExcelBeginLine;
+            string email = "";
             
             foreach (var submission in submissions[key])
             {
@@ -628,17 +631,17 @@ public class MissionAppService : ApplicationService, IMissionAppService
                     nextChar++;
                 }
 
+                email = submission.Email;
                 i++;
             }
-            // 取得使用者gmail
-            // var user = await _UserRepository.GetAsync(u => u.Id == key);
+            
             var parentMissionName = worksheet.Name;
             using var savingMemoryStream = new MemoryStream();
             workBook.SaveAs(savingMemoryStream);
 
             var fileDto = new MyFileInfoDto { FileContent = savingMemoryStream.ToArray(), FileName = parentMissionName };
             
-            // await SendEmail("每周任務報告", "這是你一周以來完成和過期的任務統計", user.Email, fileDto);
+            await SendEmail("每周任務報告", "這是你一周以來完成和過期的任務統計", email, fileDto);
         }
     }
 

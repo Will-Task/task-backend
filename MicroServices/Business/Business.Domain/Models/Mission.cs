@@ -11,6 +11,9 @@ namespace Business.Models;
 public class Mission: AuditedAggregateRoot<Guid> , ISoftDelete,IIsActive
 {
     public Guid? UserId { get; set; }
+    
+    public string Email { get; set; }
+    
     // 任務重要程度
     public int MissionPriority { get; set; }
     
