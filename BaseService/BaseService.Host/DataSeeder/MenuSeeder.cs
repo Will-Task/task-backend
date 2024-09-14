@@ -92,7 +92,7 @@ namespace BaseService.DataSeeder
             seed.Add(new Menu(Guid.NewGuid()) { Pid = tenant.Id, CategoryId = 2, Name = "Create", Label = "新增", Sort = 3, Permission = "AbpTenantManagement.Tenants.Create", Icon = "create", Hidden = true, IsHost = true });
             seed.Add(saas); seed.Add(tenant);
 
-            var home = new Menu(Guid.NewGuid()) { CategoryId = 1, Name = "home", Label = "首页", Sort = 1, Path = "/home", Component = "Layout", Permission = "AbpTenantManagement.Tenants", Icon = "ele-House", IsHost = true, Title = "message.router.home" };
+            var home = new Menu(Guid.NewGuid()) { CategoryId = 1, Name = "home", Label = "首页", Sort = 1, Path = "/home", Component = "Layout", Icon = "ele-House", IsHost = true, Title = "message.router.home" };
             var dashboard = new Menu(Guid.NewGuid()) { Pid = home.Id, CategoryId = 1, Name = "dashboard", Label = "工作台", Sort = 1, Path = "/home/dashboard", Component = "/home/index", Icon = "ele-HomeFilled", IsHost = true, Title = "message.router.dashboard", IsAffix = true };
             seed.Add(home); seed.Add(dashboard);
 
