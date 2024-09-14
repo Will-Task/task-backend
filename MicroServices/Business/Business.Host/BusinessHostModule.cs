@@ -74,7 +74,8 @@ namespace Business
         {
             Configure<AbpMultiTenancyOptions>(options =>
             {
-                options.IsEnabled = true;
+                // 關掉多租戶
+                options.IsEnabled = false;
             });
         }
 
