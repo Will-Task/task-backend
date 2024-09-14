@@ -10,7 +10,7 @@ using Volo.Abp.AspNetCore.Mvc;
 namespace Business.Controllers;
 
 [Area("missionCategory")]
-[Route("api/mission-category")]
+[Route("api/business/mission-category")]
 public class MissionCategoryController : AbpController
 {
     private readonly IMissionCategoryAppService _missionCategoryAppService;

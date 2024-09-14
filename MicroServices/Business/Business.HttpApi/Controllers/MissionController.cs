@@ -11,7 +11,7 @@ using Volo.Abp.AspNetCore.Mvc;
 namespace Business.Controllers;
 
 [Area("Mission")]
-[Route("api/mission")]
+[Route("api/business/mission")]
 public class MissionController : AbpController
 {
     private readonly IMissionAppService _missionAppService;

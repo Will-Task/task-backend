@@ -11,7 +11,7 @@ using Volo.Abp.AspNetCore.Mvc;
 namespace Business.Controllers;
 
 [Area("MissionTag")]
-[Route("api/mission-tag")]
+[Route("api/business/mission-tag")]
 public class MissionTagController : AbpController
 {
     private readonly IMissionTagAppService _missionTagAppService;
