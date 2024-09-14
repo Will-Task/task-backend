@@ -6,6 +6,7 @@ using Business.MissionCategoryManagement.Dto;
 using Business.Models;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
+using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 
@@ -15,30 +16,40 @@ namespace Business.MissionCategoryManagement;
 [RemoteService(false)]
 public class MissionCategoryAppService : ApplicationService, IMissionCategoryAppService
 {
-
     private (
-         IRepository<MissionCategory, Guid> MissionCategory,
-         IRepository<MissionCategoryI18N, Guid> MissionCategoryI18N,
-         IRepository<MissionCategoryView> MissionCategoryView
-    ) _repositorys;
-    
+        IRepository<MissionCategory, Guid> MissionCategory,
+        IRepository<MissionCategoryI18N, Guid> MissionCategoryI18N,
+        IRepository<MissionCategoryView> MissionCategoryView
+        ) _repositorys;
+
     public MissionCategoryAppService(IRepository<MissionCategory, Guid> MissionCategory,
         IRepository<MissionCategoryI18N, Guid> MissionCategoryI18N,
         IRepository<MissionCategoryView> MissionCategoryView)
     {
-        _repositorys = (MissionCategory,MissionCategoryI18N,MissionCategoryView);
+        _repositorys = (MissionCategory, MissionCategoryI18N, MissionCategoryView);
     }
 
     /// <summary>
     /// 查看當前使用者所建立的任務類別
     /// </summary>
-    public async Task<IEnumerable<MissionCategoryViewDto>> GetAll()
+    public async Task<PagedResultDto<MissionCategoryViewDto>> GetAll()
     {
-
         // 1. 取出當前使用者Id
         var currentUserId = CurrentUser.Id;
-        var missionCategoryViews = await _repositorys.MissionCategoryView.GetListAsync(mcv => mcv.UserId == currentUserId);
-        return ObjectMapper.Map<List<MissionCategoryView>,List<MissionCategoryViewDto>>(missionCategoryViews);
+        var missionCategoryViews =
+            await _repositorys.MissionCategoryView.GetListAsync(mcv => mcv.UserId == currentUserId);
+        var dtos = ObjectMapper.Map<List<MissionCategoryView>, List<MissionCategoryViewDto>>(missionCategoryViews);
+
+        return new PagedResultDto<MissionCategoryViewDto>(dtos.Count, dtos);
+    }
+
+    /// <summary>
+    /// 查看特定任務類別
+    /// </summary>
+    public async Task<MissionCategoryViewDto> Get(Guid id)
+    {
+        var category = await _repositorys.MissionCategoryView.GetAsync(mc => mc.MissionCategoryId == id);
+        return ObjectMapper.Map<MissionCategoryView, MissionCategoryViewDto>(category);
     }
 
     /// <summary>
