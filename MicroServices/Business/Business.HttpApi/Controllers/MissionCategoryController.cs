@@ -54,10 +54,10 @@ public class MissionCategoryController : AbpController
     /// <summary>
     /// 刪除當前使用者所建立的任務類別
     /// </summary>
-    [HttpDelete]
+    [HttpPost]
     [Route("delete")]
-    public async Task Delete(Guid id)
+    public async Task Delete([FromBody]List<Guid> ids)
     {
-        await _missionCategoryAppService.Delete(id);
+        await _missionCategoryAppService.Delete(ids);
     }
 }

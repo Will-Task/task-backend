@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 using Business.MissionCategoryManagement.Dto;
 using Business.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -22,11 +25,15 @@ public class MissionCategoryAppService : ApplicationService, IMissionCategoryApp
         IRepository<MissionCategoryView> MissionCategoryView
         ) _repositorys;
 
+    private readonly ILogger<MissionCategoryAppService> _logger;
+
     public MissionCategoryAppService(IRepository<MissionCategory, Guid> MissionCategory,
         IRepository<MissionCategoryI18N, Guid> MissionCategoryI18N,
-        IRepository<MissionCategoryView> MissionCategoryView)
+        IRepository<MissionCategoryView> MissionCategoryView,
+        ILogger<MissionCategoryAppService> logger)
     {
         _repositorys = (MissionCategory, MissionCategoryI18N, MissionCategoryView);
+        _logger = logger;
     }
 
     /// <summary>
@@ -100,28 +107,43 @@ public class MissionCategoryAppService : ApplicationService, IMissionCategoryApp
             var newMissionCategory = ObjectMapper.Map<CreateOrUpodateMissionCategoryDto, MissionCategory>(input);
             newMissionCategory.UserId = CurrentUser.Id;
             newMissionCategory.MissionCategoryI18Ns = new List<MissionCategoryI18N>();
-            
+
             newMissionCategory.MissionCategoryI18Ns.Add(newMissionCategoryI18N);
-            await _repositorys.MissionCategory.InsertAsync(newMissionCategory,autoSave:true);
+            await _repositorys.MissionCategory.InsertAsync(newMissionCategory, autoSave: true);
             input.Id = newMissionCategory.Id;
         }
 
-        return ObjectMapper.Map<CreateOrUpodateMissionCategoryDto,MissionCategoryI18Dto>(input);
+        return ObjectMapper.Map<CreateOrUpodateMissionCategoryDto, MissionCategoryI18Dto>(input);
     }
 
     /// <summary>
     /// 刪除當前使用者所建立的任務類別
     /// </summary>
-    public async Task Delete(Guid id)
+    public async Task Delete(List<Guid> ids)
     {
-        // 1. 刪除任務類別I18N
-        await _repositorys.MissionCategoryI18N.DeleteAsync(id);
-        var num = await _repositorys.MissionCategoryI18N.GetCountAsync();
-        
-        // 2. 沒有關聯I18N刪除
-        if (num == 0)
+        try
         {
-            await _repositorys.MissionCategory.DeleteAsync(id);
+            var categories =
+                await _repositorys.MissionCategoryI18N.GetListAsync(mc => ids.Contains(mc.MissionCategoryId));
+            // 1. 刪除任務類別I18N
+            await _repositorys.MissionCategoryI18N.DeleteManyAsync(categories, autoSave: true);
+
+            foreach (var id in ids)
+            {
+                var query = await _repositorys.MissionCategoryI18N.GetQueryableAsync();
+                query = query.Where(mc => mc.MissionCategoryId == id);
+                var count = await query.CountAsync();
+
+                // 2. 沒有關聯I18N刪除
+                if (count == 0)
+                {
+                    await _repositorys.MissionCategory.DeleteAsync(id);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            _logger.LogInformation("=========================刪除任務類別失敗====================" + e.StackTrace.ToString());
         }
     }
 }

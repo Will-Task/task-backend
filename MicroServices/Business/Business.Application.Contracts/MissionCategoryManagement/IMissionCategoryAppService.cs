@@ -29,5 +29,5 @@ public interface IMissionCategoryAppService : IApplicationService
     /// <summary>
     /// 刪除當前使用者所建立的任務類別
     /// </summary>
-    Task Delete(Guid id);
+    Task Delete(List<Guid> ids);
 }
