@@ -115,21 +115,14 @@ public class MissionController : AbpController
     /// <summary>
     /// 刪除任務(過期任務不會被刪除)
     /// </summary>
-    [HttpDelete]
+    [HttpPost]
     [Route("delete")]
-    public async Task Delete(Guid id, int lang)
+    public async Task Delete([FromBody]List<Guid> ids , int lang = 1)
     {
-        await _missionAppService.Delete(id, lang);
-    }
-    
-    /// <summary>
-    /// 刪除任務(過期任務不會被刪除，刪除某父任務下的子任務)
-    /// </summary>
-    [HttpDelete]
-    [Route("delete-group")]
-    public async Task DeleteGroup(List<Guid> subIds,Guid parentId)
-    {
-        await _missionAppService.DeleteGroup(subIds,parentId);
+        foreach (var id in ids)
+        {
+            await _missionAppService.Delete(id , lang);
+        }
     }
 
     /// <summary>

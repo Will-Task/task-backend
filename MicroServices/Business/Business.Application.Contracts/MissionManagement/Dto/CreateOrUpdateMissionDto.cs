@@ -19,6 +19,11 @@ public class CreateOrUpdateMissionDto : EntityDto<Guid?>
     public DateTime MissionStartTime { get; set; }
     
     public DateTime MissionEndTime { get; set; }
+    
+    /// <summary>
+    /// 用來設置要在結束前多久提醒，預設為前一天
+    /// </summary>
+    public int MissionBeforeEnd { get; set; }
 
     //任務名稱
     public string? MissionName { get; set; }

@@ -247,15 +247,15 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// 刪除任務(過期任務不會被刪除)
     /// </summary>
     /// <param name="id">任務I18N的ID。</param>
-    public async Task Delete(Guid id, int lang)
+    public async Task Delete(Guid id , int lang)
     {
         // 透過missionId和lang共同判斷要刪除的I18N
         await _repositoys.MissionI18N.DeleteAsync(x => x.MissionId == id
                                                    && x.Lang == lang, autoSave: true);
 
         // 若該任務不存在任何語系則刪除任務本體
-        var num = await _repositoys.MissionI18N.CountAsync(x => x.MissionId == id);
-        if (num == 0)
+        var count = await _repositoys.MissionI18N.CountAsync(x => x.MissionId == id);
+        if (count == 0)
         {
             await _repositoys.Mission.DeleteAsync(id, autoSave: true);
         }

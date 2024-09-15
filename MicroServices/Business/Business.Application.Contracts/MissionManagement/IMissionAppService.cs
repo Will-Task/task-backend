@@ -59,7 +59,7 @@ public interface IMissionAppService : IApplicationService
     /// <summary>
     /// 刪除任務(過期任務不會被刪除)
     /// </summary>
-    Task Delete(Guid id, int lang);
+    Task Delete(Guid id , int lang);
     
     /// <summary>
     /// 刪除任務(過期任務不會被刪除，刪除某父任務下的子任務)
