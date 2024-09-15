@@ -14,7 +14,7 @@ public interface IMissionCategoryAppService : IApplicationService
     /// <summary>
     /// 查看當前使用者所建立的任務類別
     /// </summary>
-    Task<PagedResultDto<MissionCategoryViewDto>> GetAll();
+    Task<PagedResultDto<MissionCategoryViewDto>> GetAll(int page , int pageSize);
     
     /// <summary>
     /// 查看特定任務類別

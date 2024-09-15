@@ -20,6 +20,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Volo.Abp;
+using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Data;
 using Volo.Abp.Domain.Repositories;
@@ -84,6 +85,22 @@ public class MissionAppService : ApplicationService, IMissionAppService
         var parentMissions = await _repositoys.MissionView.GetListAsync(
             mv => mv.ParentMissionId == null && mv.UserId == currentUserId);
         return ObjectMapper.Map<List<MissionView>, List<MissionViewDto>>(parentMissions);
+    }
+
+    /// <summary>
+    /// 查詢所有父任務(多個，分頁)
+    /// </summary>
+    public async Task<PagedResultDto<MissionViewDto>> GetParentMissionByPage(int page , int pageSize)
+    {
+        // 1. 抓該當前使用者mission & 所有parentId為null的(直接透過sql中的view抓)
+        var currentUserId = CurrentUser.Id;
+        var query = await _repositoys.MissionView.GetQueryableAsync();
+        query = query.Where(mv => mv.ParentMissionId == null && mv.UserId == currentUserId);
+        var count = await query.CountAsync();
+        var parents = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+        var dtos = ObjectMapper.Map<List<MissionView>, List<MissionViewDto>>(parents);
+        
+        return new PagedResultDto<MissionViewDto>(count,dtos);
     }
 
     /// <summary>

@@ -6,6 +6,7 @@ using Business.MissionManagement;
 using Business.MissionManagement.Dto;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Volo.Abp.Application.Dtos;
 using Volo.Abp.AspNetCore.Mvc;
 
 namespace Business.Controllers;
@@ -25,7 +26,7 @@ public class MissionController : AbpController
     /// 獲取父任務下的子任務(多個)
     /// </summary>
     [HttpGet]
-    [Route("get-sub")]
+    [Route("sub")]
     public Task<IEnumerable<MissionViewDto>> GetSubMission(Guid id)
     {
         return _missionAppService.GetSubMission(id);
@@ -35,17 +36,27 @@ public class MissionController : AbpController
     /// 查詢所有父任務(多個)
     /// </summary>
     [HttpGet]
-    [Route("get-parent")]
+    [Route("parent")]
     public Task<IEnumerable<MissionViewDto>> GetParentMission()
     {
         return _missionAppService.GetParentMission();
+    }
+    
+    /// <summary>
+    /// 查詢所有父任務(多個，分頁)
+    /// </summary>
+    [HttpGet]
+    [Route("parent/page")]
+    public Task<PagedResultDto<MissionViewDto>> GetParentMissionByPage(int page , int pageSize)
+    {
+        return _missionAppService.GetParentMissionByPage(page,pageSize);
     }
 
     /// <summary>
     /// 根據類別取得父任務
     /// </summary>
     [HttpGet]
-    [Route("get-parent/{categoryId}")]
+    [Route("parent/{categoryId}")]
     public Task<IEnumerable<MissionViewDto>> GetParentMission(Guid categoryId)
     {
         return _missionAppService.GetParentMissionByCategoryId(categoryId);
@@ -55,7 +66,7 @@ public class MissionController : AbpController
     /// 查詢特定類別下的任務(多個)
     /// </summary>
     [HttpGet]
-    [Route("get")]
+    [Route("{id}")]
     public Task<IEnumerable<MissionViewDto>> GetMission(Guid id)
     {
         return _missionAppService.GetMission(id);

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Business.FileManagement.Dto;
 using Business.MissionManagement.Dto;
 using Microsoft.AspNetCore.Http;
+using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 
 namespace Business.MissionManagement;
@@ -19,6 +20,11 @@ public interface IMissionAppService : IApplicationService
     /// 查詢所有父任務(多個)
     /// </summary>
     Task<IEnumerable<MissionViewDto>> GetParentMission();
+    
+    /// <summary>
+    /// 查詢所有父任務(多個，分頁)
+    /// </summary>
+    Task<PagedResultDto<MissionViewDto>> GetParentMissionByPage(int page , int pageSize);
     
     /// <summary>
     /// 根據類別取得父任務
