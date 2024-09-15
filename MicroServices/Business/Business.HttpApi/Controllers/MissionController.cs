@@ -37,19 +37,9 @@ public class MissionController : AbpController
     /// </summary>
     [HttpGet]
     [Route("parent")]
-    public Task<IEnumerable<MissionViewDto>> GetParentMission()
+    public Task<PagedResultDto<MissionViewDto>> GetParentMission(int page , int pageSize , bool allData)
     {
-        return _missionAppService.GetParentMission();
-    }
-    
-    /// <summary>
-    /// 查詢所有父任務(多個，分頁)
-    /// </summary>
-    [HttpGet]
-    [Route("parent/page")]
-    public Task<PagedResultDto<MissionViewDto>> GetParentMissionByPage(int page , int pageSize)
-    {
-        return _missionAppService.GetParentMissionByPage(page,pageSize);
+        return _missionAppService.GetParentMission(page , pageSize , allData);
     }
 
     /// <summary>
@@ -61,12 +51,22 @@ public class MissionController : AbpController
     {
         return _missionAppService.GetParentMissionByCategoryId(categoryId);
     }
+    
+    /// <summary>
+    /// 查詢特定任務(單個)
+    /// </summary>
+    [HttpGet]
+    [Route("{id}")]
+    public Task<MissionViewDto> Get(Guid id)
+    {
+        return _missionAppService.Get(id);
+    }
 
     /// <summary>
     /// 查詢特定類別下的任務(多個)
     /// </summary>
     [HttpGet]
-    [Route("{id}")]
+    [Route("category/{id}")]
     public Task<IEnumerable<MissionViewDto>> GetMission(Guid id)
     {
         return _missionAppService.GetMission(id);

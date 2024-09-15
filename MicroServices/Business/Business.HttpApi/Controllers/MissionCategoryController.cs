@@ -26,9 +26,9 @@ public class MissionCategoryController : AbpController
     /// </summary>
     [HttpGet]
     [Route("all")]
-    public Task<PagedResultDto<MissionCategoryViewDto>> GetAll(int page , int pageSize)
+    public Task<PagedResultDto<MissionCategoryViewDto>> GetAll(int page , int pageSize , bool allData)
     {
-        return _missionCategoryAppService.GetAll(page ,  pageSize);
+        return _missionCategoryAppService.GetAll(page , pageSize , allData);
     }
     
     /// <summary>

@@ -19,17 +19,17 @@ public interface IMissionAppService : IApplicationService
     /// <summary>
     /// 查詢所有父任務(多個)
     /// </summary>
-    Task<IEnumerable<MissionViewDto>> GetParentMission();
-    
-    /// <summary>
-    /// 查詢所有父任務(多個，分頁)
-    /// </summary>
-    Task<PagedResultDto<MissionViewDto>> GetParentMissionByPage(int page , int pageSize);
+    Task<PagedResultDto<MissionViewDto>> GetParentMission(int page , int pageSize , bool allData);
     
     /// <summary>
     /// 根據類別取得父任務
     /// </summary>
     Task<IEnumerable<MissionViewDto>> GetParentMissionByCategoryId(Guid categoryId);
+    
+    /// <summary>
+    /// 查詢特定任務(單個)
+    /// </summary>
+    Task<MissionViewDto> Get(Guid id);
     
     /// <summary>
     /// 查詢特定類別下的任務(多個)
