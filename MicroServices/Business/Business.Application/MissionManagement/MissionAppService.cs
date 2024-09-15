@@ -102,6 +102,17 @@ public class MissionAppService : ApplicationService, IMissionAppService
             mv.ParentMissionId == null && mv.MissionCategoryId == categoryId);
         return ObjectMapper.Map<List<MissionView>, List<MissionViewDto>>(missionViews);
     }
+    
+    /// <summary>
+    /// 查詢特定任務(單個)
+    /// </summary>
+    public async Task<MissionViewDto> Get(Guid id)
+    {
+        // 1. 撈特定類別的任務(直接透過sql中的view抓)
+        var mission = await _repositoys.MissionView.GetAsync(
+            mv => mv.MissionId == id);
+        return ObjectMapper.Map<MissionView,MissionViewDto>(mission);
+    }
 
     /// <summary>
     /// 查詢特定類別下的任務(多個)

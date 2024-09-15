@@ -7,7 +7,6 @@ namespace Business.Models;
 
 public class MissionView: Entity<Int64>
 {
-    
     public Guid MissionId { get; set; }
     
     public MissionState MissionState { get; set; }
@@ -20,6 +19,8 @@ public class MissionView: Entity<Int64>
 
     [Required] 
     public DateTime MissionEndTime { get; set; }
+    
+    public int MissionBeforeEnd { get; set; }
     
     public DateTime? MissionFinishTime { get; set; }
     

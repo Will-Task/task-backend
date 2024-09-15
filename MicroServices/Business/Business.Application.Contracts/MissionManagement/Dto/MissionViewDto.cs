@@ -19,6 +19,8 @@ public class MissionViewDto : EntityDto<Int64>
 
     [Required] 
     public DateTime MissionEndTime { get; set; }
+    
+    public int MissionBeforeEnd { get; set; }
 
     [Required] 
     public string? MissionName { get; set; }
