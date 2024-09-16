@@ -342,7 +342,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
     }
 
     /// <summary>
-    /// 資料匯入
+    /// 資料匯入檢查
     /// </summary>
     public async Task<IEnumerable<MissionImportDto>> ImportFileCheck(IFormFile file, int lang)
     {
@@ -394,8 +394,8 @@ public class MissionAppService : ApplicationService, IMissionAppService
                         {
                             var query = await _repositoys.MissionView.GetQueryableAsync();
                             var parentMissionId = query.Where(mv =>
-                                    mv.MissionName == parentMissionName && mv.Lang == lang)
-                                .Select(mv => mv.ParentMissionId).First();
+                                                             mv.MissionName == parentMissionName && mv.Lang == lang)
+                                                            .Select(mv => mv.MissionId).First();
                             property = typeof(MissionImportDto).GetProperty("ParentMissionId");
                             property.SetValue(importDto, parentMissionId);
                         }
