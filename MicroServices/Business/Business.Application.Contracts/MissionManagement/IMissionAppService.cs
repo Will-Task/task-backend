@@ -72,9 +72,14 @@ public interface IMissionAppService : IApplicationService
     Task<MyFileInfoDto> DNSample(string fileName,int lang);
 
     /// <summary>
+    /// 資料匯入檢查
+    /// </summary>
+    Task<IEnumerable<MissionImportDto>> ImportFileCheck(IFormFile file,int lang);
+    
+    /// <summary>
     /// 資料匯入
     /// </summary>
-    Task<IEnumerable<MissionImportDto>> ImportFile(IFormFile file,int lang);
+    Task ImportFile(List<MissionImportDto> dtos);
 
     /// <summary>
     /// 資料匯出(子任務)

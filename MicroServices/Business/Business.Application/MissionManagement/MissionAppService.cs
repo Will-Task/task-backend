@@ -344,7 +344,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// <summary>
     /// 資料匯入
     /// </summary>
-    public async Task<IEnumerable<MissionImportDto>> ImportFile(IFormFile file, int lang)
+    public async Task<IEnumerable<MissionImportDto>> ImportFileCheck(IFormFile file, int lang)
     {
         try
         {
@@ -389,13 +389,15 @@ public class MissionAppService : ApplicationService, IMissionAppService
                     else if (extraKey == "MissionName")
                     {
                         var parentMissionName = $"{worksheet.Cell($"{nextchar}{i}").Value}";
+                        property.SetValue(importDto, parentMissionName);
                         if (!parentMissionName.IsNullOrEmpty())
                         {
                             var query = await _repositoys.MissionView.GetQueryableAsync();
-                            var parentMissionId = query.AsNoTracking().Where(mv =>
+                            var parentMissionId = query.Where(mv =>
                                     mv.MissionName == parentMissionName && mv.Lang == lang)
                                 .Select(mv => mv.ParentMissionId).First();
-                            property.SetValue(importDto, parentMissionId.ToString());
+                            property = typeof(MissionImportDto).GetProperty("ParentMissionId");
+                            property.SetValue(importDto, parentMissionId);
                         }
                     }
                     else if (extraKey == "MissionPriority" || extraKey == "SubMissionLang")
@@ -425,36 +427,43 @@ public class MissionAppService : ApplicationService, IMissionAppService
 
                 importDtos.Add(importDto);
             }
-
-            var missions = new List<Mission>();
-
-            // 將讀出資料進行匯入
-            foreach (var importDto in importDtos)
-            {
-                var mission = ObjectMapper.Map<MissionImportDto, Mission>(importDto);
-                importDto.MissionName = importDto.MissionName.IsNullOrEmpty()
-                    ? importDto.SubMissionName
-                    : importDto.MissionName;
-                mission.UserId = currentUserId;
-                mission.MissionI18Ns = new List<MissionI18N>();
-                mission.MissionI18Ns.Add(new MissionI18N
-                {
-                    MissionName = importDto.SubMissionName,
-                    MissionDescription = importDto.SubMissionDescription,
-                    Lang = importDto.SubMissionLang
-                });
-                missions.Add(mission);
-            }
-
-            await _repositoys.Mission.InsertManyAsync(missions);
+            
             return importDtos;
         }
         catch (Exception e)
         {
-            _logger.LogError(
+            _logger.LogInformation(
                 $"===========================mission import error {e.StackTrace.ToString()}================================================");
             return null;
         }
+    }
+
+    /// <summary>
+    /// 資料匯入
+    /// </summary>
+    public async Task ImportFile(List<MissionImportDto> dtos)
+    {
+        var missions = new List<Mission>();
+        var currentUserId = CurrentUser.Id;
+        
+        // 將讀出資料進行匯入
+        foreach (var dto in dtos)
+        {
+            var mission = ObjectMapper.Map<MissionImportDto, Mission>(dto);
+            dto.MissionName = dto.MissionName.IsNullOrEmpty()
+                ? dto.SubMissionName
+                : dto.MissionName;
+            mission.UserId = currentUserId;
+            mission.MissionI18Ns = new List<MissionI18N>();
+            mission.MissionI18Ns.Add(new MissionI18N
+            {
+                MissionName = dto.SubMissionName,
+                MissionDescription = dto.SubMissionDescription,
+                Lang = dto.SubMissionLang
+            });
+            missions.Add(mission);
+        }
+        await _repositoys.Mission.InsertManyAsync(missions);
     }
 
     /// <summary>

@@ -7,11 +7,9 @@ namespace Business.MissionManagement.Dto;
 
 public class MissionImportDto : EntityDto<Guid?>
 {
-    public Guid? ParentMissionId { get; set; }
-    
     //任務名稱
     [Required]
-    public string? MissionName { get; set; }
+    public string MissionName { get; set; }
     
     [Required]
     public string MissionCategoryName { get; set; }
@@ -40,4 +38,6 @@ public class MissionImportDto : EntityDto<Guid?>
     [Required]
     // 對應語系
     public int SubMissionLang { get; set; }
+    
+    public Guid? ParentMissionId { get; set; }
 }

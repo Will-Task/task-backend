@@ -134,18 +134,28 @@ public class MissionController : AbpController
     public async Task<IActionResult> DNSample(string fileName, int lang)
     {
         var fileDto = await _missionAppService.DNSample(fileName, lang);
-        return File(fileDto.FileContent, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        return File(fileDto.FileContent, "application/octet-stream",
             fileDto.FileName);
     }
 
     /// <summary>
+    /// 資料匯入檢查
+    /// </summary>
+    [HttpPost]
+    [Route("import-file-check")]
+    public async Task<IEnumerable<MissionImportDto>> ImportFileCheck(IFormFile file, int lang)
+    {
+        return await _missionAppService.ImportFileCheck(file,lang);
+    }
+    
+    /// <summary>
     /// 資料匯入
     /// </summary>
     [HttpPost]
-    [Route("import")]
-    public async Task<IEnumerable<MissionImportDto>> ImportFile(IFormFile file, int lang)
+    [Route("import-file")]
+    public async Task ImportFile([FromBody]List<MissionImportDto> dtos)
     {
-        return await _missionAppService.ImportFile(file,lang);
+        await _missionAppService.ImportFile(dtos);
     }
 
     /// <summary>

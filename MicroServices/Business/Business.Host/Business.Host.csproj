@@ -36,7 +36,7 @@
 
   <ItemGroup>
     <Folder Include="DataSeeder\" />
-    <Folder Include="wwwroot\" />
+    <Folder Include="wwwroot\samples\" />
   </ItemGroup>
 
 </Project>

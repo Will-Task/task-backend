@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Business.Batch.Trigger")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+83707fc1a9fe3b7d999838a4762186b91c0e4b80")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+aec0c16736f01b82b5c838fc321ef6d693ce435d")]
 [assembly: System.Reflection.AssemblyProductAttribute("Business.Batch.Trigger")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Business.Batch.Trigger")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

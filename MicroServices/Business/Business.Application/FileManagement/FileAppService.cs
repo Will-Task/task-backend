@@ -10,7 +10,6 @@ using Volo.Abp.Domain.Repositories;
 
 namespace Business.FileManagement;
 
-[Authorize]
 public class FileAppService : ApplicationService, IFileAppService
 {
     private readonly IRepository<MyFileInfo> _repository;
@@ -29,8 +28,7 @@ public class FileAppService : ApplicationService, IFileAppService
         var file = fileInfoDto.file;
         var currentDirectory = Environment.CurrentDirectory;
         string fName = GuidGenerator.Create().ToString() + Path.GetExtension(file.FileName);
-        string fileExtension = Path.GetExtension(file.Name);
-        string filePath = Path.Combine(currentDirectory, "wwwroot", "samples", fName + fileExtension);
+        string filePath = Path.Combine(currentDirectory, "wwwroot", "samples", fName);
         using (var fileStream = new FileStream(filePath, FileMode.Create))
         {
             file.CopyTo(fileStream);
@@ -39,6 +37,7 @@ public class FileAppService : ApplicationService, IFileAppService
 
         // 儲存到資料庫
         var myFileInfo = ObjectMapper.Map<ImportMyFileDto, MyFileInfo>(fileInfoDto);
+        myFileInfo.FileName +=  Path.GetExtension(file.FileName);
         myFileInfo.FilePath = filePath;
         await _repository.InsertAsync(myFileInfo);
 
