@@ -84,7 +84,7 @@ public interface IMissionAppService : IApplicationService
     /// <summary>
     /// 資料匯出(子任務)
     /// </summary>
-    Task<MyFileInfoDto> ExportFile(Guid parentId,int lang);
+    Task<MyFileInfoDto> ExportFile(List<Guid> parentIds,int lang);
     
     /// <summary>
     /// 任務即將到期(24小時)通知

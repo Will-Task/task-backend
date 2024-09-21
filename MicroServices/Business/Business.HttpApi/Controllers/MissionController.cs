@@ -163,9 +163,9 @@ public class MissionController : AbpController
     /// </summary>
     [HttpPost]
     [Route("export")]
-    public async Task<IActionResult> ExportFile(Guid parentId, int lang)
+    public async Task<IActionResult> ExportFile([FromBody]List<Guid> parentIds, int lang)
     {
-        var fileDto = await _missionAppService.ExportFile(parentId, lang);
+        var fileDto = await _missionAppService.ExportFile(parentIds, lang);
         return File(fileDto.FileContent, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             fileDto.FileName);
     }

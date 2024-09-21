@@ -470,58 +470,68 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// <summary>
     /// 資料匯出(子任務)
     /// </summary>
-    public async Task<MyFileInfoDto> ExportFile(Guid parentId, int lang)
+    public async Task<MyFileInfoDto> ExportFile(List<Guid> parentIds, int lang)
     {
         // 增加欄位，為了匯出資料
-        var extraKeys = new List<string> { "MissionName", "MissionDescription" };
-        extraKeys = ExcelKeys.Concat(extraKeys).ToList();
-
-        // 取得父任務
-        var parentMission = await _repositoys.MissionView.FirstAsync(mv =>
-            mv.MissionId == parentId && mv.Lang == lang);
-        // 取得parentId的子任務
-        var subMissions = await _repositoys.MissionView.GetListAsync(mv =>
-            mv.ParentMissionId == parentId && mv.Lang == lang);
-
+        var columns = new List<string>() {"任務名稱", "類別", "優先程度", "進度", "開始時間", "截止時間", "完成時間" , "任務描述"};
+        var extraImportKeys = new List<string>() { "MissionFinishTime","MissionDescription"};
+        extraImportKeys = ExcelKeys.Concat(extraImportKeys).ToList();
+        
         // 取得欲寫入的範本檔案
-        var fileInfoDto = await _fileAppService.DNFile("匯入子任務");
+        var fileInfoDto = await _fileAppService.DNFile("匯出子任務.xlsx");
         using var memoryStream = new MemoryStream(fileInfoDto.FileContent);
         using var workBook = new XLWorkbook(memoryStream);
-        var worksheet = workBook.Worksheet(1);
-        // 指定workSheet名字為當前匯出的父任務
-        worksheet.Name = parentMission.MissionName;
-        int start = ExcelBeginLine;
-
-        // 資料寫入檔案
-        foreach (var subMission in subMissions)
+        
+        // 開始的工作表
+        int startWorkSheet = 2;
+        int columnLine = 1;
+        
+        foreach (var parentId in parentIds)
         {
+            // 取得父任務
+            var parentMission = await _repositoys.MissionView.FirstAsync(mv =>
+                mv.MissionId == parentId && mv.Lang == lang);
+            // 取得parentId的子任務
+            var subMissions = await _repositoys.MissionView.GetListAsync(mv =>
+                mv.ParentMissionId == parentId && mv.Lang == lang);
+            int start = ExcelBeginLine;
             var nextChar = 'A';
-            for (int i = 0; i < extraKeys.Count; i++)
+
+            IXLWorksheet worksheet;
+            if (!workBook.TryGetWorksheet("工作表1", out worksheet))
             {
-                PropertyInfo propertyInfo;
-                // 子任務
-                if (i + 1 > ExcelKeys.Count)
-                {
-                    propertyInfo = subMission.GetType().GetProperty(extraKeys[i]);
-                    worksheet.Cell($"{nextChar}{start}").Value = $"{propertyInfo.GetValue(subMission)}";
-                }
-                // 父任務
-                else
-                {
-                    propertyInfo = parentMission.GetType().GetProperty(extraKeys[i]);
-                    worksheet.Cell($"{nextChar}{start}").Value = $"{propertyInfo.GetValue(parentMission)}";
-                }
-
-                nextChar++;
+                // 指定workSheet名字為當前匯出的父任務(動態生成tab)
+                worksheet = workBook.AddWorksheet(parentMission.MissionName, startWorkSheet++);
             }
-
-            start++;
+            else
+            {
+                worksheet.Name = parentMission.MissionName;
+            }
+            
+            // Column Name寫入
+            for (int i = 0; i < columns.Count; i++)
+            {
+                worksheet.Cell($"{nextChar++}{columnLine}").Value = columns[i];
+            }
+            
+            // 資料寫入檔案
+            foreach (var subMission in subMissions)
+            {
+                nextChar = 'A';
+                for (int i = 0; i < extraImportKeys.Count; i++)
+                {
+                    // 子任務
+                    PropertyInfo propertyInfo = subMission.GetType().GetProperty(extraImportKeys[i]);
+                    worksheet.Cell($"{nextChar++}{start}").Value = $"{propertyInfo.GetValue(subMission)}";
+                }
+                start++;
+            }
         }
 
         using var savingMemoryStream = new MemoryStream();
         workBook.SaveAs(savingMemoryStream);
 
-        return new MyFileInfoDto { FileContent = savingMemoryStream.ToArray(), FileName = parentMission.MissionName };
+        return new MyFileInfoDto { FileContent = savingMemoryStream.ToArray(), FileName = "111" };
     }
 
     /// <summary>
