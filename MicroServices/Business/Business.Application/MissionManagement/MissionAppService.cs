@@ -463,8 +463,8 @@ public class MissionAppService : ApplicationService, IMissionAppService
                 Lang = dto.SubMissionLang
             });
             missions.Add(mission);
+            await _repositoys.Mission.InsertAsync(mission, autoSave: true);
         }
-        await _repositoys.Mission.InsertManyAsync(missions);
     }
 
     /// <summary>
