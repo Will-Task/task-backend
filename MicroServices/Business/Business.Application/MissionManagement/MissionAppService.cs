@@ -494,7 +494,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
             // 取得parentId的子任務
             var subMissions = await _repositoys.MissionView.GetListAsync(mv =>
                 mv.ParentMissionId == parentId && mv.Lang == lang);
-            int start = ExcelBeginLine;
+            int start = 2;
             var nextChar = 'A';
 
             IXLWorksheet worksheet;
