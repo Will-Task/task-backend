@@ -454,6 +454,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
                 ? dto.SubMissionName
                 : dto.MissionName;
             mission.UserId = currentUserId;
+            mission.Email = CurrentUser.Email;
             mission.MissionI18Ns = new List<MissionI18N>();
             mission.MissionI18Ns.Add(new MissionI18N
             {

@@ -8,7 +8,6 @@ namespace Business.MissionManagement.Dto;
 public class MissionImportDto : EntityDto<Guid?>
 {
     //任務名稱
-    [Required]
     public string MissionName { get; set; }
     
     [Required]
