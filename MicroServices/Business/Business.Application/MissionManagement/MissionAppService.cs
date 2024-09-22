@@ -16,6 +16,7 @@ using ClosedXML.Excel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -164,11 +165,14 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// <summary>
     /// 獲取父任務下的子任務(多個)
     /// </summary>
-    public async Task<IEnumerable<MissionViewDto>> GetSubMission(Guid id)
+    public async Task<PagedResultDto<MissionViewDto>> GetSubMission(Guid id ,[FromQuery] PageModel page)
     {
-        // 抓特定富任務下的子任務(直接透過sql中的view抓)
-        var subMissions = await _repositoys.MissionView.GetListAsync(mv => mv.ParentMissionId == id);
-        return ObjectMapper.Map<List<MissionView>, List<MissionViewDto>>(subMissions);
+        var query = await _repositoys.MissionView.GetQueryableAsync();
+        query = query.Where(mv => mv.ParentMissionId == id);
+        var totalCount = await query.CountAsync();
+        var subMissions = query.Skip(page.Count).Take(page.PageSize).ToList();
+        var dtos = ObjectMapper.Map<List<MissionView>, List<MissionViewDto>>(subMissions);
+        return new PagedResultDto<MissionViewDto>(totalCount , dtos);
     }
 
     /// <summary>

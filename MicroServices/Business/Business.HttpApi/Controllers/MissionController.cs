@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Business.MissionManagement;
 using Business.MissionManagement.Dto;
+using Business.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Volo.Abp.Application.Dtos;
@@ -49,10 +50,10 @@ public class MissionController : AbpController
     /// 獲取父任務下的子任務(多個)
     /// </summary>
     [HttpGet]
-    [Route("sub")]
-    public Task<IEnumerable<MissionViewDto>> GetSubMission(Guid id)
+    [Route("sub/{id}")]
+    public Task<PagedResultDto<MissionViewDto>> GetSubMission(Guid id , PageModel page)
     {
-        return _missionAppService.GetSubMission(id);
+        return _missionAppService.GetSubMission(id , page);
     }
 
     /// <summary>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Business.FileManagement.Dto;
 using Business.MissionManagement.Dto;
+using Business.Models;
 using Microsoft.AspNetCore.Http;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -24,7 +25,7 @@ public interface IMissionAppService : IApplicationService
     /// <summary>
     /// 獲取父任務下的子任務(多個)
     /// </summary>
-    Task<IEnumerable<MissionViewDto>> GetSubMission(Guid id);
+    Task<PagedResultDto<MissionViewDto>> GetSubMission(Guid id  , PageModel page);
 
     /// <summary>
     /// 查詢所有父任務(多個)
