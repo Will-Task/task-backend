@@ -21,6 +21,29 @@ public class MissionController : AbpController
     {
         _missionAppService = missionAppService;
     }
+    
+    /// <summary>
+    /// 新增/修改任務
+    /// </summary>
+    [HttpPost]
+    [Route("data-post")]
+    public Task<MissionI18NDto> DataPost([FromBody] CreateOrUpdateMissionDto input)
+    {
+        return _missionAppService.DataPost(input);
+    }
+    
+    /// <summary>
+    /// 刪除任務(單 or 多筆)
+    /// </summary>
+    [HttpPost]
+    [Route("delete")]
+    public async Task Delete([FromBody]List<Guid> ids , int lang = 1)
+    {
+        foreach (var id in ids)
+        {
+            await _missionAppService.Delete(id , lang);
+        }
+    }
 
     /// <summary>
     /// 獲取父任務下的子任務(多個)
@@ -92,15 +115,7 @@ public class MissionController : AbpController
         await _missionAppService.setRemindTime(id,hour);
     }
 
-    /// <summary>
-    /// 新增/修改任務
-    /// </summary>
-    [HttpPost]
-    [Route("data-post")]
-    public Task<MissionI18NDto> DataPost([FromBody] CreateOrUpdateMissionDto input)
-    {
-        return _missionAppService.DataPost(input);
-    }
+    
 
     /// <summary>
     /// 變更任務狀態
@@ -112,18 +127,7 @@ public class MissionController : AbpController
         await _missionAppService.UpdateMissionState(missionId, state);
     }
 
-    /// <summary>
-    /// 刪除任務(過期任務不會被刪除)
-    /// </summary>
-    [HttpPost]
-    [Route("delete")]
-    public async Task Delete([FromBody]List<Guid> ids , int lang = 1)
-    {
-        foreach (var id in ids)
-        {
-            await _missionAppService.Delete(id , lang);
-        }
-    }
+    
 
     /// <summary>
     /// 範本下載

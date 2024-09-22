@@ -65,6 +65,102 @@ public class MissionAppService : ApplicationService, IMissionAppService
         _logger = logger;
     }
 
+    #region CRUD方法
+
+    
+
+    #endregion
+    
+    /// <summary>
+    /// 新增/修改任務
+    /// </summary>
+    public async Task<MissionI18NDto> DataPost(CreateOrUpdateMissionDto input)
+    {
+        // 判斷開始時間是否有早於結束時間
+        if (input.MissionStartTime.CompareTo(input.MissionEndTime) == 1)
+        {
+            throw new UserFriendlyException("結束時間比開始時間還晚", "404");
+        }
+
+        // 建立新missionI18N，供新增或新增語系
+        var newMissionI18N = new MissionI18N
+        {
+            MissionName = input.MissionName,
+            MissionDescription = input.MissionDescription,
+            Lang = input.Lang,
+        };
+        if (input.Id.HasValue)
+        {
+            newMissionI18N.MissionId = input.Id.Value;
+        }
+
+        // 1. 判斷修改(對現有任務增加別的語系)或新增
+        // 修改
+        if (input.Id.HasValue)
+        {
+            var mission = await _repositoys.Mission.GetAsync(input.Id.Value);
+            // 加載關聯I18N資訊
+            await _repositoys.Mission.EnsureCollectionLoadedAsync(mission, m => m.MissionI18Ns);
+            var missionI18Ns = mission.MissionI18Ns;
+            var missionI18N = missionI18Ns.FirstOrDefault(mn => mn.MissionId == input.Id && mn.Lang == input.Lang);
+
+            // 判斷同個任務同個語系是否存在
+            // I18N存在 => 修改現有語系資料
+            if (missionI18N != null)
+            {
+                // 更新I18N
+                ObjectMapper.Map(input, mission);
+                // 更新I18N info
+                missionI18N.MissionId = input.Id.Value;
+                missionI18N.MissionName = input.MissionName;
+                missionI18N.MissionDescription = input.MissionDescription;
+                missionI18N.Lang = input.Lang;
+            }
+            // 不存在 => 增加現有任務的語系
+            else
+            {
+                missionI18Ns.Add(newMissionI18N);
+            }
+
+            await _repositoys.Mission.UpdateAsync(mission);
+        }
+        // 新增任務(不管任何語系，該任務皆不存在)
+        else
+        {
+            // 儲存任務和I18N
+            var newMission = ObjectMapper.Map<CreateOrUpdateMissionDto, Mission>(input);
+            // 新建任務為TODO
+            newMission.MissionState = MissionState.TO_DO;
+            newMission.UserId = CurrentUser.Id;
+            newMission.Email = CurrentUser.Email;
+            newMission.MissionI18Ns = new List<MissionI18N>();
+            newMission.MissionI18Ns.Add(newMissionI18N);
+
+            // 儲存任務I18N(newMission就會有值且此時Guid是有優化過順具的)
+            await _repositoys.Mission.InsertAsync(newMission, autoSave: true);
+            // 指定剛剛新增的任務ID
+            input.Id = newMission.Id;
+        }
+
+        return ObjectMapper.Map<CreateOrUpdateMissionDto, MissionI18NDto>(input);
+    }
+
+    /// <summary>
+    /// 刪除任務(單 or 多筆)
+    /// </summary>
+    public async Task Delete(Guid id , int lang)
+    {
+        // 透過missionId和lang共同判斷要刪除的I18N
+        await _repositoys.MissionI18N.DeleteAsync(x => x.MissionId == id
+                                                       && x.Lang == lang, autoSave: true);
+        // 若該任務不存在任何語系則刪除任務本體
+        var count = await _repositoys.MissionI18N.CountAsync(x => x.MissionId == id);
+        if (count == 0)
+        {
+            await _repositoys.Mission.DeleteAsync(id);
+        }
+    }
+    
     /// <summary>
     /// 獲取父任務下的子任務(多個)
     /// </summary>
@@ -160,79 +256,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         mission.MissionBeforeEnd = hour;
     }
 
-    /// <summary>
-    /// 新增/修改任務
-    /// </summary>
-    public async Task<MissionI18NDto> DataPost(CreateOrUpdateMissionDto input)
-    {
-        // 判斷開始時間是否有早於結束時間
-        if (input.MissionStartTime.CompareTo(input.MissionEndTime) == 1)
-        {
-            throw new UserFriendlyException("結束時間比開始時間還晚", "404");
-        }
-
-        // 建立新missionI18N，供新增或新增語系
-        var newMissionI18N = new MissionI18N
-        {
-            MissionName = input.MissionName,
-            MissionDescription = input.MissionDescription,
-            Lang = input.Lang,
-        };
-        if (input.Id.HasValue)
-        {
-            newMissionI18N.MissionId = input.Id.Value;
-        }
-
-        // 1. 判斷修改(對現有任務增加別的語系)或新增
-        // 修改
-        if (input.Id.HasValue)
-        {
-            var mission = await _repositoys.Mission.GetAsync(input.Id.Value);
-            // 加載關聯I18N資訊
-            await _repositoys.Mission.EnsureCollectionLoadedAsync(mission, m => m.MissionI18Ns);
-            var missionI18Ns = mission.MissionI18Ns;
-            var missionI18N = missionI18Ns.FirstOrDefault(mn => mn.MissionId == input.Id && mn.Lang == input.Lang);
-
-            // 判斷同個任務同個語系是否存在
-            // I18N存在 => 修改現有語系資料
-            if (missionI18N != null)
-            {
-                // 更新I18N
-                ObjectMapper.Map(input, mission);
-                // 更新I18N info
-                missionI18N.MissionId = input.Id.Value;
-                missionI18N.MissionName = input.MissionName;
-                missionI18N.MissionDescription = input.MissionDescription;
-                missionI18N.Lang = input.Lang;
-            }
-            // 不存在 => 增加現有任務的語系
-            else
-            {
-                missionI18Ns.Add(newMissionI18N);
-            }
-
-            await _repositoys.Mission.UpdateAsync(mission);
-        }
-        // 新增任務(不管任何語系，該任務皆不存在)
-        else
-        {
-            // 儲存任務和I18N
-            var newMission = ObjectMapper.Map<CreateOrUpdateMissionDto, Mission>(input);
-            // 新建任務為TODO
-            newMission.MissionState = MissionState.TO_DO;
-            newMission.UserId = CurrentUser.Id;
-            newMission.Email = CurrentUser.Email;
-            newMission.MissionI18Ns = new List<MissionI18N>();
-            newMission.MissionI18Ns.Add(newMissionI18N);
-
-            // 儲存任務I18N(newMission就會有值且此時Guid是有優化過順具的)
-            await _repositoys.Mission.InsertAsync(newMission, autoSave: true);
-            // 指定剛剛新增的任務ID
-            input.Id = newMission.Id;
-        }
-
-        return ObjectMapper.Map<CreateOrUpdateMissionDto, MissionI18NDto>(input);
-    }
+    
 
     /// <summary>
     /// 變更任務狀態
@@ -241,43 +265,6 @@ public class MissionAppService : ApplicationService, IMissionAppService
     {
         var mission = await _repositoys.Mission.GetAsync(missionId);
         mission.MissionState = (MissionState)state;
-    }
-
-    /// <summary>
-    /// 刪除任務(過期任務不會被刪除)
-    /// </summary>
-    /// <param name="id">任務I18N的ID。</param>
-    public async Task Delete(Guid id , int lang)
-    {
-        // 透過missionId和lang共同判斷要刪除的I18N
-        await _repositoys.MissionI18N.DeleteAsync(x => x.MissionId == id
-                                                   && x.Lang == lang, autoSave: true);
-
-        // 若該任務不存在任何語系則刪除任務本體
-        var count = await _repositoys.MissionI18N.CountAsync(x => x.MissionId == id);
-        if (count == 0)
-        {
-            await _repositoys.Mission.DeleteAsync(id, autoSave: true);
-        }
-    }
-
-    /// <summary>
-    /// 刪除任務(過期任務不會被刪除，刪除某父任務下的子任務)
-    /// </summary>
-    public async Task DeleteGroup(List<Guid> subIds, Guid parentId)
-    {
-        await _repositoys.MissionI18N.DeleteManyAsync(subIds, autoSave: true);
-
-        // 若沒有關聯I18N，刪除mission本體
-        var num = await _repositoys.Mission.GetCountAsync();
-
-        _logger.LogInformation(
-            $"===============================mission還有關聯的I18N資料，共有{num}筆================================================");
-
-        if (num == 0)
-        {
-            await _repositoys.Mission.DeleteAsync(parentId);
-        }
     }
 
     private List<string> ExcelKeys = new List<string>
@@ -572,33 +559,28 @@ public class MissionAppService : ApplicationService, IMissionAppService
     }
 
     /// <summary>
-    /// 任務即將到期(24小時)通知
+    /// 任務即將到期(根據設定時間)通知
     /// </summary>
     [AllowAnonymous]
     public async Task IdentifyExpiringTasks()
     {
         var now = Clock.Now;
-        // 避免讓條件過於複雜，使sql無法解析
-        var oneDayLater = now.AddDays(1);
-        // 結束時間扣掉當前時間小於1天
-        var query = await _repositoys.Mission.GetQueryableAsync();
-        var missionMap = query.Where(m => m.MissionEndTime <= oneDayLater && m.MissionFinishTime == null)
-            .GroupBy(m => m.Id).ToDictionary(g => g.Key , g => g.First().Email);
+        var query = await _repositoys.MissionView.GetQueryableAsync();
+        // 判斷結束時間和提醒時間差距
+        var missionMap = query.Where(m => 
+                m.MissionEndTime <= now.AddHours(m.MissionBeforeEnd) && m.MissionFinishTime == null)
+               .GroupBy(g => g.MissionId).ToDictionary(g => g.Key , g => g.First());
 
         foreach (var mission in missionMap)
         {
-            // 默認隨便拿一個寄
-            var i18NQuery = await _repositoys.MissionI18N.GetQueryableAsync();
-            var misssionName = i18NQuery.Where(mn => mn.MissionId == mission.Key)
-                .Select(mn => mn.MissionName).FirstOrDefault();
+            var misssionName = mission.Value.MissionName;
             // 因為可能 Mission 中 isActive = false 的會找不到
             if (misssionName.IsNullOrEmpty())
             {
                 continue;
             }
-
             // 寄發email(之後放入使用者email)
-            await SendEmail(misssionName + "任務24小時內即將到期", "任務快過期了喔，趕緊去完成", mission.Value);
+            await SendEmail($"{misssionName}任務在{mission.Value.MissionBeforeEnd}小時內即將到期", "任務快過期了喔，趕緊去完成", mission.Value.Email);
         }
     }
 
@@ -620,7 +602,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
 
         // 過期 -> 期限內未完成 ， 輸出報告也需顯示
         // 拿到輸入的報告範本
-        var fileInfoDto = await _fileAppService.DNFile("每周輸出報告");
+        var fileInfoDto = await _fileAppService.DNFile("每周輸出報告.xlsx");
         using var memoryStream = new MemoryStream(fileInfoDto.FileContent);
         using var workBook = new XLWorkbook(memoryStream);
         var worksheet = workBook.Worksheet(1);

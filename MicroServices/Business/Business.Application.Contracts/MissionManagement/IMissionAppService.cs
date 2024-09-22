@@ -12,6 +12,16 @@ namespace Business.MissionManagement;
 public interface IMissionAppService : IApplicationService
 {
     /// <summary>
+    /// 新增/修改任務
+    /// </summary>
+    Task<MissionI18NDto> DataPost(CreateOrUpdateMissionDto input);
+    
+    /// <summary>
+    /// 刪除任務(單 or 多筆)
+    /// </summary>
+    Task Delete(Guid id , int lang);
+    
+    /// <summary>
     /// 獲取父任務下的子任務(多個)
     /// </summary>
     Task<IEnumerable<MissionViewDto>> GetSubMission(Guid id);
@@ -46,25 +56,14 @@ public interface IMissionAppService : IApplicationService
     /// </summary>
     Task setRemindTime(Guid id,int hour);
 
-    /// <summary>
-    /// 新增/修改任務和I18N
-    /// </summary>
-    Task<MissionI18NDto> DataPost(CreateOrUpdateMissionDto input);
+    
     
     /// <summary>
     /// 變更任務狀態
     /// </summary>
     Task UpdateMissionState(Guid missionId,int state);
 
-    /// <summary>
-    /// 刪除任務(過期任務不會被刪除)
-    /// </summary>
-    Task Delete(Guid id , int lang);
     
-    /// <summary>
-    /// 刪除任務(過期任務不會被刪除，刪除某父任務下的子任務)
-    /// </summary>
-    Task DeleteGroup(List<Guid> subIds,Guid parentId);
 
     /// <summary>
     /// 範本下載
