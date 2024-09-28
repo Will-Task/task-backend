@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Mail;
 using System.Reflection;
 using System.Threading.Tasks;
+using Business.CommonManagement.Dto;
 using Business.Enums;
 using Business.FileManagement;
 using Business.FileManagement.Dto;
@@ -165,12 +166,12 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// <summary>
     /// 獲取父任務下的子任務(多個)
     /// </summary>
-    public async Task<PagedResultDto<MissionViewDto>> GetSubMission(Guid id ,[FromQuery] PageModel page)
+    public async Task<PagedResultDto<MissionViewDto>> GetSubMission(Guid id , int page , int pageSize , bool allData)
     {
         var query = await _repositoys.MissionView.GetQueryableAsync();
         query = query.Where(mv => mv.ParentMissionId == id);
         var totalCount = await query.CountAsync();
-        var subMissions = query.Skip(page.Count).Take(page.PageSize).ToList();
+        var subMissions = query.Skip((page - 1) * pageSize).Take(pageSize).ToList();
         var dtos = ObjectMapper.Map<List<MissionView>, List<MissionViewDto>>(subMissions);
         return new PagedResultDto<MissionViewDto>(totalCount , dtos);
     }

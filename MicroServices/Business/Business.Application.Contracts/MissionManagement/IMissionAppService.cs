@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Business.CommonManagement.Dto;
 using Business.FileManagement.Dto;
 using Business.MissionManagement.Dto;
 using Business.Models;
@@ -25,7 +26,7 @@ public interface IMissionAppService : IApplicationService
     /// <summary>
     /// 獲取父任務下的子任務(多個)
     /// </summary>
-    Task<PagedResultDto<MissionViewDto>> GetSubMission(Guid id  , PageModel page);
+    Task<PagedResultDto<MissionViewDto>> GetSubMission(Guid id  ,int page , int pageSize , bool allData);
 
     /// <summary>
     /// 查詢所有父任務(多個)

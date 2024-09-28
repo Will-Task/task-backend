@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using Business.CommonManagement.Dto;
 using Business.MissionManagement;
 using Business.MissionManagement.Dto;
 using Business.Models;
@@ -50,10 +51,10 @@ public class MissionController : AbpController
     /// 獲取父任務下的子任務(多個)
     /// </summary>
     [HttpGet]
-    [Route("sub/{id}")]
-    public Task<PagedResultDto<MissionViewDto>> GetSubMission(Guid id , PageModel page)
+    [Route("sub")]
+    public Task<PagedResultDto<MissionViewDto>> GetSubMission(Guid id ,int page , int pageSize , bool allData)
     {
-        return _missionAppService.GetSubMission(id , page);
+        return _missionAppService.GetSubMission(id , page , pageSize , allData);
     }
 
     /// <summary>
