@@ -39,7 +39,7 @@ public class Mission: AuditedAggregateRoot<Guid> , ISoftDelete,IIsActive
     public int MissionBeforeEnd { get; set; } = 24;
 
     [Required] 
-    public MissionState MissionState { get; set; } = MissionState.TO_DO;
+    public MissionState MissionState { get; set; } = MissionState.IN_PROCESS;
 
     public bool IsDeleted { get; set; }
     public bool IsActive { get; set; } = true;

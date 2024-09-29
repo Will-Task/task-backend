@@ -132,7 +132,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
             // 儲存任務和I18N
             var newMission = ObjectMapper.Map<CreateOrUpdateMissionDto, Mission>(input);
             // 新建任務為TODO
-            newMission.MissionState = MissionState.TO_DO;
+            newMission.MissionState = MissionState.IN_PROCESS;
             newMission.UserId = CurrentUser.Id;
             newMission.Email = CurrentUser.Email;
             newMission.MissionI18Ns = new List<MissionI18N>();
@@ -266,10 +266,11 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// <summary>
     /// 變更任務狀態
     /// </summary>
-    public async Task UpdateMissionState(Guid missionId, int state)
+    public async Task UpdateMissionState(MissionFormData formData)
     {
-        var mission = await _repositoys.Mission.GetAsync(missionId);
-        mission.MissionState = (MissionState)state;
+        var mission = await _repositoys.Mission.GetAsync(formData.missionId);
+        mission.MissionState = (MissionState)formData.state;
+        mission.MissionFinishTime = (MissionState)formData.state == MissionState.IN_PROCESS ? null : Clock.Now;
     }
 
     private List<string> ExcelKeys = new List<string>

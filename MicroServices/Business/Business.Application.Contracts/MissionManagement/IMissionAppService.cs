@@ -63,7 +63,7 @@ public interface IMissionAppService : IApplicationService
     /// <summary>
     /// 變更任務狀態
     /// </summary>
-    Task UpdateMissionState(Guid missionId,int state);
+    Task UpdateMissionState(MissionFormData formData);
 
     
 

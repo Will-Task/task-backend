@@ -124,9 +124,9 @@ public class MissionController : AbpController
     /// </summary>
     [HttpPost]
     [Route("update-state")]
-    public async Task UpdateMissionState(Guid missionId, int state)
+    public async Task UpdateMissionState([FromBody]MissionFormData formData)
     {
-        await _missionAppService.UpdateMissionState(missionId, state);
+        await _missionAppService.UpdateMissionState(formData);
     }
 
     
