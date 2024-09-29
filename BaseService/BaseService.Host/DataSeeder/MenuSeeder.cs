@@ -50,17 +50,17 @@ namespace BaseService.DataSeeder
             seed.Add(systemManagement);
             seed.Add(user); seed.Add(menu); seed.Add(role); seed.Add(org); seed.Add(dict); seed.Add(job); seed.Add(log);
 
-            var baseData = new Menu(Guid.NewGuid()) { CategoryId = 1, Name = "base", Label = "基础资料", Sort = 3, Path = "/base", Component = "Layout", Icon = "base", AlwaysShow = true };
-            var book = new Menu(Guid.NewGuid()) { Pid = baseData.Id, CategoryId = 1, Name = "book", Label = "Book", Sort = 10, Path = "book", Component = "book/index", Permission = "Business.Book", Icon = "book" };
-            seed.Add(new Menu(Guid.NewGuid()) { Pid = book.Id, CategoryId = 2, Name = "Create", Label = "新增", Sort = 3, Permission = "Business.Book.Create", Icon = "create", Hidden = true });
-            seed.Add(new Menu(Guid.NewGuid()) { Pid = book.Id, CategoryId = 2, Name = "Update", Label = "修改", Sort = 3, Permission = "Business.Book.Update", Icon = "update", Hidden = true });
-            seed.Add(new Menu(Guid.NewGuid()) { Pid = book.Id, CategoryId = 2, Name = "Delete", Label = "删除", Sort = 3, Permission = "Business.Book.Delete", Icon = "delete", Hidden = true });
+            var mission = new Menu(Guid.NewGuid()) { CategoryId = 1, Name = "mission", Label = "基础资料", Sort = 3, Path = "/mission", Component = "Layout", Icon = "base", AlwaysShow = true };
+            var category = new Menu(Guid.NewGuid()) { Pid = mission.Id, CategoryId = 1, Name = "category", Label = "Book", Sort = 10, Path = "category", Component = "category/index", Permission = "Business.Book", Icon = "book" };
+            seed.Add(new Menu(Guid.NewGuid()) { Pid = category.Id, CategoryId = 2, Name = "Create", Label = "新增", Sort = 3, Permission = "Business.Book.Create", Icon = "create", Hidden = true });
+            seed.Add(new Menu(Guid.NewGuid()) { Pid = category.Id, CategoryId = 2, Name = "Update", Label = "修改", Sort = 3, Permission = "Business.Book.Update", Icon = "update", Hidden = true });
+            seed.Add(new Menu(Guid.NewGuid()) { Pid = category.Id, CategoryId = 2, Name = "Delete", Label = "删除", Sort = 3, Permission = "Business.Book.Delete", Icon = "delete", Hidden = true });
 
-            var print = new Menu(Guid.NewGuid()) { Pid = baseData.Id, CategoryId = 1, Name = "print", Label = "打印模板", Sort = 9, Path = "print", Component = "print/index", Permission = "Business.PrintTemplate", Icon = "printer" };
-            seed.Add(new Menu(Guid.NewGuid()) { Pid = print.Id, CategoryId = 2, Name = "Create", Label = "新增", Sort = 3, Permission = "Business.PrintTemplate", Icon = "create", Hidden = true });
-            seed.Add(new Menu(Guid.NewGuid()) { Pid = print.Id, CategoryId = 2, Name = "Update", Label = "修改", Sort = 3, Permission = "Business.PrintTemplate.Update", Icon = "update", Hidden = true });
-            seed.Add(new Menu(Guid.NewGuid()) { Pid = print.Id, CategoryId = 2, Name = "Delete", Label = "删除", Sort = 3, Permission = "Business.PrintTemplate.Delete", Icon = "delete", Hidden = true });
-            seed.Add(baseData); seed.Add(book); seed.Add(print);
+            var item = new Menu(Guid.NewGuid()) { Pid = mission.Id, CategoryId = 1, Name = "item", Label = "打印模板", Sort = 9, Path = "item", Component = "item/index", Permission = "Business.PrintTemplate", Icon = "printer" };
+            seed.Add(new Menu(Guid.NewGuid()) { Pid = item.Id, CategoryId = 2, Name = "Create", Label = "新增", Sort = 3, Permission = "Business.PrintTemplate", Icon = "create", Hidden = true });
+            seed.Add(new Menu(Guid.NewGuid()) { Pid = item.Id, CategoryId = 2, Name = "Update", Label = "修改", Sort = 3, Permission = "Business.PrintTemplate.Update", Icon = "update", Hidden = true });
+            seed.Add(new Menu(Guid.NewGuid()) { Pid = item.Id, CategoryId = 2, Name = "Delete", Label = "删除", Sort = 3, Permission = "Business.PrintTemplate.Delete", Icon = "delete", Hidden = true });
+            seed.Add(mission); seed.Add(category); seed.Add(item);
 
             var systemTool = new Menu(Guid.NewGuid()) { CategoryId = 1, Name = "tool", Label = "系统工具", Sort = 4, Path = "/tool", Component = "Layout", Icon = "tool", AlwaysShow = true };
             var form = new Menu(Guid.NewGuid()) { Pid = systemTool.Id, CategoryId = 1, Name = "form", Label = "表单管理", Sort = 11, Path = "form", Component = "form/index", Permission = "FormManagement.Form", Icon = "control" };
@@ -132,17 +132,17 @@ namespace BaseService.DataSeeder
             seed.Add(systemManagement);
             seed.Add(user); seed.Add(menu); seed.Add(role); seed.Add(org); seed.Add(dict); seed.Add(job); seed.Add(log);
 
-            var baseData = new Menu(Guid.NewGuid()) { CategoryId = 1, Name = "base", Label = "基础资料", Sort = 3, Path = "/base", Component = "Layout", Icon = "base", AlwaysShow = true, Title = "message.router.base" };
-            var book = new Menu(Guid.NewGuid()) { Pid = baseData.Id, CategoryId = 1, Name = "book", Label = "Book", Sort = 10, Path = "book", Component = "book/index", Permission = "Business.Book", Icon = "book" };
-            seed.Add(new Menu(Guid.NewGuid()) { Pid = book.Id, CategoryId = 2, Name = "Create", Label = "新增", Sort = 3, Permission = "Business.Book.Create", Icon = "create", Hidden = true });
-            seed.Add(new Menu(Guid.NewGuid()) { Pid = book.Id, CategoryId = 2, Name = "Update", Label = "修改", Sort = 3, Permission = "Business.Book.Update", Icon = "update", Hidden = true });
-            seed.Add(new Menu(Guid.NewGuid()) { Pid = book.Id, CategoryId = 2, Name = "Delete", Label = "删除", Sort = 3, Permission = "Business.Book.Delete", Icon = "delete", Hidden = true });
+            var mission = new Menu(Guid.NewGuid()) { CategoryId = 1, Name = "mission", Label = "基础资料", Sort = 3, Path = "/mission", Component = "Layout", Icon = "base", AlwaysShow = true, Title = "message.router.base" };
+            var category = new Menu(Guid.NewGuid()) { Pid = mission.Id, CategoryId = 1, Name = "category", Label = "Book", Sort = 10, Path = "category", Component = "category/index", Permission = "Business.Book", Icon = "book" };
+            seed.Add(new Menu(Guid.NewGuid()) { Pid = category.Id, CategoryId = 2, Name = "Create", Label = "新增", Sort = 3, Permission = "Business.Book.Create", Icon = "create", Hidden = true });
+            seed.Add(new Menu(Guid.NewGuid()) { Pid = category.Id, CategoryId = 2, Name = "Update", Label = "修改", Sort = 3, Permission = "Business.Book.Update", Icon = "update", Hidden = true });
+            seed.Add(new Menu(Guid.NewGuid()) { Pid = category.Id, CategoryId = 2, Name = "Delete", Label = "删除", Sort = 3, Permission = "Business.Book.Delete", Icon = "delete", Hidden = true });
 
-            var print = new Menu(Guid.NewGuid()) { Pid = baseData.Id, CategoryId = 1, Name = "print", Label = "打印模板", Sort = 9, Path = "print", Component = "print/index", Permission = "Business.PrintTemplate", Icon = "printer", Title = "message.router.print" };
-            seed.Add(new Menu(Guid.NewGuid()) { Pid = print.Id, CategoryId = 2, Name = "Create", Label = "新增", Sort = 3, Permission = "Business.PrintTemplate", Icon = "create", Hidden = true });
-            seed.Add(new Menu(Guid.NewGuid()) { Pid = print.Id, CategoryId = 2, Name = "Update", Label = "修改", Sort = 3, Permission = "Business.PrintTemplate.Update", Icon = "update", Hidden = true });
-            seed.Add(new Menu(Guid.NewGuid()) { Pid = print.Id, CategoryId = 2, Name = "Delete", Label = "删除", Sort = 3, Permission = "Business.PrintTemplate.Delete", Icon = "delete", Hidden = true });
-            seed.Add(baseData); seed.Add(book); seed.Add(print);
+            var item = new Menu(Guid.NewGuid()) { Pid = mission.Id, CategoryId = 1, Name = "item", Label = "打印模板", Sort = 9, Path = "item", Component = "item/index", Permission = "Business.PrintTemplate", Icon = "printer", Title = "message.router.print" };
+            seed.Add(new Menu(Guid.NewGuid()) { Pid = item.Id, CategoryId = 2, Name = "Create", Label = "新增", Sort = 3, Permission = "Business.PrintTemplate", Icon = "create", Hidden = true });
+            seed.Add(new Menu(Guid.NewGuid()) { Pid = item.Id, CategoryId = 2, Name = "Update", Label = "修改", Sort = 3, Permission = "Business.PrintTemplate.Update", Icon = "update", Hidden = true });
+            seed.Add(new Menu(Guid.NewGuid()) { Pid = item.Id, CategoryId = 2, Name = "Delete", Label = "删除", Sort = 3, Permission = "Business.PrintTemplate.Delete", Icon = "delete", Hidden = true });
+            seed.Add(mission); seed.Add(category); seed.Add(item);
 
             var systemTool = new Menu(Guid.NewGuid()) { CategoryId = 1, Name = "tool", Label = "系统工具", Sort = 4, Path = "/tool", Component = "Layout", Icon = "tool", AlwaysShow = true, Title = "message.router.tool" };
             var form = new Menu(Guid.NewGuid()) { Pid = systemTool.Id, CategoryId = 1, Name = "form", Label = "表单管理", Sort = 11, Path = "form", Component = "form/index", Permission = "FormManagement.Form", Icon = "control", Title = "message.router.form" };
