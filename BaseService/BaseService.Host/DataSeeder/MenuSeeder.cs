@@ -9,46 +9,51 @@ namespace BaseService.DataSeeder
         public List<Menu> GetSeed()
         {
             var seed = new List<Menu>();
+            
+            // var dashboard = new Menu(Guid.NewGuid()) { CategoryId = 1, Name = "Dashboard", Label = "Dashboard", Sort = 5, Path = "/dashboard", Component = "Layout", Permission = "AbpTenantManagement.Tenants", Icon = "cloud", AlwaysShow = true, IsHost = true };
+            // var chart = new Menu(Guid.NewGuid()) { Pid = dashboard.Id, CategoryId = 1, Name = "chart", Label = "儀錶板", Sort = 21, Path = "chart", Component = "chart/index", Permission = "AbpTenantManagement.Tenants", Icon = "users", IsHost = true };
+            // seed.Add(dashboard); seed.Add(chart);
+            
             var saas = new Menu(Guid.NewGuid()) { CategoryId = 1, Name = "SaaS", Label = "SaaS", Sort = 1, Path = "/saas", Component = "Layout", Permission = "AbpTenantManagement.Tenants", Icon = "cloud", AlwaysShow = true, IsHost = true };
             var tenant = new Menu(Guid.NewGuid()) { Pid = saas.Id, CategoryId = 1, Name = "tenant", Label = "租户管理", Sort = 1, Path = "tenant", Component = "tenant/index", Permission = "AbpTenantManagement.Tenants", Icon = "users", IsHost = true };
             seed.Add(new Menu(Guid.NewGuid()) { Pid = tenant.Id, CategoryId = 2, Name = "Create", Label = "新增", Sort = 3, Permission = "AbpTenantManagement.Tenants.Create", Icon = "create", Hidden = true, IsHost = true });
             seed.Add(saas); seed.Add(tenant);
 
-            var systemManagement = new Menu(Guid.NewGuid()) { CategoryId = 1, Name = "systemManagement", Label = "系统管理", Sort = 2, Path = "/system", Component = "Layout", Icon = "system", AlwaysShow = true };
-            var user = new Menu(Guid.NewGuid()) { Pid = systemManagement.Id, CategoryId = 1, Name = "user", Label = "用户管理", Sort = 3, Path = "user", Component = "user/index", Permission = "AbpIdentity.Users", Icon = "user" };
-            seed.Add(new Menu(Guid.NewGuid()) { Pid = user.Id, CategoryId = 2, Name = "Create", Label = "新增", Sort = 3, Permission = "AbpIdentity.Users.Create", Icon = "create", Hidden = true });
-            seed.Add(new Menu(Guid.NewGuid()) { Pid = user.Id, CategoryId = 2, Name = "Update", Label = "修改", Sort = 3, Permission = "AbpIdentity.Users.Update", Icon = "update", Hidden = true });
-            seed.Add(new Menu(Guid.NewGuid()) { Pid = user.Id, CategoryId = 2, Name = "Delete", Label = "删除", Sort = 3, Permission = "AbpIdentity.Users.Delete", Icon = "delete", Hidden = true });
+            var dashboard = new Menu(Guid.NewGuid()) { CategoryId = 1, Name = "dashboard", Label = "統計數據", Sort = 2, Path = "/dashboard", Component = "Layout", Icon = "dashboard", AlwaysShow = true };
+            var chart = new Menu(Guid.NewGuid()) { Pid = dashboard.Id, CategoryId = 1, Name = "chart", Label = "儀錶板", Sort = 3, Path = "chart", Component = "chart/index", Permission = "AbpIdentity.Users", Icon = "user" };
+            seed.Add(new Menu(Guid.NewGuid()) { Pid = chart.Id, CategoryId = 2, Name = "Create", Label = "新增", Sort = 3, Permission = "AbpIdentity.Users.Create", Icon = "create", Hidden = true });
+            seed.Add(new Menu(Guid.NewGuid()) { Pid = chart.Id, CategoryId = 2, Name = "Update", Label = "修改", Sort = 3, Permission = "AbpIdentity.Users.Update", Icon = "update", Hidden = true });
+            seed.Add(new Menu(Guid.NewGuid()) { Pid = chart.Id, CategoryId = 2, Name = "Delete", Label = "删除", Sort = 3, Permission = "AbpIdentity.Users.Delete", Icon = "delete", Hidden = true });
 
-            var menu = new Menu(Guid.NewGuid()) { Pid = systemManagement.Id, CategoryId = 1, Name = "menu", Label = "菜单管理", Sort = 4, Path = "menu", Component = "menu/index", Permission = "BaseService.Menu", Icon = "menu" };
+            var menu = new Menu(Guid.NewGuid()) { Pid = dashboard.Id, CategoryId = 1, Name = "menu", Label = "菜单管理", Sort = 4, Path = "menu", Component = "menu/index", Permission = "BaseService.Menu", Icon = "menu" };
             seed.Add(new Menu(Guid.NewGuid()) { Pid = menu.Id, CategoryId = 2, Name = "Create", Label = "新增", Sort = 3, Permission = "BaseService.Menu.Create", Icon = "create", Hidden = true });
             seed.Add(new Menu(Guid.NewGuid()) { Pid = menu.Id, CategoryId = 2, Name = "Update", Label = "修改", Sort = 3, Permission = "BaseService.Menu.Update", Icon = "update", Hidden = true });
             seed.Add(new Menu(Guid.NewGuid()) { Pid = menu.Id, CategoryId = 2, Name = "Delete", Label = "删除", Sort = 3, Permission = "BaseService.Menu.Delete", Icon = "delete", Hidden = true });
 
-            var role = new Menu(Guid.NewGuid()) { Pid = systemManagement.Id, CategoryId = 1, Name = "role", Label = "角色管理", Sort = 5, Path = "role", Component = "role/index", Permission = "AbpIdentity.Roles", Icon = "role" };
+            var role = new Menu(Guid.NewGuid()) { Pid = dashboard.Id, CategoryId = 1, Name = "role", Label = "角色管理", Sort = 5, Path = "role", Component = "role/index", Permission = "AbpIdentity.Roles", Icon = "role" };
             seed.Add(new Menu(Guid.NewGuid()) { Pid = role.Id, CategoryId = 2, Name = "Create", Label = "新增", Sort = 3, Permission = "AbpIdentity.Roles.Create", Icon = "create", Hidden = true });
             seed.Add(new Menu(Guid.NewGuid()) { Pid = role.Id, CategoryId = 2, Name = "Update", Label = "修改", Sort = 3, Permission = "AbpIdentity.Roles.Update", Icon = "update", Hidden = true });
             seed.Add(new Menu(Guid.NewGuid()) { Pid = role.Id, CategoryId = 2, Name = "Delete", Label = "删除", Sort = 3, Permission = "AbpIdentity.Roles.Delete", Icon = "delete", Hidden = true });
             seed.Add(new Menu(Guid.NewGuid()) { Pid = role.Id, CategoryId = 2, Name = "RolePermissions", Label = "角色授权", Sort = 3, Permission = "AbpIdentity.Roles.ManagePermissions", Hidden = true });
 
-            var org = new Menu(Guid.NewGuid()) { Pid = systemManagement.Id, CategoryId = 1, Name = "org", Label = "组织机构", Sort = 6, Path = "org", Component = "org/index", Permission = "BaseService.Organization", Icon = "org" };
+            var org = new Menu(Guid.NewGuid()) { Pid = dashboard.Id, CategoryId = 1, Name = "org", Label = "组织机构", Sort = 6, Path = "org", Component = "org/index", Permission = "BaseService.Organization", Icon = "org" };
             seed.Add(new Menu(Guid.NewGuid()) { Pid = org.Id, CategoryId = 2, Name = "Create", Label = "新增", Sort = 3, Permission = "BaseService.Organization.Create", Icon = "create", Hidden = true });
             seed.Add(new Menu(Guid.NewGuid()) { Pid = org.Id, CategoryId = 2, Name = "Update", Label = "修改", Sort = 3, Permission = "BaseService.Organization.Update", Icon = "update", Hidden = true });
             seed.Add(new Menu(Guid.NewGuid()) { Pid = org.Id, CategoryId = 2, Name = "Delete", Label = "删除", Sort = 3, Permission = "BaseService.Organization.Delete", Icon = "delete", Hidden = true });
 
-            var dict = new Menu(Guid.NewGuid()) { Pid = systemManagement.Id, CategoryId = 1, Name = "dict", Label = "数据字典", Sort = 7, Path = "dict", Component = "dict/index", Permission = "BaseService.DataDictionary", Icon = "data" };
+            var dict = new Menu(Guid.NewGuid()) { Pid = dashboard.Id, CategoryId = 1, Name = "dict", Label = "数据字典", Sort = 7, Path = "dict", Component = "dict/index", Permission = "BaseService.DataDictionary", Icon = "data" };
             seed.Add(new Menu(Guid.NewGuid()) { Pid = dict.Id, CategoryId = 2, Name = "Create", Label = "新增", Sort = 3, Permission = "BaseService.DataDictionary.Create", Icon = "create", Hidden = true });
             seed.Add(new Menu(Guid.NewGuid()) { Pid = dict.Id, CategoryId = 2, Name = "Update", Label = "修改", Sort = 3, Permission = "BaseService.DataDictionary.Update", Icon = "update", Hidden = true });
             seed.Add(new Menu(Guid.NewGuid()) { Pid = dict.Id, CategoryId = 2, Name = "Delete", Label = "删除", Sort = 3, Permission = "BaseService.DataDictionary.Delete", Icon = "delete", Hidden = true });
 
-            var job = new Menu(Guid.NewGuid()) { Pid = systemManagement.Id, CategoryId = 1, Name = "job", Label = "岗位管理", Sort = 8, Path = "job", Component = "job/index", Permission = "BaseService.Job", Icon = "job" };
+            var job = new Menu(Guid.NewGuid()) { Pid = dashboard.Id, CategoryId = 1, Name = "job", Label = "岗位管理", Sort = 8, Path = "job", Component = "job/index", Permission = "BaseService.Job", Icon = "job" };
             seed.Add(new Menu(Guid.NewGuid()) { Pid = job.Id, CategoryId = 2, Name = "Create", Label = "新增", Sort = 3, Permission = "BaseService.Job.Create", Icon = "create", Hidden = true });
             seed.Add(new Menu(Guid.NewGuid()) { Pid = job.Id, CategoryId = 2, Name = "Update", Label = "修改", Sort = 3, Permission = "BaseService.Job.Update", Icon = "update", Hidden = true });
             seed.Add(new Menu(Guid.NewGuid()) { Pid = job.Id, CategoryId = 2, Name = "Delete", Label = "删除", Sort = 3, Permission = "BaseService.Job.Delete", Icon = "delete", Hidden = true });
 
-            var log = new Menu(Guid.NewGuid()) { Pid = systemManagement.Id, CategoryId = 1, Name = "log", Label = "系统日志", Sort = 9, Path = "log", Component = "log/index", Permission = "BaseService.AuditLogging", Icon = "log" };
-            seed.Add(systemManagement);
-            seed.Add(user); seed.Add(menu); seed.Add(role); seed.Add(org); seed.Add(dict); seed.Add(job); seed.Add(log);
+            var log = new Menu(Guid.NewGuid()) { Pid = dashboard.Id, CategoryId = 1, Name = "log", Label = "系统日志", Sort = 9, Path = "log", Component = "log/index", Permission = "BaseService.AuditLogging", Icon = "log" };
+            seed.Add(dashboard);
+            seed.Add(chart); seed.Add(menu); seed.Add(role); seed.Add(org); seed.Add(dict); seed.Add(job); seed.Add(log);
 
             var mission = new Menu(Guid.NewGuid()) { CategoryId = 1, Name = "mission", Label = "基础资料", Sort = 3, Path = "/mission", Component = "Layout", Icon = "base", AlwaysShow = true };
             var category = new Menu(Guid.NewGuid()) { Pid = mission.Id, CategoryId = 1, Name = "category", Label = "Book", Sort = 10, Path = "category", Component = "category/index", Permission = "Business.Book", Icon = "book" };
@@ -87,50 +92,55 @@ namespace BaseService.DataSeeder
         public List<Menu> GetVue3Seed()
         {
             var seed = new List<Menu>();
+            
+            // var dashboard = new Menu(Guid.NewGuid()) { CategoryId = 1, Name = "Dashboard", Label = "Dashboard", Sort = 5, Path = "/dashboard", Component = "Layout", Permission = "AbpTenantManagement.Tenants", Icon = "cloud", AlwaysShow = true, IsHost = true };
+            // var chart = new Menu(Guid.NewGuid()) { Pid = dashboard.Id, CategoryId = 1, Name = "chart", Label = "儀錶板", Sort = 21, Path = "chart", Component = "chart/index", Permission = "AbpTenantManagement.Tenants", Icon = "users", IsHost = true };
+            // seed.Add(dashboard); seed.Add(chart);
+            
             var saas = new Menu(Guid.NewGuid()) { CategoryId = 1, Name = "SaaS", Label = "SaaS", Sort = 1, Path = "/saas", Component = "Layout", Permission = "AbpTenantManagement.Tenants", Icon = "ele-Cloudy", IsHost = true, Title = "message.router.SaaS" };
             var tenant = new Menu(Guid.NewGuid()) { Pid = saas.Id, CategoryId = 1, Name = "tenant", Label = "租户管理", Sort = 1, Path = "tenant", Component = "tenant/index", Permission = "AbpTenantManagement.Tenants", Icon = "ele-Avatar", IsHost = true, Title = "message.router.tenant" };
             seed.Add(new Menu(Guid.NewGuid()) { Pid = tenant.Id, CategoryId = 2, Name = "Create", Label = "新增", Sort = 3, Permission = "AbpTenantManagement.Tenants.Create", Icon = "create", Hidden = true, IsHost = true });
             seed.Add(saas); seed.Add(tenant);
 
-            var home = new Menu(Guid.NewGuid()) { CategoryId = 1, Name = "home", Label = "首页", Sort = 1, Path = "/home", Component = "Layout", Icon = "ele-House", IsHost = true, Title = "message.router.home" };
-            var dashboard = new Menu(Guid.NewGuid()) { Pid = home.Id, CategoryId = 1, Name = "dashboard", Label = "工作台", Sort = 1, Path = "/home/dashboard", Component = "/home/index", Icon = "ele-HomeFilled", IsHost = true, Title = "message.router.dashboard", IsAffix = true };
-            seed.Add(home); seed.Add(dashboard);
+            // var home = new Menu(Guid.NewGuid()) { CategoryId = 1, Name = "home", Label = "首页", Sort = 1, Path = "/home", Component = "Layout", Icon = "ele-House", IsHost = true, Title = "message.router.home" };
+            // var dashboard = new Menu(Guid.NewGuid()) { Pid = home.Id, CategoryId = 1, Name = "dashboard", Label = "工作台", Sort = 1, Path = "/home/dashboard", Component = "/home/index", Icon = "ele-HomeFilled", IsHost = true, Title = "message.router.dashboard", IsAffix = true };
+            // seed.Add(home); seed.Add(dashboard);
 
-            var systemManagement = new Menu(Guid.NewGuid()) { CategoryId = 1, Name = "systemManagement", Label = "系统管理", Sort = 2, Path = "/system", Component = "Layout", Icon = "ele-Setting", AlwaysShow = true, Title = "message.router.systemManagement" };
-            var user = new Menu(Guid.NewGuid()) { Pid = systemManagement.Id, CategoryId = 1, Name = "user", Label = "用户管理", Sort = 3, Path = "/system/user", Component = "/system/user/index", Permission = "AbpIdentity.Users", Icon = "iconfont icon-icon-", Title = "message.router.user" };
-            seed.Add(new Menu(Guid.NewGuid()) { Pid = user.Id, CategoryId = 2, Name = "Create", Label = "新增", Sort = 3, Permission = "AbpIdentity.Users.Create", Icon = "create", Hidden = true });
-            seed.Add(new Menu(Guid.NewGuid()) { Pid = user.Id, CategoryId = 2, Name = "Update", Label = "修改", Sort = 3, Permission = "AbpIdentity.Users.Update", Icon = "update", Hidden = true });
-            seed.Add(new Menu(Guid.NewGuid()) { Pid = user.Id, CategoryId = 2, Name = "Delete", Label = "删除", Sort = 3, Permission = "AbpIdentity.Users.Delete", Icon = "delete", Hidden = true });
+            var dashboard = new Menu(Guid.NewGuid()) { CategoryId = 1, Name = "dashboard", Label = "統計數據", Sort = 2, Path = "/dashboard", Component = "Layout", Icon = "ele-Setting", AlwaysShow = true, Title = "message.router.systemManagement" };
+            var chart = new Menu(Guid.NewGuid()) { Pid = dashboard.Id, CategoryId = 1, Name = "chart", Label = "儀錶板", Sort = 3, Path = "/dashboard/chart", Component = "/dashboard/chart/index", Permission = "AbpIdentity.Users", Icon = "iconfont icon-icon-", Title = "message.router.user" };
+            seed.Add(new Menu(Guid.NewGuid()) { Pid = chart.Id, CategoryId = 2, Name = "Create", Label = "新增", Sort = 3, Permission = "AbpIdentity.Users.Create", Icon = "create", Hidden = true });
+            seed.Add(new Menu(Guid.NewGuid()) { Pid = chart.Id, CategoryId = 2, Name = "Update", Label = "修改", Sort = 3, Permission = "AbpIdentity.Users.Update", Icon = "update", Hidden = true });
+            seed.Add(new Menu(Guid.NewGuid()) { Pid = chart.Id, CategoryId = 2, Name = "Delete", Label = "删除", Sort = 3, Permission = "AbpIdentity.Users.Delete", Icon = "delete", Hidden = true });
 
-            var menu = new Menu(Guid.NewGuid()) { Pid = systemManagement.Id, CategoryId = 1, Name = "menu", Label = "菜单管理", Sort = 4, Path = "/system/menu", Component = "/system/menu/index", Permission = "BaseService.Menu", Icon = "fa fa-sliders", Title = "message.router.menu" };
+            var menu = new Menu(Guid.NewGuid()) { Pid = dashboard.Id, CategoryId = 1, Name = "menu", Label = "菜单管理", Sort = 4, Path = "/system/menu", Component = "/system/menu/index", Permission = "BaseService.Menu", Icon = "fa fa-sliders", Title = "message.router.menu" };
             seed.Add(new Menu(Guid.NewGuid()) { Pid = menu.Id, CategoryId = 2, Name = "Create", Label = "新增", Sort = 3, Permission = "BaseService.Menu.Create", Icon = "create", Hidden = true });
             seed.Add(new Menu(Guid.NewGuid()) { Pid = menu.Id, CategoryId = 2, Name = "Update", Label = "修改", Sort = 3, Permission = "BaseService.Menu.Update", Icon = "update", Hidden = true });
             seed.Add(new Menu(Guid.NewGuid()) { Pid = menu.Id, CategoryId = 2, Name = "Delete", Label = "删除", Sort = 3, Permission = "BaseService.Menu.Delete", Icon = "delete", Hidden = true });
 
-            var role = new Menu(Guid.NewGuid()) { Pid = systemManagement.Id, CategoryId = 1, Name = "role", Label = "角色管理", Sort = 5, Path = "/system/role", Component = "/system/role/index", Permission = "AbpIdentity.Roles", Icon = "iconfont icon-shenqingkaiban", Title = "message.router.role" };
+            var role = new Menu(Guid.NewGuid()) { Pid = dashboard.Id, CategoryId = 1, Name = "role", Label = "角色管理", Sort = 5, Path = "/system/role", Component = "/system/role/index", Permission = "AbpIdentity.Roles", Icon = "iconfont icon-shenqingkaiban", Title = "message.router.role" };
             seed.Add(new Menu(Guid.NewGuid()) { Pid = role.Id, CategoryId = 2, Name = "Create", Label = "新增", Sort = 3, Permission = "AbpIdentity.Roles.Create", Icon = "create", Hidden = true });
             seed.Add(new Menu(Guid.NewGuid()) { Pid = role.Id, CategoryId = 2, Name = "Update", Label = "修改", Sort = 3, Permission = "AbpIdentity.Roles.Update", Icon = "update", Hidden = true });
             seed.Add(new Menu(Guid.NewGuid()) { Pid = role.Id, CategoryId = 2, Name = "Delete", Label = "删除", Sort = 3, Permission = "AbpIdentity.Roles.Delete", Icon = "delete", Hidden = true });
             seed.Add(new Menu(Guid.NewGuid()) { Pid = role.Id, CategoryId = 2, Name = "RolePermissions", Label = "角色授权", Sort = 3, Permission = "AbpIdentity.Roles.ManagePermissions", Hidden = true });
 
-            var org = new Menu(Guid.NewGuid()) { Pid = systemManagement.Id, CategoryId = 1, Name = "org", Label = "组织机构", Sort = 6, Path = "/system/org", Component = "/system/org/index", Permission = "BaseService.Organization", Icon = "fa fa-sitemap", Title = "message.router.org" };
+            var org = new Menu(Guid.NewGuid()) { Pid = dashboard.Id, CategoryId = 1, Name = "org", Label = "组织机构", Sort = 6, Path = "/system/org", Component = "/system/org/index", Permission = "BaseService.Organization", Icon = "fa fa-sitemap", Title = "message.router.org" };
             seed.Add(new Menu(Guid.NewGuid()) { Pid = org.Id, CategoryId = 2, Name = "Create", Label = "新增", Sort = 3, Permission = "BaseService.Organization.Create", Icon = "create", Hidden = true });
             seed.Add(new Menu(Guid.NewGuid()) { Pid = org.Id, CategoryId = 2, Name = "Update", Label = "修改", Sort = 3, Permission = "BaseService.Organization.Update", Icon = "update", Hidden = true });
             seed.Add(new Menu(Guid.NewGuid()) { Pid = org.Id, CategoryId = 2, Name = "Delete", Label = "删除", Sort = 3, Permission = "BaseService.Organization.Delete", Icon = "delete", Hidden = true });
 
-            var dict = new Menu(Guid.NewGuid()) { Pid = systemManagement.Id, CategoryId = 1, Name = "dict", Label = "数据字典", Sort = 7, Path = "/system/dict", Component = "/system/dict/index", Permission = "BaseService.DataDictionary", Icon = "ele-Folder", Title = "message.router.dict" };
+            var dict = new Menu(Guid.NewGuid()) { Pid = dashboard.Id, CategoryId = 1, Name = "dict", Label = "数据字典", Sort = 7, Path = "/system/dict", Component = "/system/dict/index", Permission = "BaseService.DataDictionary", Icon = "ele-Folder", Title = "message.router.dict" };
             seed.Add(new Menu(Guid.NewGuid()) { Pid = dict.Id, CategoryId = 2, Name = "Create", Label = "新增", Sort = 3, Permission = "BaseService.DataDictionary.Create", Icon = "create", Hidden = true });
             seed.Add(new Menu(Guid.NewGuid()) { Pid = dict.Id, CategoryId = 2, Name = "Update", Label = "修改", Sort = 3, Permission = "BaseService.DataDictionary.Update", Icon = "update", Hidden = true });
             seed.Add(new Menu(Guid.NewGuid()) { Pid = dict.Id, CategoryId = 2, Name = "Delete", Label = "删除", Sort = 3, Permission = "BaseService.DataDictionary.Delete", Icon = "delete", Hidden = true });
 
-            var job = new Menu(Guid.NewGuid()) { Pid = systemManagement.Id, CategoryId = 1, Name = "job", Label = "岗位管理", Sort = 8, Path = "job", Component = "job/index", Permission = "BaseService.Job", Icon = "job", Title = "message.router.job" };
+            var job = new Menu(Guid.NewGuid()) { Pid = dashboard.Id, CategoryId = 1, Name = "job", Label = "岗位管理", Sort = 8, Path = "job", Component = "job/index", Permission = "BaseService.Job", Icon = "job", Title = "message.router.job" };
             seed.Add(new Menu(Guid.NewGuid()) { Pid = job.Id, CategoryId = 2, Name = "Create", Label = "新增", Sort = 3, Permission = "BaseService.Job.Create", Icon = "create", Hidden = true });
             seed.Add(new Menu(Guid.NewGuid()) { Pid = job.Id, CategoryId = 2, Name = "Update", Label = "修改", Sort = 3, Permission = "BaseService.Job.Update", Icon = "update", Hidden = true });
             seed.Add(new Menu(Guid.NewGuid()) { Pid = job.Id, CategoryId = 2, Name = "Delete", Label = "删除", Sort = 3, Permission = "BaseService.Job.Delete", Icon = "delete", Hidden = true });
 
-            var log = new Menu(Guid.NewGuid()) { Pid = systemManagement.Id, CategoryId = 1, Name = "log", Label = "系统日志", Sort = 9, Path = "log", Component = "log/index", Permission = "BaseService.AuditLogging", Icon = "log", Title = "message.router.log" };
-            seed.Add(systemManagement);
-            seed.Add(user); seed.Add(menu); seed.Add(role); seed.Add(org); seed.Add(dict); seed.Add(job); seed.Add(log);
+            var log = new Menu(Guid.NewGuid()) { Pid = dashboard.Id, CategoryId = 1, Name = "log", Label = "系统日志", Sort = 9, Path = "log", Component = "log/index", Permission = "BaseService.AuditLogging", Icon = "log", Title = "message.router.log" };
+            seed.Add(dashboard);
+            seed.Add(chart); seed.Add(menu); seed.Add(role); seed.Add(org); seed.Add(dict); seed.Add(job); seed.Add(log);
 
             var mission = new Menu(Guid.NewGuid()) { CategoryId = 1, Name = "mission", Label = "基础资料", Sort = 3, Path = "/mission", Component = "Layout", Icon = "base", AlwaysShow = true, Title = "message.router.base" };
             var category = new Menu(Guid.NewGuid()) { Pid = mission.Id, CategoryId = 1, Name = "category", Label = "Book", Sort = 10, Path = "category", Component = "category/index", Permission = "Business.Book", Icon = "book" };
