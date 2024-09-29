@@ -27,4 +27,14 @@ public class DashboardController : AbpController
     {
         return dashboardAppService.GetToDoList(page , pageSize , allData);
     }
+    
+    /// <summary>
+    /// 取得每個父任務底下的子任務完成度(完成任務 / 總子任務數)
+    /// </summary>
+    [HttpGet]
+    [Route("percentage")]
+    public Task<List<MissionProgressDto>> GetMissionFinishPercentage()
+    {
+        return dashboardAppService.GetMissionFinishPercentage();
+    }
 }

@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
 using Business.DashboardManagement;
 using Business.DashboardManagement.Dto;
@@ -10,6 +12,7 @@ using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.ObjectMapping;
+using XCZ.Extensions;
 
 namespace Business.Dashboard;
 
@@ -51,5 +54,44 @@ public class DashboardAppService : ApplicationService , IDashboardAppService
             todos.Add(todo);
         }
         return todos;
+    }
+
+    /// <summary>
+    /// 取得每個父任務底下的子任務完成度(完成任務 / 總子任務數)
+    /// </summary>
+    public async Task<List<MissionProgressDto>> GetMissionFinishPercentage()
+    {
+         // 計算每個父任務底下子任務完成度
+         var query = await _repositorys.MissionView.GetQueryableAsync();
+
+         var parentMissionMap = query.Where(m => m.ParentMissionId == null)
+                                                           .ToDictionary(m => m.MissionId , m => m.MissionName);
+         var submissionMap = query.Where(m => m.ParentMissionId != null)
+                   .GroupBy(m => m.ParentMissionId.Value).ToDictionary(m => m.Key 
+                   , m => m.Select(x => x.MissionFinishTime).ToList());
+
+         var dtos = new List<MissionProgressDto>();
+         foreach (var subMissions in submissionMap)
+         {
+             var parentMissionName = parentMissionMap[subMissions.Key];
+             int totalCount = subMissions.Value.Count();
+             int finishCount = 0;
+             // 計算任務完成比數
+             foreach (var missionFinishTime in subMissions.Value)
+             {
+                 if (!missionFinishTime.IsNullOrEmpty())
+                 {
+                     finishCount++;
+                 }
+             }
+
+             var missionProgressDto = new MissionProgressDto();
+             missionProgressDto.Percentage = finishCount * 100 / totalCount;
+             missionProgressDto.Id = subMissions.Key;
+             missionProgressDto.ParentMissionName = parentMissionName;
+             dtos.Add(missionProgressDto);
+         }
+
+         return dtos;
     }
 }
