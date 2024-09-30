@@ -17,4 +17,9 @@ public interface IDashboardAppService : IApplicationService
     /// 取得每個父任務底下的子任務完成度(完成任務 / 總子任務數)
     /// </summary>
     Task<List<MissionProgressDto>> GetMissionFinishPercentage();
+
+    /// <summary>
+    /// 獲取過去7天的任務進度
+    /// </summary>
+    Task<List<MissionProgressDetailDto>> GetMissionProgress();
 }

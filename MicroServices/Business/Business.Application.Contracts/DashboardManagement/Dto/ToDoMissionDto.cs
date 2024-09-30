@@ -5,7 +5,9 @@ namespace Business.DashboardManagement.Dto;
 
 public class ToDoMissionViewDto : EntityDto<Guid?>
 {
-    public string text { get; set; }
+    public string Text { get; set; }
     
-    public bool done { get; set; }
+    public bool Done { get; set; }
+    
+    public int Lang { get; set; }
 }

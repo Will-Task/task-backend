@@ -49,8 +49,9 @@ public class DashboardAppService : ApplicationService , IDashboardAppService
         {
             var todo = new ToDoMissionViewDto();
             todo.Id = mission.MissionId;
-            todo.text = mission.MissionName;
-            todo.done = mission.MissionFinishTime.HasValue;
+            todo.Text = mission.MissionName;
+            todo.Done = mission.MissionFinishTime.HasValue;
+            todo.Lang = mission.Lang;
             todos.Add(todo);
         }
         return todos;
@@ -67,13 +68,13 @@ public class DashboardAppService : ApplicationService , IDashboardAppService
          var parentMissionMap = query.Where(m => m.ParentMissionId == null)
                                                            .ToDictionary(m => m.MissionId , m => m.MissionName);
          var submissionMap = query.Where(m => m.ParentMissionId != null)
-                   .GroupBy(m => m.ParentMissionId.Value).ToDictionary(m => m.Key 
+                   .GroupBy(m => new {m.ParentMissionId.Value , m.Lang}).ToDictionary(m => m.Key 
                    , m => m.Select(x => x.MissionFinishTime).ToList());
 
          var dtos = new List<MissionProgressDto>();
          foreach (var subMissions in submissionMap)
          {
-             var parentMissionName = parentMissionMap[subMissions.Key];
+             var parentMissionName = parentMissionMap[subMissions.Key.Value];
              int totalCount = subMissions.Value.Count();
              int finishCount = 0;
              // 計算任務完成比數
@@ -87,11 +88,53 @@ public class DashboardAppService : ApplicationService , IDashboardAppService
 
              var missionProgressDto = new MissionProgressDto();
              missionProgressDto.Percentage = finishCount * 100 / totalCount;
-             missionProgressDto.Id = subMissions.Key;
+             missionProgressDto.Id = subMissions.Key.Value;
              missionProgressDto.ParentMissionName = parentMissionName;
+             missionProgressDto.Lang = subMissions.Key.Lang;
              dtos.Add(missionProgressDto);
          }
 
          return dtos;
+    }
+
+    /// <summary>
+    /// 獲取過去7天的任務進度
+    /// </summary>
+    public async Task<List<MissionProgressDetailDto>> GetMissionProgress()
+    {
+        var now = Clock.Now;
+        var sevenDayBefore = now.AddDays(-7);
+        // 計算每個父任務底下子任務完成度
+        var query = await _repositorys.MissionView.GetQueryableAsync();
+
+        var parentMissionMap = query.Where(m => m.ParentMissionId == null)
+            .ToDictionary(m => m.MissionId , m => m.MissionName);
+        var submissionMap = query.Where(m => m.ParentMissionId != null && m.MissionFinishTime != null && m.MissionFinishTime > sevenDayBefore)
+            .GroupBy(m => new {m.ParentMissionId.Value , m.Lang}).ToDictionary(m => m.Key 
+                , m => m.Select(x => x.MissionFinishTime).ToList());
+
+        var dtos = new List<MissionProgressDetailDto>();
+        foreach (var subMissions in submissionMap)
+        {
+            var parentMissionName = parentMissionMap[subMissions.Key.Value];
+            // 計算任務完成為星期幾
+            var propertyNames = new List<string>()
+            {
+                "MonProgress", "TueProgress", "WedProgress", "ThurProgress", "FriProgress", "SatProgress", "SunProgress"
+            };
+            var dto = new MissionProgressDetailDto();
+            dto.Id = subMissions.Key.Value;
+            dto.ParentMissionName = parentMissionName;
+            dto.Lang = subMissions.Key.Lang;
+            foreach (var missionFinishTime in subMissions.Value)
+            {
+                var dayOfWeek = (int)missionFinishTime.Value.DayOfWeek;
+                var property = dto.GetType().GetProperty(propertyNames[dayOfWeek - 1]);
+                property.SetValue(dto,property.GetInt() + 1);
+            }
+            dtos.Add(dto);
+        }
+
+        return dtos;
     }
 }

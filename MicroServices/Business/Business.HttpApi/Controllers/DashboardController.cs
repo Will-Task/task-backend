@@ -37,4 +37,14 @@ public class DashboardController : AbpController
     {
         return dashboardAppService.GetMissionFinishPercentage();
     }
+
+    /// <summary>
+    /// 獲取過去7天的任務進度
+    /// </summary>
+    [HttpGet]
+    [Route("progress")]
+    public Task<List<MissionProgressDetailDto>> GetMissionProgress()
+    {
+        return dashboardAppService.GetMissionProgress();
+    }
 }

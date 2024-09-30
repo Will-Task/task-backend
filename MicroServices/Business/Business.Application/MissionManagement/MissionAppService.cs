@@ -679,7 +679,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         // 檢查到期任務，若到期將IsActive設為false
         var now = Clock.Now;
         var missions = await _repositoys.Mission.GetListAsync(m =>
-            m.MissionEndTime.CompareTo(now) == -1 && m.MissionFinishTime == null);
+            m.MissionEndTime.CompareTo(now) < 0 && m.MissionFinishTime == null);
         missions.ForEach(m => m.IsActive = false);
     }
 
