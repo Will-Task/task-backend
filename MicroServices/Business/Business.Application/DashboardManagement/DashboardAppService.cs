@@ -37,12 +37,13 @@ public class DashboardAppService : ApplicationService , IDashboardAppService
     /// </summary>
     public async Task<List<ToDoMissionViewDto>> GetToDoList(int page , int pageSize , bool allData)
     {
+        var currentUserId = CurrentUser.Id;
         // 取得24小時內要完成事項
         var now = Clock.Now;
         var oneDayAfter = now.AddDays(1);
         var oneDayBefore = now.AddDays(-1);
         var missions = await _repositorys.MissionView.GetListAsync(
-            m => m.MissionStartTime <= oneDayAfter && m.MissionStartTime >= oneDayBefore);
+            m => m.MissionStartTime <= oneDayAfter && m.MissionStartTime >= oneDayBefore &&　m.UserId == currentUserId);
         var todos = new List<ToDoMissionViewDto>();
         
         foreach (var mission in missions)
@@ -62,11 +63,12 @@ public class DashboardAppService : ApplicationService , IDashboardAppService
     /// </summary>
     public async Task<List<MissionProgressDto>> GetMissionFinishPercentage()
     {
+         var currentUserId = CurrentUser.Id;
          // 計算每個父任務底下子任務完成度
          var query = await _repositorys.MissionView.GetQueryableAsync();
-
+         query = query.Where(m => m.UserId == currentUserId);
          var parentMissionMap = query.Where(m => m.ParentMissionId == null)
-                                                           .ToDictionary(m => m.MissionId , m => m.MissionName);
+                                                           .ToDictionary(m => m.MissionId , m => m.MissionName );
          var submissionMap = query.Where(m => m.ParentMissionId != null)
                    .GroupBy(m => new {m.ParentMissionId.Value , m.Lang}).ToDictionary(m => m.Key 
                    , m => m.Select(x => x.MissionFinishTime).ToList());
@@ -102,11 +104,12 @@ public class DashboardAppService : ApplicationService , IDashboardAppService
     /// </summary>
     public async Task<List<MissionProgressDetailDto>> GetMissionProgress()
     {
+        var currentUserId = CurrentUser.Id;
         var now = Clock.Now;
         var sevenDayBefore = now.AddDays(-7);
         // 計算每個父任務底下子任務完成度
         var query = await _repositorys.MissionView.GetQueryableAsync();
-
+        query = query.Where(m => m.UserId == currentUserId);
         var parentMissionMap = query.Where(m => m.ParentMissionId == null)
             .ToDictionary(m => m.MissionId , m => m.MissionName);
         var submissionMap = query.Where(m => m.ParentMissionId != null && m.MissionFinishTime != null && m.MissionFinishTime > sevenDayBefore)
