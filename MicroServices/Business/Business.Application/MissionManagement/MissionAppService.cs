@@ -669,7 +669,6 @@ public class MissionAppService : ApplicationService, IMissionAppService
         }
     }
 
-
     /// <summary>
     /// 檢查到期的任務
     /// </summary>
@@ -681,6 +680,14 @@ public class MissionAppService : ApplicationService, IMissionAppService
         var missions = await _repositoys.Mission.GetListAsync(m =>
             m.MissionEndTime.CompareTo(now) < 0 && m.MissionFinishTime == null);
         missions.ForEach(m => m.IsActive = false);
+    }
+
+    /// <summary>
+    /// 設定自己的定時任務
+    /// </summary>
+    public async Task CreateTaskSchedule(Guid id, int lang)
+    {
+        throw new NotImplementedException();
     }
 
     /// <summary>
