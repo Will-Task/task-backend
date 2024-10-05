@@ -685,8 +685,9 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// <summary>
     /// 設定自己的定時任務
     /// </summary>
-    public async Task CreateTaskSchedule(Guid id, int lang)
+    public async Task CreateTaskSchedule(Guid id, CreateTaskSchedule schedule)
     {
+        // 撈需重複的任務，在create一次
         throw new NotImplementedException();
     }
 

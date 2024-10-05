@@ -211,8 +211,8 @@ public class MissionController : AbpController
     /// </summary>
     [HttpPost]
     [Route("{id}/schedules")]
-    public async Task CreateTaskSchedule(Guid id , int lang)
+    public async Task CreateTaskSchedule(Guid id , CreateTaskSchedule schedule)
     {
-        await _missionAppService.CreateTaskSchedule(id, lang);
+        await _missionAppService.CreateTaskSchedule(id, schedule);
     } 
 }

@@ -105,5 +105,5 @@ public interface IMissionAppService : IApplicationService
     /// <summary>
     /// 設定自己的定時任務
     /// </summary>
-    Task CreateTaskSchedule(Guid id, int lang);
+    Task CreateTaskSchedule(Guid id, CreateTaskSchedule schedule);
 }
