@@ -40,6 +40,9 @@ public class Mission: AuditedAggregateRoot<Guid> , ISoftDelete,IIsActive
 
     [Required] 
     public MissionState MissionState { get; set; } = MissionState.IN_PROCESS;
+    
+    // 定時任務排成(0 -> 不會重複 1 -> weekly 2 -> daily 3-> monthly)
+    public int Schedule { get; set; }
 
     public bool IsDeleted { get; set; }
     public bool IsActive { get; set; } = true;

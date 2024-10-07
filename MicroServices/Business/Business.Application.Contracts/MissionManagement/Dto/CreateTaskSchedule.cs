@@ -5,8 +5,6 @@ namespace Business.MissionManagement.Dto;
 
 public class CreateTaskSchedule : EntityDto<Guid>
 {
-    public int Lang { get; set; }
-    
     // 定時任務規則
     // 1 -> weekly 2 -> daily 3-> monthly
     public int Frequency { get; set; }

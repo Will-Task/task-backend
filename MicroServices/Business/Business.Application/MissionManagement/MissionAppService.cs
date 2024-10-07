@@ -688,7 +688,9 @@ public class MissionAppService : ApplicationService, IMissionAppService
     public async Task CreateTaskSchedule(Guid id, CreateTaskSchedule schedule)
     {
         // 撈需重複的任務，在create一次
-        throw new NotImplementedException();
+        var mission = await _repositoys.Mission.GetAsync(id);
+        // 設定定時任務重複頻率
+        mission.Schedule = schedule.Frequency;
     }
 
     /// <summary>
