@@ -48,6 +48,8 @@ public class MissionAppService : ApplicationService, IMissionAppService
     private readonly IDataFilter _dataFilter;
     private readonly int ExcelBeginLine = 4;
     private readonly int ExcelEndLine = 13;
+    // 設定定時任務最大數量
+    private readonly int maxScheduleCount = 10;
 
     public MissionAppService(IRepository<Mission, Guid> Mission,
         IRepository<MissionI18N, Guid> MissionI18N,
@@ -189,7 +191,25 @@ public class MissionAppService : ApplicationService, IMissionAppService
         // 拿全部or分頁
         var parents = allData ? await query.ToListAsync() : await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
         var dtos = ObjectMapper.Map<List<MissionView>, List<MissionViewDto>>(parents);
-        
+
+        foreach (var dto in dtos.Where(x => x.Schedule != 0).ToList())
+        {
+            // 定時天數
+            var days = dto.Schedule == 1 ? 1 : dto.Schedule == 2 ? 7 : 30;
+            var baseDto = dto;
+            for (int i = 0; i < maxScheduleCount; i++)
+            {
+                var viewDto = ObjectMapper.Map<MissionViewDto,MissionViewDto>(dto);
+                viewDto.MissionStartTime = baseDto.MissionStartTime.AddDays(days);
+                viewDto.MissionEndTime = baseDto.MissionEndTime.AddDays(days);
+                baseDto = viewDto;
+                dtos.Add(viewDto);
+                count++;
+            }
+        }
+
+        int index = 0;
+        dtos.ForEach(x => x.Id = index++);
         return new PagedResultDto<MissionViewDto>(count,dtos);
     }
 
