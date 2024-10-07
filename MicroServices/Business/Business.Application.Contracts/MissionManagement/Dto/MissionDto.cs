@@ -23,6 +23,9 @@ public class MissionDto : EntityDto<Guid>
     public DateTime MissionEndTime { get; set; }
     
     public int SubMissionCount { get; set; }
+    
+    // 定時任務排成(0 -> 不會重複 1 -> weekly 2 -> daily 3-> monthly)
+    public int Schedule { get; set; }
 
     public ICollection<MissionI18NDto> MissionI18NDtos { get; set; }
 
