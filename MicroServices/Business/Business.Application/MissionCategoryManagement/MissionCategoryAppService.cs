@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Business.MissionCategoryManagement.Dto;
 using Business.Models;
+using Business.Permissions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +16,7 @@ using Volo.Abp.Domain.Repositories;
 
 namespace Business.MissionCategoryManagement;
 
-[Authorize]
+[Authorize(BusinessPermissions.TaskCategory.Default)]
 [RemoteService(false)]
 public class MissionCategoryAppService : ApplicationService, IMissionCategoryAppService
 {

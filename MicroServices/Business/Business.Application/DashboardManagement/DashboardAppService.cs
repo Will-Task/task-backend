@@ -6,6 +6,7 @@ using Business.DashboardManagement;
 using Business.DashboardManagement.Dto;
 using Business.MissionManagement.Dto;
 using Business.Models;
+using Business.Permissions;
 using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
@@ -16,7 +17,7 @@ using XCZ.Extensions;
 
 namespace Business.Dashboard;
 
-[Authorize]
+[Authorize(BusinessPermissions.TaskDashboard.Default)]
 [RemoteService(false)]
 public class DashboardAppService : ApplicationService , IDashboardAppService
 {

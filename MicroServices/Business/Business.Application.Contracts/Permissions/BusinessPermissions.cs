@@ -23,6 +23,30 @@ namespace Business.Permissions
             public const string Update = Default + ".Update";
             public const string Create = Default + ".Create";
         }
+        
+        public static class TaskItem
+        {
+            public const string Default = Business + ".TaskItem";
+            public const string Delete = Default + ".Delete";
+            public const string Update = Default + ".Update";
+            public const string Create = Default + ".Create";
+        }
+        
+        public static class TaskCategory
+        {
+            public const string Default = Business + ".TaskCategory";
+            public const string Delete = Default + ".Delete";
+            public const string Update = Default + ".Update";
+            public const string Create = Default + ".Create";
+        }
+        
+        public static class TaskDashboard
+        {
+            public const string Default = Business + ".TaskDashboard";
+            public const string Delete = Default + ".Delete";
+            public const string Update = Default + ".Update";
+            public const string Create = Default + ".Create";
+        }
 
         //Code generation...
     }

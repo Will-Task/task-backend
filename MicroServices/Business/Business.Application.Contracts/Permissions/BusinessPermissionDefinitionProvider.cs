@@ -23,6 +23,21 @@ namespace Business.Permissions
             PrintTemplate.AddChild(BusinessPermissions.PrintTemplate.Create, L("Create"));
 
             //Code generation...
+            
+            var Item = Business.AddPermission(BusinessPermissions.TaskItem.Default, L("TaskItem"));
+            Item.AddChild(BusinessPermissions.TaskItem.Update, L("Edit"));
+            Item.AddChild(BusinessPermissions.TaskItem.Delete, L("Delete"));
+            Item.AddChild(BusinessPermissions.TaskItem.Create, L("Create"));
+            
+            var Category = Business.AddPermission(BusinessPermissions.TaskCategory.Default, L("TaskCategory"));
+            Category.AddChild(BusinessPermissions.TaskCategory.Update, L("Edit"));
+            Category.AddChild(BusinessPermissions.TaskCategory.Delete, L("Delete"));
+            Category.AddChild(BusinessPermissions.TaskCategory.Create, L("Create"));
+            
+            var Dashboard = Business.AddPermission(BusinessPermissions.TaskDashboard.Default, L("TaskDashboard"));
+            Dashboard.AddChild(BusinessPermissions.TaskDashboard.Update, L("Edit"));
+            Dashboard.AddChild(BusinessPermissions.TaskDashboard.Delete, L("Delete"));
+            Dashboard.AddChild(BusinessPermissions.TaskDashboard.Create, L("Create"));
         }
 
         private static LocalizableString L(string name)

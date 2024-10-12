@@ -13,6 +13,7 @@ using Business.FileManagement;
 using Business.FileManagement.Dto;
 using Business.MissionManagement.Dto;
 using Business.Models;
+using Business.Permissions;
 using ClosedXML.Excel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -30,7 +31,7 @@ using Volo.Abp.Identity;
 
 namespace Business.MissionManagement;
 
-[Authorize]
+[Authorize(BusinessPermissions.TaskItem.Default)]
 [RemoteService(false)]
 public class MissionAppService : ApplicationService, IMissionAppService
 {
