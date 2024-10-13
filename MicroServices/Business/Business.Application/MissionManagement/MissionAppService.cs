@@ -190,27 +190,28 @@ public class MissionAppService : ApplicationService, IMissionAppService
         query = query.Where(mv => mv.ParentMissionId == null && mv.UserId == currentUserId);
         var count = await query.CountAsync();
         // 拿全部or分頁
-        var parents = allData ? await query.ToListAsync() : await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
-        var dtos = ObjectMapper.Map<List<MissionView>, List<MissionViewDto>>(parents);
+        var parents = await query.ToListAsync();
 
-        foreach (var dto in dtos.Where(x => x.Schedule != 0).ToList())
+        foreach (var parent in parents.Where(x => x.Schedule != 0).ToList())
         {
             // 定時天數
-            var days = dto.Schedule == 1 ? 1 : dto.Schedule == 2 ? 7 : 30;
-            var baseDto = dto;
+            var days = parent.Schedule == 1 ? 1 : parent.Schedule == 2 ? 7 : 30;
+            var baseDto = parent;
             for (int i = 0; i < maxScheduleCount; i++)
             {
-                var viewDto = ObjectMapper.Map<MissionViewDto,MissionViewDto>(dto);
+                var viewDto = ObjectMapper.Map<MissionView,MissionView>(parent);
                 viewDto.MissionStartTime = baseDto.MissionStartTime.AddDays(days);
                 viewDto.MissionEndTime = baseDto.MissionEndTime.AddDays(days);
                 baseDto = viewDto;
-                dtos.Add(viewDto);
+                parents.Add(viewDto);
                 count++;
             }
         }
-
+        
+        var dtos = ObjectMapper.Map<List<MissionView>, List<MissionViewDto>>(parents);
         int index = 0;
         dtos.ForEach(x => x.Id = index++);
+        dtos = allData ? dtos : dtos.Skip((page - 1) * pageSize).Take(pageSize).ToList();
         return new PagedResultDto<MissionViewDto>(count,dtos);
     }
 
