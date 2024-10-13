@@ -81,12 +81,6 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// </summary>
     public async Task<MissionI18NDto> DataPost(CreateOrUpdateMissionDto input)
     {
-        // 判斷開始時間是否有早於結束時間
-        if (input.MissionStartTime.CompareTo(input.MissionEndTime) > 0)
-        {
-            throw new UserFriendlyException("結束時間比開始時間還晚", "404");
-        }
-
         // 建立新missionI18N，供新增或新增語系
         var newMissionI18N = new MissionI18N
         {
