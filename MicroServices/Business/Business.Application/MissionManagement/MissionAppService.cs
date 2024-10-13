@@ -713,6 +713,8 @@ public class MissionAppService : ApplicationService, IMissionAppService
         var mission = await _repositoys.Mission.GetAsync(id);
         // 設定定時任務重複頻率
         mission.Schedule = schedule.Frequency;
+        
+        // TODO 改成insert重複的資料到DB
     }
 
     /// <summary>
