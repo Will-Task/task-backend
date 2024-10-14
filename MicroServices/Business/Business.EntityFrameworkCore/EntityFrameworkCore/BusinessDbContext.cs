@@ -9,10 +9,6 @@ namespace Business.EntityFrameworkCore
     [ConnectionStringName("Business")]
     public class BusinessDbContext : AbpDbContext<BusinessDbContext>
     {
-        public DbSet<Book> Book { get; set; }
-
-        public DbSet<PrintTemplate> PrintTemplate { get; set; }
-
         // 自定義model
         public DbSet<Mission> Mission { get; set; }
         public DbSet<MissionI18N> MissionI18N { get; set; }
