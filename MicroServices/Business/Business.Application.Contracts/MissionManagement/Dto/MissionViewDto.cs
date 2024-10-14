@@ -44,4 +44,7 @@ public class MissionViewDto : EntityDto<Int64>
     
     // 定時任務排成(0 -> 不會重複 1 -> weekly 2 -> daily 3-> monthly)
     public int Schedule { get; set; }
+    
+    // 定時任務的主要原頭Id
+    public Guid? ScheduleMissionId { get; set; }
 }

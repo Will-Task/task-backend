@@ -205,14 +205,4 @@ public class MissionController : AbpController
     {
         await _missionAppService.CheckExpiredOrFinished();
     }
-
-    /// <summary>
-    /// 設定自己的定時任務
-    /// </summary>
-    [HttpPost]
-    [Route("{id}/schedules")]
-    public async Task CreateTaskSchedule(Guid id , CreateTaskSchedule schedule)
-    {
-        await _missionAppService.CreateTaskSchedule(id, schedule);
-    } 
 }

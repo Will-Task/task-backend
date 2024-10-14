@@ -49,6 +49,8 @@ public class MissionAppService : ApplicationService, IMissionAppService
     private readonly IDataFilter _dataFilter;
     private readonly int ExcelBeginLine = 4;
     private readonly int ExcelEndLine = 13;
+    // 設定定時任務最大數量
+    private readonly int maxScheduleCount = 10;
 
     public MissionAppService(IRepository<Mission, Guid> Mission,
         IRepository<MissionI18N, Guid> MissionI18N,
@@ -105,7 +107,16 @@ public class MissionAppService : ApplicationService, IMissionAppService
             // I18N存在 => 修改現有語系資料
             if (missionI18N != null)
             {
-                // 更新I18N
+                Guid nowId = input.Id.Value;
+                // 定時任務新增
+                if (mission.Schedule != input.Schedule)
+                {
+                    input.ScheduleMissionId = mission.ScheduleMissionId;
+                    // 和原狀態不相同才須設定定時
+                    await CreateTaskSchedule(input);
+                    input.Id = nowId;
+                }
+                // 更新本體
                 ObjectMapper.Map(input, mission);
                 // 更新I18N info
                 missionI18N.MissionId = input.Id.Value;
@@ -135,6 +146,12 @@ public class MissionAppService : ApplicationService, IMissionAppService
 
             // 儲存任務I18N(newMission就會有值且此時Guid是有優化過順具的)
             await _repositoys.Mission.InsertAsync(newMission, autoSave: true);
+            // 定時任務新增
+            if (input.Schedule != 0)
+            {
+                input.ScheduleMissionId = newMission.Id;
+                await CreateTaskSchedule(input);
+            }
             // 指定剛剛新增的任務ID
             input.Id = newMission.Id;
         }
@@ -680,14 +697,42 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// <summary>
     /// 設定自己的定時任務
     /// </summary>
-    public async Task CreateTaskSchedule(Guid id, CreateTaskSchedule schedule)
+    private async Task CreateTaskSchedule(CreateOrUpdateMissionDto input)
     {
-        // 撈需重複的任務，在create一次
-        var mission = await _repositoys.Mission.GetAsync(id);
-        // 設定定時任務重複頻率
-        mission.Schedule = schedule.Frequency;
-        
         // TODO 改成insert重複的資料到DB
+        // 修改定時狀態
+        input.Id = null;
+        // 取消定時任務(刪除)
+        var query = await _repositoys.MissionView.GetQueryableAsync();
+        var idLangMaps = query.Where(m =>
+                m.ScheduleMissionId == input.ScheduleMissionId &&　m.MissionId != input.ScheduleMissionId)
+            .GroupBy(m => new {m.MissionId , m.Lang}).ToDictionary(m => m.Key, m => m.First().Lang);
+        foreach (var idLangMap in idLangMaps)
+        {
+            await Delete(idLangMap.Key.MissionId, idLangMap.Value);
+        }
+
+        // 新增定時任務(新增)
+        if (input.Schedule != 0)
+        {
+            var currentUserId = CurrentUser.Id;
+            Mission baseMission = ObjectMapper.Map<CreateOrUpdateMissionDto,Mission>(input);
+            for (int i = 0; i < maxScheduleCount; i++)
+            {
+                // 定時天數
+                var days = input.Schedule == 1 ? 1 : input.Schedule == 2 ? 7 : 30;
+                var mission = ObjectMapper.Map<CreateOrUpdateMissionDto,Mission>(input);
+                var missionI18N = ObjectMapper.Map<CreateOrUpdateMissionDto,MissionI18N>(input);
+                mission.MissionStartTime = baseMission.MissionStartTime.AddDays(days);
+                mission.MissionEndTime = baseMission.MissionEndTime.AddDays(days);
+                mission.UserId = currentUserId;
+                mission.Email = CurrentUser.Email;
+                mission.MissionI18Ns = new List<MissionI18N>();
+                mission.MissionI18Ns.Add(missionI18N);
+                baseMission = mission;
+                await _repositoys.Mission.InsertAsync(mission, autoSave: true);
+            }
+        }
     }
 
     /// <summary>

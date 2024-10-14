@@ -101,9 +101,4 @@ public interface IMissionAppService : IApplicationService
     /// 檢查到期的任務
     /// </summary>
     Task CheckExpiredOrFinished();
-
-    /// <summary>
-    /// 設定自己的定時任務
-    /// </summary>
-    Task CreateTaskSchedule(Guid id, CreateTaskSchedule schedule);
 }
