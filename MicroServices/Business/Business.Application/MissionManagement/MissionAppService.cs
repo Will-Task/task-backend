@@ -136,24 +136,24 @@ public class MissionAppService : ApplicationService, IMissionAppService
         else
         {
             // 儲存任務和I18N
+            input.Id = GuidGenerator.Create();
             var newMission = ObjectMapper.Map<CreateOrUpdateMissionDto, Mission>(input);
             // 新建任務為TODO
             newMission.MissionState = MissionState.IN_PROCESS;
             newMission.UserId = CurrentUser.Id;
             newMission.Email = CurrentUser.Email;
+            newMission.ScheduleMissionId = input.Id;
             newMission.MissionI18Ns = new List<MissionI18N>();
             newMission.MissionI18Ns.Add(newMissionI18N);
-
-            // 儲存任務I18N(newMission就會有值且此時Guid是有優化過順具的)
-            await _repositoys.Mission.InsertAsync(newMission, autoSave: true);
+            
             // 定時任務新增
             if (input.Schedule != 0)
             {
                 input.ScheduleMissionId = newMission.Id;
                 await CreateTaskSchedule(input);
             }
-            // 指定剛剛新增的任務ID
-            input.Id = newMission.Id;
+            // 儲存任務I18N(newMission就會有值且此時Guid是有優化過順具的)
+            await _repositoys.Mission.InsertAsync(newMission, autoSave: true);
         }
 
         return ObjectMapper.Map<CreateOrUpdateMissionDto, MissionI18NDto>(input);
@@ -709,7 +709,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
             .GroupBy(m => new {m.MissionId , m.Lang}).ToDictionary(m => m.Key, m => m.First().Lang);
         foreach (var idLangMap in idLangMaps)
         {
-            await Delete(idLangMap.Key.MissionId, idLangMap.Value);
+            await DeleteData(idLangMap.Key.MissionId, idLangMap.Value);
         }
 
         // 新增定時任務(新增)
@@ -744,5 +744,18 @@ public class MissionAppService : ApplicationService, IMissionAppService
         var dropValidation = dropListRange.SetDataValidation();
         var optionString = $"\"{String.Join(",", options)}\"";
         dropValidation.List(optionString, true);
+    }
+
+    private async Task DeleteData(Guid id , int lang)
+    {
+        // 透過missionId和lang共同判斷要刪除的I18N
+        await _repositoys.MissionI18N.DeleteAsync(x => x.MissionId == id
+                                                       && x.Lang == lang, autoSave: true);
+        // 若該任務不存在任何語系則刪除任務本體
+        var count = await _repositoys.MissionI18N.CountAsync(x => x.MissionId == id);
+        if (count == 0)
+        {
+            await _repositoys.Mission.DeleteAsync(id);
+        }
     }
 }
