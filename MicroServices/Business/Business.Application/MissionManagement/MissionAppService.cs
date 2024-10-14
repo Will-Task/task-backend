@@ -49,8 +49,6 @@ public class MissionAppService : ApplicationService, IMissionAppService
     private readonly IDataFilter _dataFilter;
     private readonly int ExcelBeginLine = 4;
     private readonly int ExcelEndLine = 13;
-    // 設定定時任務最大數量
-    private readonly int maxScheduleCount = 10;
 
     public MissionAppService(IRepository<Mission, Guid> Mission,
         IRepository<MissionI18N, Guid> MissionI18N,
@@ -184,27 +182,8 @@ public class MissionAppService : ApplicationService, IMissionAppService
         query = query.Where(mv => mv.ParentMissionId == null && mv.UserId == currentUserId);
         var count = await query.CountAsync();
         // 拿全部or分頁
-        var parents = await query.ToListAsync();
-
-        foreach (var parent in parents.Where(x => x.Schedule != 0).ToList())
-        {
-            // 定時天數
-            var days = parent.Schedule == 1 ? 1 : parent.Schedule == 2 ? 7 : 30;
-            var baseDto = parent;
-            for (int i = 0; i < maxScheduleCount; i++)
-            {
-                var viewDto = ObjectMapper.Map<MissionView,MissionView>(parent);
-                viewDto.MissionStartTime = baseDto.MissionStartTime.AddDays(days);
-                viewDto.MissionEndTime = baseDto.MissionEndTime.AddDays(days);
-                baseDto = viewDto;
-                parents.Add(viewDto);
-                count++;
-            }
-        }
-        
+        var parents = allData ? await query.ToListAsync() : await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
         var dtos = ObjectMapper.Map<List<MissionView>, List<MissionViewDto>>(parents);
-        int index = 0;
-        dtos.ForEach(x => x.Id = index++);
         dtos = allData ? dtos : dtos.Skip((page - 1) * pageSize).Take(pageSize).ToList();
         return new PagedResultDto<MissionViewDto>(count,dtos);
     }
