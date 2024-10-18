@@ -58,6 +58,14 @@ public class DashboardAppService : ApplicationService , IDashboardAppService
         }
         return todos;
     }
+    
+    /// <summary>
+    /// 計算每個月的任務延遲狀況
+    /// </summary>
+    public async Task<List<ToDoMissionViewDto>> GetMissionDelays()
+    {
+        throw new System.NotImplementedException();
+    }
 
     /// <summary>
     /// 取得每個父任務底下的子任務完成度(完成任務 / 總子任務數)
