@@ -141,4 +141,20 @@ public class DashboardAppService : ApplicationService , IDashboardAppService
 
         return dtos;
     }
+
+    /// <summary>
+    /// 獲取任務進度來呈現甘特圖（Gantt Chart）資料
+    /// </summary>
+    public async Task<List<MissionGanttChartDataDto>> GetGanttChart()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    /// <summary>
+    /// 獲取任務進度來呈現甘特圖（Gantt Chart）資料
+    /// </summary>
+    public async Task<Dictionary<int,List<MissionKanbanChartDataDto>>> GetKanbanChart()
+    {
+        throw new System.NotImplementedException();
+    }
 }

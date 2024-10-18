@@ -22,4 +22,14 @@ public interface IDashboardAppService : IApplicationService
     /// 獲取過去7天的任務進度
     /// </summary>
     Task<List<MissionProgressDetailDto>> GetMissionProgress();
+
+    /// <summary>
+    /// 獲取任務進度來呈現甘特圖（Gantt Chart）資料
+    /// </summary>
+    Task<List<MissionGanttChartDataDto>> GetGanttChart();
+
+    /// <summary>
+    /// 獲取任務進度來呈現甘特圖（Gantt Chart）資料
+    /// </summary>
+    Task<Dictionary<int,List<MissionKanbanChartDataDto>>> GetKanbanChart();
 }

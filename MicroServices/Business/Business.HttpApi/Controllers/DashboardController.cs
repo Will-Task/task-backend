@@ -47,4 +47,24 @@ public class DashboardController : AbpController
     {
         return dashboardAppService.GetMissionProgress();
     }
+    
+    /// <summary>
+    /// 獲取任務進度來呈現甘特圖（Gantt Chart）資料
+    /// </summary>
+    [HttpGet]
+    [Route("gantt/chart")]
+    public Task<List<MissionGanttChartDataDto>> GetGanttChart()
+    {
+        return dashboardAppService.GetGanttChart();
+    }
+    
+    /// <summary>
+    /// 獲取任務進度來呈現甘特圖（Gantt Chart）資料
+    /// </summary>
+    [HttpGet]
+    [Route("anban/chart")]
+    public Task<Dictionary<int,List<MissionKanbanChartDataDto>>> GetKanbanChart()
+    {
+        return dashboardAppService.GetKanbanChart();
+    }
 }
