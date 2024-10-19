@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
@@ -9,6 +11,7 @@ using Business.Models;
 using Business.Permissions;
 using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using Microsoft.AspNetCore.Authorization;
+using NUglify.Helpers;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
@@ -155,7 +158,45 @@ public class DashboardAppService : ApplicationService , IDashboardAppService
     /// </summary>
     public async Task<List<MissionGanttChartDataDto>> GetGanttChart()
     {
-        throw new System.NotImplementedException();
+        var currentId = CurrentUser.Id;
+        var missions = await _repositorys.MissionView.GetListAsync(m => m.UserId == currentId);
+        var maps = missions.GroupBy(m => new { m.ParentMissionId, m.Lang }).ToDictionary(m => m.Key);
+        var dtos = new List<MissionGanttChartDataDto>();
+        foreach (var map in maps)
+        {
+            // 任務完成度計算
+            int finish =  map.Value.Count(m => m.MissionFinishTime != null);
+            int total = map.Value.Count();;
+            decimal finishRate = finish / total;
+
+            var parent = await _repositorys.MissionView.GetAsync(m => m.MissionId == map.Value.First().MissionId);
+            var dto = new MissionGanttChartDataDto();
+            dto.Id = parent.MissionId;
+            dto.Text = parent.MissionName;
+            var startDateString = parent.MissionStartTime.ToString();
+            dto.Start_date = DateTime.Parse(startDateString.Substring(0,startDateString.IndexOf(" ")) , new CultureInfo("fr-FR")).ToString("dd-MM-yyyy");
+            dto.Duration = (parent.MissionEndTime - parent.MissionStartTime).Days;
+            dto.Order = parent.MissionPriority;
+            dto.Progress = finishRate;
+            dto.ParentId = null;
+            dtos.Add(dto);
+            
+            map.Value.ForEach(m =>
+            {
+                dto = new MissionGanttChartDataDto();
+                dto.Id = m.MissionId;
+                dto.Text = m.MissionName;
+                startDateString = m.MissionStartTime.ToString();
+                dto.Start_date = DateTime.Parse(startDateString.Substring(0,startDateString.IndexOf(" ")) , new CultureInfo("fr-FR")).ToString("dd-MM-yyyy");
+                dto.Duration = (m.MissionEndTime - m.MissionStartTime).Days;
+                dto.Order = m.MissionPriority;
+                dto.Progress = m.MissionFinishTime.IsNullOrEmpty() ? 0 : 1;
+                dto.ParentId = m.ParentMissionId;
+                dtos.Add(dto);
+            });
+        }
+
+        return dtos;
     }
 
     /// <summary>

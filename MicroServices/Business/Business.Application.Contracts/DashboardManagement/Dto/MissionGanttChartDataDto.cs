@@ -8,22 +8,32 @@ public class MissionGanttChartDataDto : EntityDto<Guid?>
     /// <summary>
     /// 任務名稱
     /// </summary>
-    public string Name { get; set; }
+    public string Text { get; set; }
     
     /// <summary>
     /// 開始時間
     /// </summary>
-    public DateTime StartTime { get; set; }
-    
-    /// <summary>
-    /// 結束時間
-    /// </summary>
-    public DateTime EndTime { get; set; }
+    public string Start_date { get; set; }
     
     /// <summary>
     /// 持續天數
     /// </summary>
     public int Duration { get; set; }
+    
+    /// <summary>
+    /// 順序
+    /// </summary>
+    public int Order { get; set; }
+
+    /// <summary>
+    /// 任務完成百分比
+    /// </summary>
+    public decimal Progress { get; set; }
+    
+    /// <summary>
+    /// 指定父任務
+    /// </summary>
+    public Guid? ParentId { get; set; }
     
     /// <summary>
     /// 語系
