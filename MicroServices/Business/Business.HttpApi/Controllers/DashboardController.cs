@@ -33,7 +33,7 @@ public class DashboardController : AbpController
     /// </summary>
     [HttpGet]
     [Route("delay")]
-    public Task<List<ToDoMissionViewDto>> GetMissionDelays()
+    public Task<List<MissionDelayDto>> GetMissionDelays()
     {
         return dashboardAppService.GetMissionDelays();
     }

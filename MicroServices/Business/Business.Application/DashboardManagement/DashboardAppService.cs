@@ -65,9 +65,25 @@ public class DashboardAppService : ApplicationService , IDashboardAppService
     /// <summary>
     /// 計算每個月的任務延遲狀況
     /// </summary>
-    public async Task<List<ToDoMissionViewDto>> GetMissionDelays()
+    public async Task<List<MissionDelayDto>> GetMissionDelays()
     {
-        throw new System.NotImplementedException();
+        var currentUser = CurrentUser.Id;
+        var query = await _repositorys.MissionView.GetQueryableAsync();
+        // 根據月份，計算未完成任務
+        var maps = query.Where(m => m.UserId == currentUser && m.MissionFinishTime == null).GroupBy(m => m.MissionStartTime.Month)
+                                .ToDictionary(m => m.Key , m => m.Count());
+
+        var dtos = new List<MissionDelayDto>();
+        int index = 0;
+        foreach (var map in maps)
+        {
+            var dto = new MissionDelayDto();
+            dto.Id = index++;
+            dto.Count[map.Key - 1] = map.Value;
+            dtos.Add(dto);
+        }
+
+        return dtos;
     }
 
     /// <summary>
