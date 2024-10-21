@@ -172,12 +172,16 @@ public class DashboardAppService : ApplicationService , IDashboardAppService
     /// <summary>
     /// 獲取任務進度來呈現甘特圖（Gantt Chart）資料
     /// </summary>
-    public async Task<List<MissionGanttChartDataDto>> GetGanttChart()
+    public async Task<MissionGanttDto> GetGanttChart()
     {
+        var resultDto = new MissionGanttDto();
         var currentId = CurrentUser.Id;
         var missions = await _repositorys.MissionView.GetListAsync(m => m.UserId == currentId);
-        var maps = missions.Where(m => m.ParentMissionId.HasValue).GroupBy(m => new { m.ParentMissionId, m.Lang }).ToDictionary(m => m.Key);
+        // 子任務根據 結束時間和重要程度進行link
+        var maps = missions.Where(m => m.ParentMissionId.HasValue).GroupBy(m => new { m.ParentMissionId, m.Lang }).ToDictionary(m => m.Key 
+            , ms => ms.OrderBy(m => m.MissionEndTime).OrderBy(m => m.MissionPriority));
         var dtos = new List<MissionGanttChartDataDto>();
+        var linkDtos = new List<MissionLinkDto>();
         foreach (var map in maps)
         {
             // 任務完成度計算
@@ -201,9 +205,19 @@ public class DashboardAppService : ApplicationService , IDashboardAppService
                 dto.Lang = parent.Lang;
                 dtos.Add(dto);
             }
+
+            Guid? last = null;
             
             map.Value.ForEach(m =>
             {
+                if (last != null)
+                {
+                    var linkDto = new MissionLinkDto();
+                    linkDto.Id = last;
+                    linkDto.Source = last.Value;
+                    linkDto.Target = m.MissionId;
+                    linkDtos.Add(linkDto);
+                }
                 dto = new MissionGanttChartDataDto();
                 dto.Id = m.MissionId;
                 dto.Text = m.MissionName;
@@ -214,11 +228,15 @@ public class DashboardAppService : ApplicationService , IDashboardAppService
                 dto.Progress = m.MissionFinishTime.IsNullOrEmpty() ? 0 : 1;
                 dto.Parent = m.ParentMissionId;
                 dto.Lang = m.Lang;
+                last = m.MissionId;
                 dtos.Add(dto);
             });
         }
 
-        return dtos;
+        resultDto.Tasks = dtos;
+        resultDto.Links = linkDtos;
+
+        return resultDto;
     }
 
     /// <summary>

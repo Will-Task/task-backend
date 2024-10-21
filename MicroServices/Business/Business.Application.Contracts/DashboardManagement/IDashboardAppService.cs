@@ -31,7 +31,7 @@ public interface IDashboardAppService : IApplicationService
     /// <summary>
     /// 獲取任務進度來呈現甘特圖（Gantt Chart）資料
     /// </summary>
-    Task<List<MissionGanttChartDataDto>> GetGanttChart();
+    Task<MissionGanttDto> GetGanttChart();
 
     /// <summary>
     /// 獲取任務進度來呈現甘特圖（Gantt Chart）資料

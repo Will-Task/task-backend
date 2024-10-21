@@ -63,7 +63,7 @@ public class DashboardController : AbpController
     /// </summary>
     [HttpGet]
     [Route("gantt/chart")]
-    public Task<List<MissionGanttChartDataDto>> GetGanttChart()
+    public Task<MissionGanttDto> GetGanttChart()
     {
         return dashboardAppService.GetGanttChart();
     }
