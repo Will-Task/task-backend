@@ -503,10 +503,15 @@ public class MissionAppService : ApplicationService, IMissionAppService
             var nextChar = 'A';
 
             IXLWorksheet worksheet;
+            int index = 0;
+            while (workBook.TryGetWorksheet(parentMission.MissionName, out var name))
+            {
+                index ++;
+            }
             if (!workBook.TryGetWorksheet("工作表1", out worksheet))
             {
                 // 指定workSheet名字為當前匯出的父任務(動態生成tab)
-                worksheet = workBook.AddWorksheet(parentMission.MissionName, startWorkSheet++);
+                worksheet = workBook.AddWorksheet(index == 0 ? parentMission.MissionName : parentMission.MissionName + $"({index})", startWorkSheet++);
             }
             else
             {
