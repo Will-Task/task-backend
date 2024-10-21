@@ -36,5 +36,5 @@ public interface IDashboardAppService : IApplicationService
     /// <summary>
     /// 獲取任務進度來呈現甘特圖（Gantt Chart）資料
     /// </summary>
-    Task<Dictionary<int,List<MissionKanbanChartDataDto>>> GetKanbanChart();
+    Task<List<MissionKanbanDto>> GetKanbanChart();
 }

@@ -242,8 +242,29 @@ public class DashboardAppService : ApplicationService , IDashboardAppService
     /// <summary>
     /// 獲取任務進度來呈現甘特圖（Gantt Chart）資料
     /// </summary>
-    public async Task<Dictionary<int,List<MissionKanbanChartDataDto>>> GetKanbanChart()
+    public async Task<List<MissionKanbanDto>> GetKanbanChart()
     {
-        throw new System.NotImplementedException();
+        var currentUser = CurrentUser.Id;
+        var dtos = new List<MissionKanbanDto>();
+        var query = await _repositorys.MissionView.GetQueryableAsync();
+        var maps = query.Where(m => m.UserId == currentUser).GroupBy(m => m.MissionState).ToDictionary(m => m.Key , 
+                            m => m.OrderBy(m => m.MissionEndTime).OrderBy(m => m.MissionPriority));
+
+        foreach (var map in maps)
+        {
+            var dto = new MissionKanbanDto();
+            dto.Name = map.Key.ToString();
+            map.Value.ForEach(m =>
+            {
+                dto.Tasks.Add(new MissionKanbanChartDataDto
+                {
+                    Id = m.MissionId,
+                    Title = m.MissionName
+                });
+            });
+            dtos.Add(dto);
+        }
+
+        return dtos;
     }
 }

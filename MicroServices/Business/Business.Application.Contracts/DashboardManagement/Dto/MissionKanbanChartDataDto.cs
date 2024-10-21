@@ -8,7 +8,7 @@ public class MissionKanbanChartDataDto : EntityDto<Guid?>
     /// <summary>
     /// 任務名稱
     /// </summary>
-    public string Name { get; set; }
+    public string Title { get; set; }
     
     /// <summary>
     /// 語系
