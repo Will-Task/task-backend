@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
+using AuthServer.Encryption;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -10,13 +12,15 @@ namespace WebAppGateway
 {
     public class Program
     {
-        public static int Main(string[] args)
+        public static Stream JsonStream = null;
+        public static async Task<int> Main(string[] args)
         {
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json")
-                .AddEnvironmentVariables()
-                .Build();
+            if (AppsettingHandler.IsExistAppsettings())
+            {
+                await AppsettingHandler.EncryptionAsync();
+            }
+
+            JsonStream = await AppsettingHandler.GetDecryptionStreamAsync();
 
             Log.Logger = new LoggerConfiguration()
 #if DEBUG
@@ -43,6 +47,7 @@ namespace WebAppGateway
             }
             finally
             {
+                JsonStream.Dispose();
                 Log.CloseAndFlush();
             }
         }
@@ -51,6 +56,7 @@ namespace WebAppGateway
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    webBuilder.ConfigureAppConfiguration(config => config.AddJsonStream(JsonStream));
                     webBuilder.UseStartup<Startup>();
                 })
                 .UseAutofac()

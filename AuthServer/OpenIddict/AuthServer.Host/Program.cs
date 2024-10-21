@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AuthServer.Encryption;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
@@ -10,8 +12,15 @@ namespace AuthServer;
 
 public class Program
 {
-    public async static Task<int> Main(string[] args)
+    public static async Task<int> Main(string[] args)
     {
+        if (AppsettingHandler.IsExistAppsettings())
+        {
+            await AppsettingHandler.EncryptionAsync();
+        }
+
+        using var jsonStream = await AppsettingHandler.GetDecryptionStreamAsync();
+        
         Log.Logger = new LoggerConfiguration()
 #if DEBUG
             .MinimumLevel.Debug()
@@ -29,8 +38,8 @@ public class Program
         {
             Log.Information("Starting AuthServer.");
             var builder = WebApplication.CreateBuilder(args);
-            builder.Host.AddAppSettingsSecretsJson()
-                .UseAutofac()
+            builder.Configuration.AddJsonStream(jsonStream);
+            builder.Host.UseAutofac()
                 .UseSerilog();
             await builder.AddApplicationAsync<AuthServerModule>();
             var app = builder.Build();
