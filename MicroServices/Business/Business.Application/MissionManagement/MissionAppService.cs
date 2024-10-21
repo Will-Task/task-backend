@@ -139,7 +139,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
             input.Id = GuidGenerator.Create();
             var newMission = ObjectMapper.Map<CreateOrUpdateMissionDto, Mission>(input);
             // 新建任務為TODO
-            newMission.MissionState = MissionState.IN_PROCESS;
+            newMission.MissionState = MissionState.TODO;
             newMission.UserId = CurrentUser.Id;
             newMission.Email = CurrentUser.Email;
             newMission.ScheduleMissionId = input.Id;
