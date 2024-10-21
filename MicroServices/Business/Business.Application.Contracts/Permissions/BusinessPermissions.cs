@@ -47,6 +47,14 @@ namespace Business.Permissions
             public const string Update = Default + ".Update";
             public const string Create = Default + ".Create";
         }
+        
+        public static class TaskOrganization
+        {
+            public const string Default = Business + ".TaskOrganization";
+            public const string Delete = Default + ".Delete";
+            public const string Update = Default + ".Update";
+            public const string Create = Default + ".Create";
+        }
 
         //Code generation...
     }

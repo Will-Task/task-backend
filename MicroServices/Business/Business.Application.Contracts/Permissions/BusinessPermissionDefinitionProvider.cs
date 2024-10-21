@@ -38,6 +38,11 @@ namespace Business.Permissions
             Dashboard.AddChild(BusinessPermissions.TaskDashboard.Update, L("Edit"));
             Dashboard.AddChild(BusinessPermissions.TaskDashboard.Delete, L("Delete"));
             Dashboard.AddChild(BusinessPermissions.TaskDashboard.Create, L("Create"));
+            
+            var organization = Business.AddPermission(BusinessPermissions.TaskOrganization.Default, L("TaskOrganization"));
+            organization.AddChild(BusinessPermissions.TaskOrganization.Update, L("Edit"));
+            organization.AddChild(BusinessPermissions.TaskOrganization.Delete, L("Delete"));
+            organization.AddChild(BusinessPermissions.TaskOrganization.Create, L("Create"));
         }
 
         private static LocalizableString L(string name)
