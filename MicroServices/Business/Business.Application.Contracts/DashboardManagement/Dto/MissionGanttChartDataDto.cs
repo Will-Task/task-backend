@@ -33,7 +33,7 @@ public class MissionGanttChartDataDto : EntityDto<Guid?>
     /// <summary>
     /// 指定父任務
     /// </summary>
-    public Guid? ParentId { get; set; }
+    public Guid? Parent { get; set; }
     
     /// <summary>
     /// 語系
