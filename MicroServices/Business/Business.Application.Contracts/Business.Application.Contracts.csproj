@@ -44,7 +44,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="OrganizationManagement\Dto\" />
+    <Folder Include="TeamManagement\Dto\" />
   </ItemGroup>
 
 </Project>
