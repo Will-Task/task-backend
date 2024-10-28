@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using BaseService.BaseData;
 using BaseService.Systems;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +31,8 @@ namespace BaseService.EntityFrameworkCore
         public DbSet<Team> Team { get; set; }
         
         public DbSet<TeamView> TeamView { get; set; }
+        
+        public DbSet<TeamMission> TeamMission { get; set; }
 
         public BaseServiceDbContext(DbContextOptions<BaseServiceDbContext> options)
             : base(options)
@@ -51,8 +54,10 @@ namespace BaseService.EntityFrameworkCore
 
             //    b.Property(x => x.Enable).HasDefaultValue(true);
 
-            //});
-
+            //}); 
+            
+            // 要設定，不然TeamMission會報錯
+            builder.Entity<TeamMission>().HasKey(c => new { c.TeamId, c.UserId });
             builder.ConfigureBaseService();
         }
     }
