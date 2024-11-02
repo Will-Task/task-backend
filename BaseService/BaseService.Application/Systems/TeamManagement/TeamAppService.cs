@@ -12,11 +12,16 @@ namespace BaseService.Systems.TeamManagement;
 [RemoteService(false)]
 public class TeamAppService : ApplicationService, ITeamAppService
 {
-    private readonly IRepository<TeamView> _repository;
+    private (
+        IRepository<Team, Guid> Team,
+        IRepository<TeamView> TeamView
+        ) _repositorys;
 
-    public TeamAppService(IRepository<TeamView> repository)
+    public TeamAppService(
+        IRepository<Team, Guid> Team,
+        IRepository<TeamView> TeamView)
     {
-        _repository = repository;
+        _repositorys = (Team, TeamView);
     }
 
     /// <summary>
@@ -25,7 +30,7 @@ public class TeamAppService : ApplicationService, ITeamAppService
     public async Task<List<TeamViewDto>> GetAll()
     {
         var userId = CurrentUser.Id;
-        var teams = await _repository.GetListAsync(t => t.UserId == userId);
+        var teams = await _repositorys.TeamView.GetListAsync(t => t.UserId == userId);
         return ObjectMapper.Map<List<TeamView>, List<TeamViewDto>>(teams);
     }
 
@@ -33,17 +38,31 @@ public class TeamAppService : ApplicationService, ITeamAppService
     /// 獲取某團隊成員資訊
     /// </summary>
     /// <param name="id">Team Id</param>
-    public async Task<List<TeamViewDto>> Get(Guid id)
+    public async Task<List<MemberDto>> GetMembers(Guid id)
     {
-        throw new NotImplementedException();
+        var teams = await _repositorys.TeamView.GetListAsync(t => t.TeamId == id);
+        return ObjectMapper.Map<List<TeamView>, List<MemberDto>>(teams);
     }
 
     /// <summary>
     /// 團隊建立或資訊修改
     /// </summary>
-    public async Task DataPost(CreateOrUpdateTeamDto input)
+    public async Task<TeamDto> DataPost(CreateOrUpdateTeamDto input)
     {
-        throw new NotImplementedException();
+        Team result = null;
+        // For 修改
+        if (input.Id.HasValue)
+        {
+            var team = await _repositorys.Team.GetAsync(input.Id.Value);
+            result = ObjectMapper.Map(input, team);
+        }
+        // For 新增
+        else
+        {
+            result = await _repositorys.Team.InsertAsync(ObjectMapper.Map<CreateOrUpdateTeamDto, Team>(input));
+        }
+
+        return ObjectMapper.Map<Team, TeamDto>(result);
     }
 
     /// <summary>
@@ -52,7 +71,7 @@ public class TeamAppService : ApplicationService, ITeamAppService
     /// <param name="id">Team id</param>
     public async Task Delete(Guid id)
     {
-        throw new NotImplementedException();
+        await _repositorys.Team.DeleteAsync(id);
     }
 
     /// <summary>

@@ -17,12 +17,12 @@ public interface ITeamAppService : IApplicationService
     /// 獲取某團隊成員資訊
     /// </summary>
     /// <param name="id">Team Id</param>
-    Task<List<TeamViewDto>> Get(Guid id);
+    Task<List<MemberDto>> GetMembers(Guid id);
 
     /// <summary>
     /// 團隊建立或資訊修改
     /// </summary>
-    Task DataPost(CreateOrUpdateTeamDto input);
+    Task<TeamDto> DataPost(CreateOrUpdateTeamDto input);
 
     /// <summary>
     /// 團隊刪除

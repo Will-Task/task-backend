@@ -4,7 +4,7 @@ using Volo.Abp.Application.Dtos;
 
 namespace BaseService.Systems.TeamManagement.Dto;
 
-public class CreateOrUpdateTeamDto : EntityDto<Guid?>
+public class TeamDto : EntityDto<Guid?>
 {
     [Required]
     public string Name { get; set; }

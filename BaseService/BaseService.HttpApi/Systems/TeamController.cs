@@ -34,10 +34,10 @@ public class TeamController : BaseServiceController
     /// </summary>
     /// <param name="id">Team Id</param>
     [HttpGet]
-    [Route("{id}")]
-    public async Task<List<TeamViewDto>> Get(Guid id)
+    [Route("{id}/members")]
+    public async Task<List<MemberDto>> GetMembers(Guid id)
     {
-        return await _teamAppService.Get(id);
+        return await _teamAppService.GetMembers(id);
     }
 
     /// <summary>
@@ -45,9 +45,9 @@ public class TeamController : BaseServiceController
     /// </summary>
     [HttpPost]
     [Route("data-post")]
-    public async Task DataPost(CreateOrUpdateTeamDto input)
+    public async Task<TeamDto> DataPost(CreateOrUpdateTeamDto input)
     {
-        await _teamAppService.DataPost(input);
+        return await _teamAppService.DataPost(input);
     }
 
     /// <summary>
