@@ -14,14 +14,16 @@ public class TeamAppService : ApplicationService, ITeamAppService
 {
     private (
         IRepository<Team, Guid> Team,
-        IRepository<TeamView> TeamView
+        IRepository<TeamView> TeamView,
+        IRepository<TeamMission> TeamMission
         ) _repositorys;
 
     public TeamAppService(
         IRepository<Team, Guid> Team,
-        IRepository<TeamView> TeamView)
+        IRepository<TeamView> TeamView, 
+        IRepository<TeamMission> TeamMission)
     {
-        _repositorys = (Team, TeamView);
+        _repositorys = (Team, TeamView , TeamMission);
     }
 
     /// <summary>
@@ -82,5 +84,10 @@ public class TeamAppService : ApplicationService, ITeamAppService
     public async Task Invite(string name, Guid id)
     {
         throw new NotImplementedException();
+    }
+
+    public async Task Drop(DropFormData formData)
+    {
+        await _repositorys.TeamMission.DeleteAsync(t => t.TeamId == formData.TeamId && t.UserId == formData.UserId);
     }
 }

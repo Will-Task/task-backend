@@ -75,4 +75,14 @@ public class TeamController : BaseServiceController
     {
         await _teamAppService.Invite(name, id);
     }
+
+    /// <summary>
+    /// 將團隊中某人逐出
+    /// </summary>
+    [HttpPost]
+    [Route("drop")]
+    public async Task Drop([FromBody] DropFormData formData)
+    {
+        await _teamAppService.Drop(formData);
+    }
 }

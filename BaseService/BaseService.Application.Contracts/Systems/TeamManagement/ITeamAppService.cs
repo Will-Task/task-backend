@@ -36,4 +36,9 @@ public interface ITeamAppService : IApplicationService
     /// <param name="name">邀請人姓名</param>
     /// <param name="id">要被邀請到的團隊 Id</param>
     Task Invite(string name, Guid id);
+
+    /// <summary>
+    /// 將團隊中某人逐出
+    /// </summary>
+    Task Drop(DropFormData formData);
 }

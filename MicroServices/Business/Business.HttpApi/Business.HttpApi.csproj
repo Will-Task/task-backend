@@ -24,4 +24,8 @@
     <ProjectReference Include="..\Business.Application.Contracts\Business.Application.Contracts.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Models\" />
+  </ItemGroup>
+
 </Project>
