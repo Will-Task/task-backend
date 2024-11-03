@@ -5,6 +5,7 @@ using BaseService.Controllers;
 using BaseService.Systems.TeamManagement;
 using BaseService.Systems.TeamManagement.Dto;
 using Microsoft.AspNetCore.Mvc;
+using Volo.Abp.Identity;
 
 namespace BaseService.HttpApi.Systems;
 
@@ -24,9 +25,9 @@ public class TeamController : BaseServiceController
     /// </summary>
     [HttpGet]
     [Route("all")]
-    public async Task<List<TeamViewDto>> GetAll()
+    public async Task<List<TeamViewDto>> GetAll(string name)
     {
-        return await _teamAppService.GetAll();
+        return await _teamAppService.GetAll(name);
     }
 
     /// <summary>
@@ -35,9 +36,19 @@ public class TeamController : BaseServiceController
     /// <param name="id">Team Id</param>
     [HttpGet]
     [Route("{id}/members")]
-    public async Task<List<MemberDto>> GetMembers(Guid id)
+    public async Task<List<MemberDto>> GetMembers(Guid id , string name)
     {
-        return await _teamAppService.GetMembers(id);
+        return await _teamAppService.GetMembers(id , name);
+    }
+
+    /// <summary>
+    /// 透過 name 搜尋使用者
+    /// </summary>
+    [HttpGet]
+    [Route("search")]
+    public async Task<List<MemberDto>> SearchMember(string name)
+    {
+        return await _teamAppService.SearchMember(name);
     }
 
     /// <summary>
@@ -45,7 +56,7 @@ public class TeamController : BaseServiceController
     /// </summary>
     [HttpPost]
     [Route("data-post")]
-    public async Task<TeamDto> DataPost(CreateOrUpdateTeamDto input)
+    public async Task<TeamDto> DataPost([FromBody] CreateOrUpdateTeamDto input)
     {
         return await _teamAppService.DataPost(input);
     }
@@ -69,11 +80,11 @@ public class TeamController : BaseServiceController
     /// </summary>
     /// <param name="name">邀請人姓名</param>
     /// <param name="id">要被邀請到的團隊 Id</param>
-    [HttpGet]
+    [HttpPost]
     [Route("invite")]
-    public async Task Invite(string name, Guid id)
+    public async Task Invite([FromBody] InviteFormData formData)
     {
-        await _teamAppService.Invite(name, id);
+        await _teamAppService.Invite(formData);
     }
 
     /// <summary>
