@@ -147,7 +147,7 @@ public class TeamAppService : ApplicationService, ITeamAppService
             .ToListAsync();
 
         var dtos = ObjectMapper.Map<List<TeamInvitationView>, List<TeamInvitationViewDto>>(invitations);
-        dtos.ForEach(x => x.IsShow = currentUserId == x.UserId);
+        dtos.ForEach(x => x.IsShow = x.ResponseTime.HasValue ? 3 : x.UserId == currentUserId ? 2 : 1);
         return dtos;
     }
 
@@ -170,7 +170,7 @@ public class TeamAppService : ApplicationService, ITeamAppService
         // 加入團隊
         await _repositorys.TeamMission.InsertAsync(new TeamMission
         {
-            UserId = invitation.UserId,
+            UserId = invitation.InvitedUserId,
             TeamId = invitation.TeamId
         });
     }

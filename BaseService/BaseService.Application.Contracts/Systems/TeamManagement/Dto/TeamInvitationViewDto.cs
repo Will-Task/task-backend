@@ -39,5 +39,5 @@ public class TeamInvitationViewDto : EntityDto<Int64>
     public DateTime CreationTime { get; set; }
     
     // 是否顯示前端取消按鈕
-    public Boolean IsShow { get; set; }
+    public int IsShow { get; set; }
 }
