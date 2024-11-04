@@ -12,6 +12,11 @@ public class MissionCategory: AuditedAggregateRoot<Guid>,ISoftDelete
 
     public List<MissionCategoryI18N> MissionCategoryI18Ns { get; set; }
     
+    /// <summary>
+    /// 所屬哪個Team的任務
+    /// </summary>
+    public Guid? TeamId { get; set; }
+    
     public bool IsDeleted { get; set; }
 
 }

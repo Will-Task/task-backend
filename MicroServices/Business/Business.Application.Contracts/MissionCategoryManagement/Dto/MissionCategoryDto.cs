@@ -9,5 +9,10 @@ public class MissionCategoryDto : EntityDto<Guid>
     // 現在可為null，之後再做修改
     public Guid? userId { get; set; }
     
+    /// <summary>
+    /// 所屬哪個Team的任務
+    /// </summary>
+    public Guid? TeamId { get; set; }
+    
     public ICollection<MissionCategoryI18Dto> MissionCategoryI18Dtos { get; set; }
 }

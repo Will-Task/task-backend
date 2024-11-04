@@ -14,6 +14,11 @@ public class MissionCategoryView: Entity<Int64>
     [Required]
     public string MissionCategoryName { get; set; }
     
+    /// <summary>
+    /// 所屬哪個Team的任務
+    /// </summary>
+    public Guid? TeamId { get; set; }
+    
     public int Lang { get; set; }
 
 }

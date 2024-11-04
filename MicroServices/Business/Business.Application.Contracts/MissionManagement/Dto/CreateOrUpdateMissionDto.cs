@@ -39,4 +39,9 @@ public class CreateOrUpdateMissionDto : EntityDto<Guid?>
     
     // 定時任務的主要原頭Id
     public Guid? ScheduleMissionId { get; set; }
+    
+    /// <summary>
+    /// 所屬哪個Team的任務
+    /// </summary>
+    public Guid? TeamId { get; set; }
 }

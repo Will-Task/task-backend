@@ -37,14 +37,16 @@ public class MissionAppService : ApplicationService, IMissionAppService
         IRepository<MissionView> MissionView,
         IRepository<MissionCategoryI18N, Guid> MissionCategoryI18N,
         IRepository<MissionCategoryView> MissionCategoryView
-    ) _repositoys;
-    
+        ) _repositoys;
+
     private readonly IFileAppService _fileAppService;
     private readonly IConfiguration _Configuration;
     private readonly ILogger<MissionAppService> _logger;
     private readonly IDataFilter _dataFilter;
     private readonly int ExcelBeginLine = 4;
+
     private readonly int ExcelEndLine = 13;
+
     // 設定定時任務最大數量
     private readonly int maxScheduleCount = 10;
 
@@ -68,10 +70,8 @@ public class MissionAppService : ApplicationService, IMissionAppService
 
     #region CRUD方法
 
-    
-
     #endregion
-    
+
     /// <summary>
     /// 新增/修改任務
     /// </summary>
@@ -112,6 +112,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
                     await CreateTaskSchedule(input);
                     input.Id = nowId;
                 }
+
                 // 更新本體
                 ObjectMapper.Map(input, mission);
                 // 更新I18N info
@@ -141,13 +142,14 @@ public class MissionAppService : ApplicationService, IMissionAppService
             newMission.ScheduleMissionId = input.Id;
             newMission.MissionI18Ns = new List<MissionI18N>();
             newMission.MissionI18Ns.Add(newMissionI18N);
-            
+
             // 定時任務新增
             if (input.Schedule != 0)
             {
                 input.ScheduleMissionId = newMission.Id;
                 await CreateTaskSchedule(input);
             }
+
             // 儲存任務I18N(newMission就會有值且此時Guid是有優化過順具的)
             await _repositoys.Mission.InsertAsync(newMission, autoSave: true);
         }
@@ -158,7 +160,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// <summary>
     /// 刪除任務(單 or 多筆)
     /// </summary>
-    public async Task Delete(Guid id , int lang)
+    public async Task Delete(Guid id, int lang)
     {
         // 透過missionId和lang共同判斷要刪除的I18N
         await _repositoys.MissionI18N.DeleteAsync(x => x.MissionId == id
@@ -170,35 +172,38 @@ public class MissionAppService : ApplicationService, IMissionAppService
             await _repositoys.Mission.DeleteAsync(id);
         }
     }
-    
+
     /// <summary>
     /// 獲取父任務下的子任務(多個)
     /// </summary>
-    public async Task<PagedResultDto<MissionViewDto>> GetSubMission(Guid id , int page , int pageSize , bool allData)
+    public async Task<PagedResultDto<MissionViewDto>> GetSubMission(Guid id, int page, int pageSize, bool allData)
     {
         var query = await _repositoys.MissionView.GetQueryableAsync();
         query = query.Where(mv => mv.ParentMissionId == id);
         var totalCount = await query.CountAsync();
         var subMissions = query.Skip((page - 1) * pageSize).Take(pageSize).ToList();
         var dtos = ObjectMapper.Map<List<MissionView>, List<MissionViewDto>>(subMissions);
-        return new PagedResultDto<MissionViewDto>(totalCount , dtos);
+        return new PagedResultDto<MissionViewDto>(totalCount, dtos);
     }
 
     /// <summary>
     /// 查詢所有父任務(多個)
     /// </summary>
-    public async Task<PagedResultDto<MissionViewDto>> GetParentMission(int page , int pageSize , bool allData)
+    public async Task<PagedResultDto<MissionViewDto>> GetParentMission(int page, int pageSize, bool allData,
+        Guid? teamId)
     {
         // 1. 抓該當前使用者mission & 所有parentId為null的(直接透過sql中的view抓)
         var currentUserId = CurrentUser.Id;
         var query = await _repositoys.MissionView.GetQueryableAsync();
-        query = query.Where(mv => mv.ParentMissionId == null && mv.UserId == currentUserId);
+        query = query.Where(mv => mv.ParentMissionId == null && mv.UserId == currentUserId && mv.TeamId == teamId);
         var count = await query.CountAsync();
         // 拿全部or分頁
-        var parents = allData ? await query.ToListAsync() : await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+        var parents = allData
+            ? await query.ToListAsync()
+            : await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
         var dtos = ObjectMapper.Map<List<MissionView>, List<MissionViewDto>>(parents);
         dtos = allData ? dtos : dtos.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-        return new PagedResultDto<MissionViewDto>(count,dtos);
+        return new PagedResultDto<MissionViewDto>(count, dtos);
     }
 
     /// <summary>
@@ -211,7 +216,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
             mv.ParentMissionId == null && mv.MissionCategoryId == categoryId);
         return ObjectMapper.Map<List<MissionView>, List<MissionViewDto>>(missionViews);
     }
-    
+
     /// <summary>
     /// 查詢特定任務(單個)
     /// </summary>
@@ -220,7 +225,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         // 1. 撈特定類別的任務(直接透過sql中的view抓)
         var mission = await _repositoys.MissionView.GetAsync(
             mv => mv.MissionId == id);
-        return ObjectMapper.Map<MissionView,MissionViewDto>(mission);
+        return ObjectMapper.Map<MissionView, MissionViewDto>(mission);
     }
 
     /// <summary>
@@ -257,7 +262,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
             // var query = await _UserRepository.GetQueryableAsync();
             // var email = await query.Select(u => u.Email).FirstAsync();
             await SendEmail("任務提醒通知", "你的任務快到期了喔，趕緊完成!", mission.Email, null);
-        } 
+        }
     }
 
     /// <summary>
@@ -269,7 +274,6 @@ public class MissionAppService : ApplicationService, IMissionAppService
         mission.MissionBeforeEnd = hour;
     }
 
-    
 
     /// <summary>
     /// 變更任務狀態
@@ -395,8 +399,8 @@ public class MissionAppService : ApplicationService, IMissionAppService
                         {
                             var query = await _repositoys.MissionView.GetQueryableAsync();
                             var parentMissionId = query.Where(mv =>
-                                                             mv.MissionName == parentMissionName && mv.Lang == lang)
-                                                            .Select(mv => mv.MissionId).First();
+                                    mv.MissionName == parentMissionName && mv.Lang == lang)
+                                .Select(mv => mv.MissionId).First();
                             property = typeof(MissionImportDto).GetProperty("ParentMissionId");
                             property.SetValue(importDto, parentMissionId);
                         }
@@ -428,7 +432,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
 
                 importDtos.Add(importDto);
             }
-            
+
             return importDtos;
         }
         catch (Exception e)
@@ -446,7 +450,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
     {
         var missions = new List<Mission>();
         var currentUserId = CurrentUser.Id;
-        
+
         // 將讀出資料進行匯入
         foreach (var dto in dtos)
         {
@@ -474,19 +478,19 @@ public class MissionAppService : ApplicationService, IMissionAppService
     public async Task<MyFileInfoDto> ExportFile(List<Guid> parentIds, int lang)
     {
         // 增加欄位，為了匯出資料
-        var columns = new List<string>() {"任務名稱", "類別", "優先程度", "進度", "開始時間", "截止時間", "完成時間" , "任務描述"};
-        var extraImportKeys = new List<string>() { "MissionFinishTime","MissionDescription"};
+        var columns = new List<string>() { "任務名稱", "類別", "優先程度", "進度", "開始時間", "截止時間", "完成時間", "任務描述" };
+        var extraImportKeys = new List<string>() { "MissionFinishTime", "MissionDescription" };
         extraImportKeys = ExcelKeys.Concat(extraImportKeys).ToList();
-        
+
         // 取得欲寫入的範本檔案
         var fileInfoDto = await _fileAppService.DNFile("匯出子任務.xlsx");
         using var memoryStream = new MemoryStream(fileInfoDto.FileContent);
         using var workBook = new XLWorkbook(memoryStream);
-        
+
         // 開始的工作表
         int startWorkSheet = 2;
         int columnLine = 1;
-        
+
         foreach (var parentId in parentIds)
         {
             // 取得父任務
@@ -502,24 +506,27 @@ public class MissionAppService : ApplicationService, IMissionAppService
             int index = 0;
             while (workBook.TryGetWorksheet(parentMission.MissionName, out var name))
             {
-                index ++;
+                index++;
             }
+
             if (!workBook.TryGetWorksheet("工作表1", out worksheet))
             {
                 // 指定workSheet名字為當前匯出的父任務(動態生成tab)
-                worksheet = workBook.AddWorksheet(index == 0 ? parentMission.MissionName : parentMission.MissionName + $"({index})", startWorkSheet++);
+                worksheet = workBook.AddWorksheet(
+                    index == 0 ? parentMission.MissionName : parentMission.MissionName + $"({index})",
+                    startWorkSheet++);
             }
             else
             {
                 worksheet.Name = parentMission.MissionName;
             }
-            
+
             // Column Name寫入
             for (int i = 0; i < columns.Count; i++)
             {
                 worksheet.Cell($"{nextChar++}{columnLine}").Value = columns[i];
             }
-            
+
             // 資料寫入檔案
             foreach (var subMission in subMissions)
             {
@@ -530,6 +537,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
                     PropertyInfo propertyInfo = subMission.GetType().GetProperty(extraImportKeys[i]);
                     worksheet.Cell($"{nextChar++}{start}").Value = $"{propertyInfo.GetValue(subMission)}";
                 }
+
                 start++;
             }
         }
@@ -586,9 +594,9 @@ public class MissionAppService : ApplicationService, IMissionAppService
         var now = Clock.Now;
         var query = await _repositoys.MissionView.GetQueryableAsync();
         // 判斷結束時間和提醒時間差距
-        var missionMap = query.Where(m => 
+        var missionMap = query.Where(m =>
                 m.MissionEndTime <= now.AddHours(m.MissionBeforeEnd) && m.MissionFinishTime == null)
-               .GroupBy(g => g.MissionId).ToDictionary(g => g.Key , g => g.First());
+            .GroupBy(g => g.MissionId).ToDictionary(g => g.Key, g => g.First());
 
         foreach (var mission in missionMap)
         {
@@ -598,8 +606,10 @@ public class MissionAppService : ApplicationService, IMissionAppService
             {
                 continue;
             }
+
             // 寄發email(之後放入使用者email)
-            await SendEmail($"{misssionName}任務在{mission.Value.MissionBeforeEnd}小時內即將到期", "任務快過期了喔，趕緊去完成", mission.Value.Email);
+            await SendEmail($"{misssionName}任務在{mission.Value.MissionBeforeEnd}小時內即將到期", "任務快過期了喔，趕緊去完成",
+                mission.Value.Email);
         }
     }
 
@@ -625,19 +635,19 @@ public class MissionAppService : ApplicationService, IMissionAppService
         using var memoryStream = new MemoryStream(fileInfoDto.FileContent);
         using var workBook = new XLWorkbook(memoryStream);
         var worksheet = workBook.Worksheet(1);
-        
+
         // 根據不同子任務寫不同tab中，tab以父任務名稱為主
         var query = await _repositoys.MissionView.GetQueryableAsync();
         // key : userId , value : subMissions
         var submissions = query.Where(m => m.ParentMissionId != null && m.UserId != null)
             .GroupBy(m => m.UserId)
             .ToDictionary(m => m.Key, m => m.ToList());
-        
+
         foreach (var key in submissions.Keys)
         {
             int i = ExcelBeginLine;
             string email = "";
-            
+
             foreach (var submission in submissions[key])
             {
                 // 判斷是否在一周內(結束日期或是完成日期在這周)
@@ -671,13 +681,14 @@ public class MissionAppService : ApplicationService, IMissionAppService
                 email = submission.Email;
                 i++;
             }
-            
+
             var parentMissionName = worksheet.Name;
             using var savingMemoryStream = new MemoryStream();
             workBook.SaveAs(savingMemoryStream);
 
-            var fileDto = new MyFileInfoDto { FileContent = savingMemoryStream.ToArray(), FileName = parentMissionName };
-            
+            var fileDto = new MyFileInfoDto
+                { FileContent = savingMemoryStream.ToArray(), FileName = parentMissionName };
+
             await SendEmail("每周任務報告", "這是你一周以來完成和過期的任務統計", email, fileDto);
         }
     }
@@ -707,7 +718,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         var query = await _repositoys.MissionView.GetQueryableAsync();
         var idLangMaps = query.Where(m =>
                 m.ScheduleMissionId == input.ScheduleMissionId &&　m.MissionId != input.ScheduleMissionId)
-            .GroupBy(m => new {m.MissionId , m.Lang}).ToDictionary(m => m.Key, m => m.First().Lang);
+            .GroupBy(m => new { m.MissionId, m.Lang }).ToDictionary(m => m.Key, m => m.First().Lang);
         foreach (var idLangMap in idLangMaps)
         {
             await DeleteData(idLangMap.Key.MissionId, idLangMap.Value);
@@ -717,13 +728,13 @@ public class MissionAppService : ApplicationService, IMissionAppService
         if (input.Schedule != 0)
         {
             var currentUserId = CurrentUser.Id;
-            Mission baseMission = ObjectMapper.Map<CreateOrUpdateMissionDto,Mission>(input);
+            Mission baseMission = ObjectMapper.Map<CreateOrUpdateMissionDto, Mission>(input);
             for (int i = 0; i < maxScheduleCount; i++)
             {
                 // 定時天數
                 var days = input.Schedule == 1 ? 1 : input.Schedule == 2 ? 7 : 30;
-                var mission = ObjectMapper.Map<CreateOrUpdateMissionDto,Mission>(input);
-                var missionI18N = ObjectMapper.Map<CreateOrUpdateMissionDto,MissionI18N>(input);
+                var mission = ObjectMapper.Map<CreateOrUpdateMissionDto, Mission>(input);
+                var missionI18N = ObjectMapper.Map<CreateOrUpdateMissionDto, MissionI18N>(input);
                 mission.MissionStartTime = baseMission.MissionStartTime.AddDays(days);
                 mission.MissionEndTime = baseMission.MissionEndTime.AddDays(days);
                 mission.UserId = currentUserId;
@@ -747,7 +758,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         dropValidation.List(optionString, true);
     }
 
-    private async Task DeleteData(Guid id , int lang)
+    private async Task DeleteData(Guid id, int lang)
     {
         // 透過missionId和lang共同判斷要刪除的I18N
         await _repositoys.MissionI18N.DeleteAsync(x => x.MissionId == id

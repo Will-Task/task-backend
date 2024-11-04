@@ -23,7 +23,7 @@ public class MissionController : AbpController
     {
         _missionAppService = missionAppService;
     }
-    
+
     /// <summary>
     /// 新增/修改任務
     /// </summary>
@@ -33,17 +33,17 @@ public class MissionController : AbpController
     {
         return _missionAppService.DataPost(input);
     }
-    
+
     /// <summary>
     /// 刪除任務(單 or 多筆)
     /// </summary>
     [HttpPost]
     [Route("delete")]
-    public async Task Delete([FromBody]List<Guid> ids , int lang = 1)
+    public async Task Delete([FromBody] List<Guid> ids, int lang = 1)
     {
         foreach (var id in ids)
         {
-            await _missionAppService.Delete(id , lang);
+            await _missionAppService.Delete(id, lang);
         }
     }
 
@@ -52,9 +52,9 @@ public class MissionController : AbpController
     /// </summary>
     [HttpGet]
     [Route("sub")]
-    public Task<PagedResultDto<MissionViewDto>> GetSubMission(Guid id ,int page , int pageSize , bool allData)
+    public Task<PagedResultDto<MissionViewDto>> GetSubMission(Guid id, int page, int pageSize, bool allData)
     {
-        return _missionAppService.GetSubMission(id , page , pageSize , allData);
+        return _missionAppService.GetSubMission(id, page, pageSize, allData);
     }
 
     /// <summary>
@@ -62,9 +62,9 @@ public class MissionController : AbpController
     /// </summary>
     [HttpGet]
     [Route("parent")]
-    public Task<PagedResultDto<MissionViewDto>> GetParentMission(int page , int pageSize , bool allData)
+    public Task<PagedResultDto<MissionViewDto>> GetParentMission(int page, int pageSize, bool allData, Guid? teamId)
     {
-        return _missionAppService.GetParentMission(page , pageSize , allData);
+        return _missionAppService.GetParentMission(page, pageSize, allData, teamId);
     }
 
     /// <summary>
@@ -76,7 +76,7 @@ public class MissionController : AbpController
     {
         return _missionAppService.GetParentMissionByCategoryId(categoryId);
     }
-    
+
     /// <summary>
     /// 查詢特定任務(單個)
     /// </summary>
@@ -106,30 +106,28 @@ public class MissionController : AbpController
     {
         await _missionAppService.MissionReminder();
     }
-    
+
     /// <summary>
     /// 設置任務提醒時間(結束時間多久前)
     /// </summary>
     [HttpGet]
     [Route("set-remind")]
-    public async Task setRemindTime(Guid id,int hour)
+    public async Task setRemindTime(Guid id, int hour)
     {
-        await _missionAppService.setRemindTime(id,hour);
+        await _missionAppService.setRemindTime(id, hour);
     }
 
-    
 
     /// <summary>
     /// 變更任務狀態
     /// </summary>
     [HttpPost]
     [Route("update-state")]
-    public async Task UpdateMissionState([FromBody]MissionFormData formData)
+    public async Task UpdateMissionState([FromBody] MissionFormData formData)
     {
         await _missionAppService.UpdateMissionState(formData);
     }
 
-    
 
     /// <summary>
     /// 範本下載
@@ -151,15 +149,15 @@ public class MissionController : AbpController
     [Route("import-file-check")]
     public async Task<IEnumerable<MissionImportDto>> ImportFileCheck(IFormFile file, int lang)
     {
-        return await _missionAppService.ImportFileCheck(file,lang);
+        return await _missionAppService.ImportFileCheck(file, lang);
     }
-    
+
     /// <summary>
     /// 資料匯入
     /// </summary>
     [HttpPost]
     [Route("import-file")]
-    public async Task ImportFile([FromBody]List<MissionImportDto> dtos)
+    public async Task ImportFile([FromBody] List<MissionImportDto> dtos)
     {
         await _missionAppService.ImportFile(dtos);
     }
@@ -169,7 +167,7 @@ public class MissionController : AbpController
     /// </summary>
     [HttpPost]
     [Route("export")]
-    public async Task<IActionResult> ExportFile([FromBody]List<Guid> parentIds, int lang)
+    public async Task<IActionResult> ExportFile([FromBody] List<Guid> parentIds, int lang)
     {
         var fileDto = await _missionAppService.ExportFile(parentIds, lang);
         return File(fileDto.FileContent, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

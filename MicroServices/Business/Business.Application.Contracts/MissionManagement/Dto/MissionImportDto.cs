@@ -39,4 +39,9 @@ public class MissionImportDto : EntityDto<Guid?>
     public int SubMissionLang { get; set; }
     
     public Guid? ParentMissionId { get; set; }
+    
+    /// <summary>
+    /// 所屬哪個Team的任務
+    /// </summary>
+    public Guid? TeamId { get; set; }
 }

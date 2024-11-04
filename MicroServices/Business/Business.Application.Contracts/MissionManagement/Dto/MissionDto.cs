@@ -32,4 +32,8 @@ public class MissionDto : EntityDto<Guid>
 
     public ICollection<MissionI18NDto> MissionI18NDtos { get; set; }
 
+    /// <summary>
+    /// 所屬哪個Team的任務
+    /// </summary>
+    public Guid? TeamId { get; set; }
 }

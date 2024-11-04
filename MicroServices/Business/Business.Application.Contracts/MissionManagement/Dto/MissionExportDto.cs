@@ -32,5 +32,9 @@ public class MissionExportDto : EntityDto<Guid?>
     
     [Required]
     public string? SubMissionDescription { get; set; }
-    
+ 
+    /// <summary>
+    /// 所屬哪個Team的任務
+    /// </summary>
+    public Guid? TeamId { get; set; }
 }
