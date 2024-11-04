@@ -36,40 +36,30 @@ public class TeamAppService : ApplicationService, ITeamAppService
     /// <summary>
     /// 獲取當前使用者所在的所有群組資訊
     /// </summary>
-    public async Task<List<TeamViewDto>> GetAll(string name)
+    public async Task<List<TeamDto>> GetAll(string name)
     {
         var userId = CurrentUser.Id;
-        var query = await _repositorys.TeamView.GetQueryableAsync();
-        var teams = await query.Where(t => t.UserId == userId)
-            .WhereIf(!name.IsNullOrEmpty(), t => t.Name.Contains(name)).ToListAsync();
-        return ObjectMapper.Map<List<TeamView>, List<TeamViewDto>>(teams);
+        var teamMissionQuery = await _repositorys.TeamMission.GetQueryableAsync();
+        // 取得當前所在所有TeamId
+        var teamIds = await teamMissionQuery.Where(x => x.UserId == userId).Select(x => x.TeamId).ToListAsync();
+        var teamQuery = await _repositorys.Team.GetQueryableAsync();
+        var teams = await teamQuery.Where(x => teamIds.Contains(x.Id))
+            .WhereIf(!name.IsNullOrEmpty(), x => x.Name.Contains(name)).ToListAsync();
+        return ObjectMapper.Map<List<Team>, List<TeamDto>>(teams);
     }
 
     /// <summary>
     /// 獲取某團隊成員資訊
     /// </summary>
     /// <param name="id">Team Id</param>
-    public async Task<List<MemberDto>> GetMembers(Guid id, string name)
+    public async Task<List<MemberDto>> GetMembers(Guid? id, string name)
     {
-        var query = await _repositorys.TeamView.GetQueryableAsync();
-        var teams = await query.Where(t => t.TeamId == id)
-            .WhereIf(!name.IsNullOrEmpty(), t => t.UserName.Contains(name)).ToListAsync();
-        return ObjectMapper.Map<List<TeamView>, List<MemberDto>>(teams);
-    }
-
-    /// <summary>
-    /// 透過 name 搜尋使用者
-    /// </summary>
-    public async Task<List<MemberDto>> SearchMember(string name)
-    {
-        var users = await _userRepository.GetListAsync();
-        var dtos = users.WhereIf(!name.IsNullOrEmpty(), u => u.UserName.Contains(name))
-            .Select(u => new MemberDto()
-            {
-                UserId = u.Id,
-                UserName = u.UserName
-            }).ToList();
-        return dtos;
+        var teamMissionQuery = await _repositorys.TeamMission.GetQueryableAsync();
+        var userIds = await teamMissionQuery.WhereIf(id.HasValue, x => x.TeamId == id.Value)
+            .Select(x => x.UserId).ToListAsync();
+        var users = await _userRepository.GetListByIdsAsync(userIds);
+        users = users.WhereIf(!name.IsNullOrEmpty(), t => t.UserName.Contains(name)).ToList();
+        return ObjectMapper.Map<List<IdentityUser>, List<MemberDto>>(users);
     }
 
     /// <summary>

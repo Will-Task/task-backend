@@ -25,7 +25,7 @@ public class TeamController : BaseServiceController
     /// </summary>
     [HttpGet]
     [Route("all")]
-    public async Task<List<TeamViewDto>> GetAll(string name)
+    public async Task<List<TeamDto>> GetAll(string name)
     {
         return await _teamAppService.GetAll(name);
     }
@@ -35,20 +35,10 @@ public class TeamController : BaseServiceController
     /// </summary>
     /// <param name="id">Team Id</param>
     [HttpGet]
-    [Route("{id}/members")]
-    public async Task<List<MemberDto>> GetMembers(Guid id , string name)
+    [Route("members")]
+    public async Task<List<MemberDto>> GetMembers(Guid? id , string name)
     {
         return await _teamAppService.GetMembers(id , name);
-    }
-
-    /// <summary>
-    /// 透過 name 搜尋使用者
-    /// </summary>
-    [HttpGet]
-    [Route("search")]
-    public async Task<List<MemberDto>> SearchMember(string name)
-    {
-        return await _teamAppService.SearchMember(name);
     }
 
     /// <summary>

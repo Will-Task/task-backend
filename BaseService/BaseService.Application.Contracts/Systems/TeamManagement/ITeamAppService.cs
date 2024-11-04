@@ -11,18 +11,13 @@ public interface ITeamAppService : IApplicationService
     /// <summary>
     /// 獲取當前使用者所在的所有群組資訊
     /// </summary>
-    Task<List<TeamViewDto>> GetAll(string name);
+    Task<List<TeamDto>> GetAll(string name);
 
     /// <summary>
     /// 獲取某團隊成員資訊
     /// </summary>
     /// <param name="id">Team Id</param>
-    Task<List<MemberDto>> GetMembers(Guid id, string name);
-    
-    /// <summary>
-    /// 透過 name 搜尋使用者
-    /// </summary>
-    Task<List<MemberDto>> SearchMember(string name);
+    Task<List<MemberDto>> GetMembers(Guid? id, string name);
 
     /// <summary>
     /// 團隊建立或資訊修改
