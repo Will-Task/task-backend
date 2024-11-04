@@ -36,9 +36,9 @@ public class TeamController : BaseServiceController
     /// <param name="id">Team Id</param>
     [HttpGet]
     [Route("members")]
-    public async Task<List<MemberDto>> GetMembers(Guid? id , string name)
+    public async Task<List<MemberDto>> GetMembers(Guid? id, string name)
     {
-        return await _teamAppService.GetMembers(id , name);
+        return await _teamAppService.GetMembers(id, name);
     }
 
     /// <summary>
@@ -66,16 +66,62 @@ public class TeamController : BaseServiceController
     }
 
     /// <summary>
-    /// 邀請人進入團隊
+    /// 發起邀請人進入團隊的請求
     /// </summary>
     /// <param name="name">邀請人姓名</param>
     /// <param name="id">要被邀請到的團隊 Id</param>
     [HttpPost]
     [Route("invite")]
-    public async Task Invite([FromBody] InviteFormData formData)
+    public async Task<List<TeamInvitationDto>> Invite([FromBody] List<CreateOrUpdateTeamInvitationDto> inputs)
     {
-        await _teamAppService.Invite(formData);
+        return await _teamAppService.Invite(inputs);
     }
+
+    /// <summary>
+    /// 獲取邀請的條件
+    /// 1. 受邀人為當前使用者
+    /// 2. 邀請人為當前使用者
+    /// </summary>
+    [HttpGet]
+    [Route("invites")]
+    public async Task<List<TeamInvitationViewDto>> GetInvitations(int? state, string name)
+    {
+        return await _teamAppService.GetInvitations(state, name);
+    }
+
+    /// <summary>
+    /// 取消團隊邀請請求
+    /// </summary>
+    /// <param name="id">invitation id</param>
+    [HttpPost]
+    [Route("invite/cancel")]
+    public async Task CancelInvitation(Guid id)
+    {
+        await _teamAppService.CancelInvitation(id);
+    }
+
+    /// <summary>
+    /// 接受團隊邀請請求
+    /// </summary>
+    /// <param name="id">invitation id</param>
+    [HttpPost]
+    [Route("invite/accept")]
+    public async Task AcceptInvitation(Guid id)
+    {
+        await _teamAppService.AcceptInvitation(id);
+    }
+
+    /// <summary>
+    /// 拒絕團隊邀請請求
+    /// </summary>
+    /// <param name="id">invitation id</param>
+    [HttpPost]
+    [Route("invite/decline")]
+    public async Task DeclineInvitation(Guid id)
+    {
+        await _teamAppService.DeclineInvitation(id);
+    }
+
 
     /// <summary>
     /// 將團隊中某人逐出

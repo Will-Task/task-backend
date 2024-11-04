@@ -13,5 +13,8 @@ public class TeamAutoMapperProfile : Profile
         CreateMap<CreateOrUpdateTeamDto, Team>();
         CreateMap<Team, TeamDto>();
         CreateMap<IdentityUser, MemberDto>();
+        CreateMap<CreateOrUpdateTeamInvitationDto, TeamInvitation>();
+        CreateMap<TeamInvitation, TeamInvitationDto>();
+        CreateMap<TeamInvitationView, TeamInvitationViewDto>();
     }
 }

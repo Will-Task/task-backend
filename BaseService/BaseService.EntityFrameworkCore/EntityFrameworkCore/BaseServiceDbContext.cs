@@ -33,6 +33,10 @@ namespace BaseService.EntityFrameworkCore
         public DbSet<TeamView> TeamView { get; set; }
         
         public DbSet<TeamMission> TeamMission { get; set; }
+        
+        public DbSet<TeamInvitation> TeamInvitation { get; set; }
+        
+        public DbSet<TeamInvitationView> TeamInvitationView { get; set; }
 
         public BaseServiceDbContext(DbContextOptions<BaseServiceDbContext> options)
             : base(options)

@@ -31,14 +31,39 @@ public interface ITeamAppService : IApplicationService
     Task Delete(Guid id);
 
     /// <summary>
-    /// 邀請人進入團隊
+    /// 發起邀請人進入團隊的請求
     /// </summary>
     /// <param name="name">邀請人姓名</param>
     /// <param name="id">要被邀請到的團隊 Id</param>
-    Task Invite(InviteFormData formData);
+    Task<List<TeamInvitationDto>> Invite(List<CreateOrUpdateTeamInvitationDto> input);
 
     /// <summary>
     /// 將團隊中某人逐出
     /// </summary>
     Task Drop(DropFormData formData);
+
+    /// <summary>
+    /// 獲取邀請的條件
+    /// 1. 受邀人為當前使用者
+    /// 2. 邀請人為當前使用者
+    /// </summary>
+    Task<List<TeamInvitationViewDto>> GetInvitations(int? state , string name);
+    
+    /// <summary>
+    /// 取消團隊邀請請求
+    /// </summary>
+    /// <param name="id">invitation id</param>
+    Task CancelInvitation(Guid id);
+
+    /// <summary>
+    /// 接受團隊邀請請求
+    /// </summary>
+    /// <param name="id">invitation id</param>
+    Task AcceptInvitation(Guid id);
+    
+    /// <summary>
+    /// 拒絕團隊邀請請求
+    /// </summary>
+    /// <param name="id">invitation id</param>
+    Task DeclineInvitation(Guid id);
 }

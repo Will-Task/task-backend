@@ -28,4 +28,10 @@
     <ProjectReference Include="..\BaseService.Application.Contracts\BaseService.Application.Contracts.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="Volo.Abp.Identity.Domain">
+      <HintPath>..\..\..\..\..\.NET\nuget\volo.abp.identity.domain\8.1.1\lib\netstandard2.1\Volo.Abp.Identity.Domain.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>
