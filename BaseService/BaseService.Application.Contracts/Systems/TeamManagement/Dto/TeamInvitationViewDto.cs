@@ -38,6 +38,11 @@ public class TeamInvitationViewDto : EntityDto<Int64>
     /// </summary>
     public DateTime CreationTime { get; set; }
     
-    // 是否顯示前端取消按鈕
+    /// <summary>
+    /// 是否顯示前端取消按鈕
+    /// 1 -> 顯示接受和拒絕
+    /// 2 -> 顯示取消
+    /// 3 -> 都不顯示
+    /// </summary>
     public int IsShow { get; set; }
 }
