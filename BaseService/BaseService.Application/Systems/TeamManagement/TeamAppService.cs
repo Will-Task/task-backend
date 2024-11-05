@@ -84,14 +84,13 @@ public class TeamAppService : ApplicationService, ITeamAppService
         {
             result = await _repositorys.Team.InsertAsync(ObjectMapper.Map<CreateOrUpdateTeamDto, Team>(input),
                 autoSave: true);
+            // 把當前使用者加入團隊
+            await _repositorys.TeamMission.InsertAsync(new TeamMission
+            {
+                UserId = CurrentUser.Id.Value,
+                TeamId = result.Id
+            });
         }
-        
-        // 把當前使用者加入團隊
-        await _repositorys.TeamMission.InsertAsync(new TeamMission
-        {
-            UserId = CurrentUser.Id.Value,
-            TeamId = result.Id
-        });
 
         return ObjectMapper.Map<Team, TeamDto>(result);
     }
