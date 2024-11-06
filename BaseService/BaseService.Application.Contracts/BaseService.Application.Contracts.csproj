@@ -30,4 +30,10 @@
     <ProjectReference Include="..\BaseService.Domain\BaseService.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="Microsoft.AspNetCore.Mvc.Abstractions">
+      <HintPath>..\..\..\..\..\.NET\nuget\microsoft.aspnetcore.app.ref\8.0.8\ref\net8.0\Microsoft.AspNetCore.Mvc.Abstractions.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

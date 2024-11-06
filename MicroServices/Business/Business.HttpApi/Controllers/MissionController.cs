@@ -203,4 +203,47 @@ public class MissionController : AbpController
     {
         await _missionAppService.CheckExpiredOrFinished();
     }
+
+    /// <summary>
+    /// 上傳任務附件
+    /// </summary>
+    [HttpPost]
+    [Route("upload-file")]
+    public Task<MissionAttachmentDto> UploadFile([FromBody] CreateMissionAttachmentDto input, IFormFile file)
+    {
+        return _missionAppService.UploadFile(input, file);
+    }
+    
+    /// <summary>
+    /// 刪除任務附件
+    /// </summary>
+    /// <param name="id">附件 Id</param>
+    [HttpPost]
+    [Route("delete-file")]
+    public async Task DeleteFile(Guid id)
+    {
+        await _missionAppService.DeleteFile(id);
+    }
+    
+    /// <summary>
+    /// 取得某一任務所有附件
+    /// </summary>
+    /// <param name="id">任務 Id</param>
+    [HttpGet]
+    [Route("file/all")]
+    public Task<List<MissionAttachmentDto>> GetAllFiles(Guid id)
+    {
+        return _missionAppService.GetAllFiles(id);
+    }
+
+    /// <summary>
+    /// 更新附件的備註
+    /// </summary>
+    /// <param name="id">附件 Id</param>
+    [HttpPost]
+    [Route("update-note")]
+    public Task UpdateAttachmentNote(Guid id , string aNote)
+    {
+        return _missionAppService.UpdateAttachmentNote(id);
+    }
 }

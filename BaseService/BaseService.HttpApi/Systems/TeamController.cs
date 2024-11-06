@@ -132,4 +132,15 @@ public class TeamController : BaseServiceController
     {
         await _teamAppService.Drop(formData);
     }
+
+    /// <summary>
+    /// 邀請記錄匯出
+    /// </summary>
+    [HttpPost]
+    [Route("export")]
+    public Task<IActionResult> Export(int? state, string name , string code)
+    {
+        _teamAppService.Export(state, name, code);
+        return null;
+    }
 }

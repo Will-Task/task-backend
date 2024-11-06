@@ -38,4 +38,13 @@
     <Folder Include="Repository\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="Microsoft.Extensions.Identity.Stores">
+      <HintPath>..\..\..\..\..\..\.NET\nuget\microsoft.aspnetcore.app.ref\8.0.8\ref\net8.0\Microsoft.Extensions.Identity.Stores.dll</HintPath>
+    </Reference>
+    <Reference Include="Volo.Abp.Ddd.Application.Contracts">
+      <HintPath>..\..\..\..\..\..\.NET\nuget\volo.abp.ddd.application.contracts\8.1.1\lib\net8.0\Volo.Abp.Ddd.Application.Contracts.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

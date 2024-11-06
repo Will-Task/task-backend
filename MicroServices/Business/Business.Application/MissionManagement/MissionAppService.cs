@@ -707,6 +707,41 @@ public class MissionAppService : ApplicationService, IMissionAppService
     }
 
     /// <summary>
+    /// 上傳任務附件
+    /// </summary>
+    public async Task<MissionAttachmentDto> UploadFile(CreateMissionAttachmentDto input, IFormFile file)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// 刪除任務附件
+    /// </summary>
+    /// <param name="id">附件 Id</param>
+    public async Task DeleteFile(Guid id)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// 取得某一任務所有附件
+    /// </summary>
+    /// <param name="id">任務 Id</param>
+    public async Task<List<MissionAttachmentDto>> GetAllFiles(Guid id)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// 更新附件的備註
+    /// </summary>
+    /// <param name="id">附件 Id</param>
+    public async Task UpdateAttachmentNote(Guid id)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <summary>
     /// 設定自己的定時任務
     /// </summary>
     private async Task CreateTaskSchedule(CreateOrUpdateMissionDto input)

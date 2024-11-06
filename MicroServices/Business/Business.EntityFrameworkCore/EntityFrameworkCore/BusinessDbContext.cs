@@ -20,6 +20,7 @@ namespace Business.EntityFrameworkCore
 
         public DbSet<MissionView> MissionView { get; set; }
         public DbSet<MissionCategoryView> MissionCategoryView { get; set; }
+        public DbSet<MissionAttachment> MissionAttachment { get; set; }
 
         //Code generation...
         public BusinessDbContext(DbContextOptions<BusinessDbContext> options)

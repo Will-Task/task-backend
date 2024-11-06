@@ -99,4 +99,27 @@ public interface IMissionAppService : IApplicationService
     /// 檢查到期的任務
     /// </summary>
     Task CheckExpiredOrFinished();
+
+    /// <summary>
+    /// 上傳任務附件
+    /// </summary>
+    Task<MissionAttachmentDto> UploadFile(CreateMissionAttachmentDto input, IFormFile file);
+
+    /// <summary>
+    /// 刪除任務附件
+    /// </summary>
+    /// <param name="id">附件 Id</param>
+    Task DeleteFile(Guid id);
+    
+    /// <summary>
+    /// 取得某一任務所有附件
+    /// </summary>
+    /// <param name="id">任務 Id</param>
+    Task<List<MissionAttachmentDto>> GetAllFiles(Guid id);
+
+    /// <summary>
+    /// 更新附件的備註
+    /// </summary>
+    /// <param name="id">附件 Id</param>
+    Task UpdateAttachmentNote(Guid id);
 }

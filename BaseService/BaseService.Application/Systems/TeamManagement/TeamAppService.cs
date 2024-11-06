@@ -193,4 +193,12 @@ public class TeamAppService : ApplicationService, ITeamAppService
         invite.ResponseTime = Clock.Now;
         return invite;
     }
+
+    /// <summary>
+    /// 邀請記錄匯出
+    /// </summary>
+    public async Task Export(int? state, string name, string code)
+    {
+        throw new NotImplementedException();
+    }
 }

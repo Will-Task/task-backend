@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using BaseService.Systems.TeamManagement.Dto;
+using Microsoft.AspNetCore.Mvc;
 using Volo.Abp.Application.Services;
 
 namespace BaseService.Systems.TeamManagement;
@@ -66,4 +67,9 @@ public interface ITeamAppService : IApplicationService
     /// </summary>
     /// <param name="id">invitation id</param>
     Task DeclineInvitation(Guid id);
+
+    /// <summary>
+    /// 邀請記錄匯出
+    /// </summary>
+    Task Export(int? state, string name, string code);
 }
