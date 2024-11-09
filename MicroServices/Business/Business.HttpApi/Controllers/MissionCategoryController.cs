@@ -26,11 +26,11 @@ public class MissionCategoryController : AbpController
     /// </summary>
     [HttpGet]
     [Route("all")]
-    public Task<PagedResultDto<MissionCategoryViewDto>> GetAll(int page , int pageSize , bool allData)
+    public Task<PagedResultDto<MissionCategoryViewDto>> GetAll(Guid? teamId, int page, int pageSize, bool allData)
     {
-        return _missionCategoryAppService.GetAll(page , pageSize , allData);
+        return _missionCategoryAppService.GetAll(teamId,page, pageSize, allData);
     }
-    
+
     /// <summary>
     /// 查看特定任務類別
     /// </summary>
@@ -46,7 +46,7 @@ public class MissionCategoryController : AbpController
     /// </summary>
     [HttpPost]
     [Route("data-post")]
-    public Task<MissionCategoryI18Dto> DataPost([FromBody]CreateOrUpodateMissionCategoryDto input)
+    public Task<MissionCategoryI18Dto> DataPost([FromBody] CreateOrUpodateMissionCategoryDto input)
     {
         return _missionCategoryAppService.DataPost(input);
     }
@@ -56,7 +56,7 @@ public class MissionCategoryController : AbpController
     /// </summary>
     [HttpPost]
     [Route("delete")]
-    public async Task Delete([FromBody]List<Guid> ids)
+    public async Task Delete([FromBody] List<Guid> ids)
     {
         await _missionCategoryAppService.Delete(ids);
     }

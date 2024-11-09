@@ -40,16 +40,18 @@ public class MissionCategoryAppService : ApplicationService, IMissionCategoryApp
     /// <summary>
     /// 查看當前使用者所建立的任務類別
     /// </summary>
-    public async Task<PagedResultDto<MissionCategoryViewDto>> GetAll(int page , int pageSize , bool allData)
+    public async Task<PagedResultDto<MissionCategoryViewDto>> GetAll(Guid? teamId, int page, int pageSize, bool allData)
     {
         // 1. 取出當前使用者Id
         var currentUserId = CurrentUser.Id;
         var query = await _repositorys.MissionCategoryView.GetQueryableAsync();
-        query = query.Where(mcv => mcv.UserId == currentUserId);
+        query = query.Where(mcv => mcv.UserId == currentUserId && mcv.TeamId == teamId);
         var count = await query.CountAsync();
         // 拿全部or分頁
-        var categories = allData ? await query.ToListAsync() : await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
-        
+        var categories = allData
+            ? await query.ToListAsync()
+            : await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
         var dtos = ObjectMapper.Map<List<MissionCategoryView>, List<MissionCategoryViewDto>>(categories);
 
         return new PagedResultDto<MissionCategoryViewDto>(count, dtos);
