@@ -136,15 +136,16 @@ public class MissionAppService : ApplicationService, IMissionAppService
             input.Id = GuidGenerator.Create();
             var newMission = ObjectMapper.Map<CreateOrUpdateMissionDto, Mission>(input);
             // 新建任務為TODO
-            newMission.MissionState = MissionState.TODO;
+            newMission.MissionState = input.MissionState;
             newMission.UserId = CurrentUser.Id;
             newMission.Email = CurrentUser.Email;
             newMission.ScheduleMissionId = input.Id;
+            newMission.TeamId = input.TeamId;
             newMission.MissionI18Ns = new List<MissionI18N>();
             newMission.MissionI18Ns.Add(newMissionI18N);
 
             // 定時任務新增
-            if (input.Schedule != 0)
+            if (input.Schedule.HasValue)
             {
                 input.ScheduleMissionId = newMission.Id;
                 await CreateTaskSchedule(input);
@@ -247,10 +248,10 @@ public class MissionAppService : ApplicationService, IMissionAppService
     {
         var missions = await _repositoys.Mission.GetListAsync();
 
-        foreach (var mission in missions)
+        foreach (var mission in missions.Where(x => x.MissionBeforeEnd.HasValue))
         {
             var now = Clock.Now;
-            now = now.AddHours(mission.MissionBeforeEnd);
+            now = now.AddHours(mission.MissionBeforeEnd.Value);
             // 還沒再提醒的範圍時間內
             if (now < mission.MissionEndTime)
             {
@@ -595,7 +596,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         var query = await _repositoys.MissionView.GetQueryableAsync();
         // 判斷結束時間和提醒時間差距
         var missionMap = query.Where(m =>
-                m.MissionEndTime <= now.AddHours(m.MissionBeforeEnd) && m.MissionFinishTime == null)
+                m.MissionEndTime <= now.AddHours(m.MissionBeforeEnd.Value) && m.MissionFinishTime == null)
             .GroupBy(g => g.MissionId).ToDictionary(g => g.Key, g => g.First());
 
         foreach (var mission in missionMap)

@@ -15,10 +15,10 @@ public class MissionI18N: AuditedAggregateRoot<Guid> , ISoftDelete
     
     //任務名稱
     [Required] 
-    public string? MissionName { get; set; }
+    public string MissionName { get; set; }
 
     // 任務說明
-    public string? MissionDescription { get; set; }
+    public string MissionDescription { get; set; }
 
     // 對應語系
     public int Lang { get; set; }

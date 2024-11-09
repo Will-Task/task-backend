@@ -14,10 +14,15 @@ public class Mission: AuditedAggregateRoot<Guid> , ISoftDelete,IIsActive
     
     public string Email { get; set; }
     
-    // 任務重要程度
+     /// <summary>
+     /// 任務重要程度
+     /// </summary>
+    [Required]
     public int MissionPriority { get; set; }
     
-    // 父任務為空，子任務為屬於哪個父任務
+    /// <summary>
+    /// 父任務為空，子任務為屬於哪個父任務
+    /// </summary>
     public Guid? ParentMissionId { get; set; }
     
     [ForeignKey(nameof(MissionCategoryId))]
@@ -34,17 +39,25 @@ public class Mission: AuditedAggregateRoot<Guid> , ISoftDelete,IIsActive
     public DateTime? MissionFinishTime { get; set; }
 
     /// <summary>
-    /// 用來設置要在結束前多久提醒，預設為前一天
+    /// 用來設置要在結束前多久提醒
     /// </summary>
-    public int MissionBeforeEnd { get; set; } = 24;
+    public int? MissionBeforeEnd { get; set; }
 
     [Required] 
-    public MissionState MissionState { get; set; } = MissionState.IN_PROCESS;
+    public MissionState MissionState { get; set; }
     
-    // 定時任務排成(0 -> 不會重複 1 -> weekly 2 -> daily 3-> monthly)
-    public int Schedule { get; set; }
+    /// <summary>
+    ///  定時任務排成
+    /// null -> 不會重複
+    /// 1 -> weekly
+    /// 2 -> daily
+    /// 3 -> monthly
+    /// </summary>
+    public int? Schedule { get; set; }
     
-    // 定時任務的主要原頭Id
+    /// <summary>
+    /// 定時任務的主要源頭Id
+    /// </summary>
     public Guid? ScheduleMissionId { get; set; }
     
     /// <summary>
@@ -53,11 +66,12 @@ public class Mission: AuditedAggregateRoot<Guid> , ISoftDelete,IIsActive
     public Guid? TeamId { get; set; }
 
     public bool IsDeleted { get; set; }
-    public bool IsActive { get; set; } = true;
+    public bool IsActive { get; set; }
 
-    // 資料庫不須對應欄位，也可以在查詢時加仔關聯資訊
+    /// <summary>
+    /// 資料庫不須對應欄位，也可以在查詢時加仔關聯資訊
+    /// </summary>
     public virtual List<MissionI18N> MissionI18Ns { get; set; }
     
     public virtual List<MissionTag> MissionTags { get; set; }
-
 }

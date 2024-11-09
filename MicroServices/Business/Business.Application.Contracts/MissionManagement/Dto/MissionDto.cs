@@ -1,20 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Business.Enums;
 using Business.MissionCategoryManagement.Dto;
+using Business.Models;
 using Volo.Abp.Application.Dtos;
 
 namespace Business.MissionManagement.Dto;
 
 public class MissionDto : EntityDto<Guid>
 {
-    // 任務重要程度
+    /// <summary>
+    /// 任務重要程度
+    /// </summary>
+    [Required]
     public int MissionPriority { get; set; }
     
-    // 父任務為空，子任務為屬於哪個父任務
+    /// <summary>
+    /// 父任務為空，子任務為屬於哪個父任務
+    /// </summary>
     public Guid? ParentMissionId { get; set; }
     
-    public MissionCategoryI18Dto MissionCategoryI18Dto { get; set; }
+    [ForeignKey(nameof(MissionCategoryId))]
+    [Required]
+    public Guid MissionCategoryId { get; set; }
+    public MissionCategory? MissionCategory { get; set; }
     
     [Required] 
     public DateTime MissionStartTime { get; set; }
@@ -22,16 +33,30 @@ public class MissionDto : EntityDto<Guid>
     [Required] 
     public DateTime MissionEndTime { get; set; }
     
-    public int SubMissionCount { get; set; }
+    public DateTime? MissionFinishTime { get; set; }
+
+    /// <summary>
+    /// 用來設置要在結束前多久提醒
+    /// </summary>
+    public int? MissionBeforeEnd { get; set; }
+
+    [Required] 
+    public MissionState MissionState { get; set; }
     
-    // 定時任務排成(0 -> 不會重複 1 -> weekly 2 -> daily 3-> monthly)
-    public int Schedule { get; set; }
+    /// <summary>
+    ///  定時任務排成
+    /// null -> 不會重複
+    /// 1 -> weekly
+    /// 2 -> daily
+    /// 3 -> monthly
+    /// </summary>
+    public int? Schedule { get; set; }
     
-    // 定時任務的主要原頭Id
+    /// <summary>
+    /// 定時任務的主要源頭Id
+    /// </summary>
     public Guid? ScheduleMissionId { get; set; }
-
-    public ICollection<MissionI18NDto> MissionI18NDtos { get; set; }
-
+    
     /// <summary>
     /// 所屬哪個Team的任務
     /// </summary>

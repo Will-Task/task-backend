@@ -20,7 +20,7 @@ public class MissionView: Entity<Int64>
     [Required] 
     public DateTime MissionEndTime { get; set; }
     
-    public int MissionBeforeEnd { get; set; }
+    public int? MissionBeforeEnd { get; set; }
     
     public DateTime? MissionFinishTime { get; set; }
     
@@ -45,7 +45,7 @@ public class MissionView: Entity<Int64>
     public Guid? MissionCategoryId { get; set; }
     
     // 定時任務排成(0 -> 不會重複 1 -> weekly 2 -> daily 3-> monthly)
-    public int Schedule { get; set; }
+    public int? Schedule { get; set; }
     
     // 定時任務的主要原頭Id
     public Guid? ScheduleMissionId { get; set; }

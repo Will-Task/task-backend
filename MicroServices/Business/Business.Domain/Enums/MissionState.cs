@@ -1,9 +1,9 @@
 ﻿namespace Business.Enums;
 
-public enum MissionState: ushort
+public enum MissionState
 {
     // TO_DO,
-    TODO,
+    TODO = 1,
     IN_PROCESS,
     COMPLETED
 }
