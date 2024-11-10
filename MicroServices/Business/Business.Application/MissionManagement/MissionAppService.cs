@@ -55,7 +55,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
     // 根據MissionImportDto除去匯入檢查不需要的欄位
     private readonly List<string> ImportNotIncluded = new List<string>
     {
-        "TeamId", "UserId", "ParentMissionId", "Lang" , "Id"
+        "TeamId", "UserId", "ParentMissionId", "Lang", "Id"
     };
 
     public MissionAppService(IRepository<Mission, Guid> Mission,
@@ -85,24 +85,13 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// </summary>
     public async Task<MissionI18NDto> DataPost(CreateOrUpdateMissionDto input)
     {
-        // 建立新missionI18N，供新增或新增語系
-        var newMissionI18N = new MissionI18N
-        {
-            MissionName = input.MissionName,
-            MissionDescription = input.MissionDescription,
-            Lang = input.Lang,
-        };
-        if (input.Id.HasValue)
-        {
-            newMissionI18N.MissionId = input.Id.Value;
-        }
+        var newI18N = ObjectMapper.Map<CreateOrUpdateMissionDto, MissionI18N>(input);
 
-        // 1. 判斷修改(對現有任務增加別的語系)或新增
-        // 修改
+        // 判斷修改(對現有任務增加別的語系)或新增
         if (input.Id.HasValue)
         {
+            newI18N.MissionId = input.Id.Value;
             var mission = await _repositoys.Mission.GetAsync(input.Id.Value);
-            // 加載關聯I18N資訊
             await _repositoys.Mission.EnsureCollectionLoadedAsync(mission, m => m.MissionI18Ns);
             var missionI18Ns = mission.MissionI18Ns;
             var missionI18N = missionI18Ns.FirstOrDefault(mn => mn.MissionId == input.Id && mn.Lang == input.Lang);
@@ -121,35 +110,28 @@ public class MissionAppService : ApplicationService, IMissionAppService
                     input.Id = nowId;
                 }
 
-                // 更新本體
-                ObjectMapper.Map(input, mission);
-                // 更新I18N info
-                missionI18N.MissionId = input.Id.Value;
+                // 更新資料
                 missionI18N.MissionName = input.MissionName;
                 missionI18N.MissionDescription = input.MissionDescription;
-                missionI18N.Lang = input.Lang;
+                ObjectMapper.Map(input, mission);
             }
             // 不存在 => 增加現有任務的語系
             else
             {
-                missionI18Ns.Add(newMissionI18N);
+                missionI18Ns.Add(newI18N);
             }
-
             await _repositoys.Mission.UpdateAsync(mission);
         }
-        // 新增任務(不管任何語系，該任務皆不存在)
+        // 新增任務
         else
         {
-            // 儲存任務和I18N
             input.Id = GuidGenerator.Create();
             var newMission = ObjectMapper.Map<CreateOrUpdateMissionDto, Mission>(input);
-            // 新建任務為TODO
-            newMission.MissionState = input.MissionState;
             newMission.UserId = CurrentUser.Id;
             newMission.Email = CurrentUser.Email;
             newMission.TeamId = input.TeamId;
             newMission.MissionI18Ns = new List<MissionI18N>();
-            newMission.MissionI18Ns.Add(newMissionI18N);
+            newMission.MissionI18Ns.Add(newI18N);
 
             // 定時任務新增
             if (input.Schedule.HasValue)
@@ -158,8 +140,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
                 await CreateTaskSchedule(input);
             }
 
-            // 儲存任務I18N(newMission就會有值且此時Guid是有優化過順具的)
-            await _repositoys.Mission.InsertAsync(newMission, autoSave: true);
+            await _repositoys.Mission.InsertAsync(newMission);
         }
 
         return ObjectMapper.Map<CreateOrUpdateMissionDto, MissionI18NDto>(input);
@@ -276,7 +257,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// <summary>
     /// 設置任務提醒時間(結束時間多久前)
     /// </summary>
-    public async Task setRemindTime(Guid id, int hour)
+    public async Task SetRemindTime(Guid id, int hour)
     {
         var mission = await _repositoys.Mission.GetAsync(id);
         mission.MissionBeforeEnd = hour;
@@ -302,7 +283,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// <summary>
     /// 範本下載
     /// </summary>
-    public async Task<MyFileInfoDto> DNSample(string fileName, int lang, Guid teamId)
+    public async Task<MyFileInfoDto> DNSample(string fileName, int lang, Guid? teamId)
     {
         var currentUserId = CurrentUser.Id;
         // 根據名稱取得範本
@@ -316,13 +297,14 @@ public class MissionAppService : ApplicationService, IMissionAppService
         // 父類別任務名稱下拉選單設定
         var parentMissions = await _repositoys.MissionView.GetQueryableAsync();
         var parentNames = parentMissions
-            .Where(pn => pn.UserId == currentUserId && pn.ParentMissionId == null && pn.Lang == lang && pn.TeamId == teamId)
+            .Where(pn => pn.UserId == currentUserId && pn.ParentMissionId == null && pn.Lang == lang &&
+                         pn.TeamId == teamId)
             .Select(p => p.MissionName).ToList();
         SetExcelFormattion(ref worksheet, parentNames, 'A');
 
         // 類別下拉選單設定
         var categories = await _repositoys.MissionCategoryView.GetQueryableAsync();
-        var categoryNames = categories.Where(c => c.UserId == currentUserId && c.Lang == lang  && c.TeamId == teamId)
+        var categoryNames = categories.Where(c => c.UserId == currentUserId && c.Lang == lang && c.TeamId == teamId)
             .Select(mcn => mcn.MissionCategoryName).ToList();
         SetExcelFormattion(ref worksheet, categoryNames, 'B');
 
@@ -332,7 +314,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
 
         // TODO
         // 任務狀態下拉選單設定
-        
+
         // TODO
         // 任務提醒時間下拉選單設定
 
@@ -422,7 +404,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
                             DateTimeStyles.AllowWhiteSpaces, out DateTime dateTime);
                         propertyInfo.SetValue(dto, dateTime);
                     }
-                    else if(propertyInfo.PropertyType == typeof(string))
+                    else if (propertyInfo.PropertyType == typeof(string))
                     {
                         if (!value.IsNullOrEmpty())
                         {
@@ -692,7 +674,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
             workBook.SaveAs(savingMemoryStream);
 
             var fileDto = new MyFileInfoDto
-            { FileContent = savingMemoryStream.ToArray(), FileName = parentMissionName };
+                { FileContent = savingMemoryStream.ToArray(), FileName = parentMissionName };
 
             await SendEmail("每周任務報告", "這是你一周以來完成和過期的任務統計", email, fileDto);
         }

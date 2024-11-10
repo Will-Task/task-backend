@@ -56,7 +56,7 @@ public interface IMissionAppService : IApplicationService
     /// <summary>
     /// 設置任務提醒時間(結束時間多久前)
     /// </summary>
-    Task setRemindTime(Guid id, int hour);
+    Task SetRemindTime(Guid id, int hour);
 
 
     /// <summary>
@@ -68,7 +68,7 @@ public interface IMissionAppService : IApplicationService
     /// <summary>
     /// 範本下載
     /// </summary>
-    Task<MyFileInfoDto> DNSample(string fileName, int lang, Guid teamId);
+    Task<MyFileInfoDto> DNSample(string fileName, int lang, Guid? teamId);
 
     /// <summary>
     /// 資料匯入檢查
