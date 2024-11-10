@@ -135,9 +135,9 @@ public class MissionController : AbpController
     /// <returns></returns>
     [HttpGet]
     [Route("sample")]
-    public async Task<IActionResult> DNSample(string fileName, int lang)
+    public async Task<IActionResult> DNSample(string fileName, int lang, Guid teamId)
     {
-        var fileDto = await _missionAppService.DNSample(fileName, lang);
+        var fileDto = await _missionAppService.DNSample(fileName, lang, teamId);
         return File(fileDto.FileContent, "application/octet-stream",
             fileDto.FileName);
     }
@@ -147,9 +147,9 @@ public class MissionController : AbpController
     /// </summary>
     [HttpPost]
     [Route("import-file-check")]
-    public async Task<IEnumerable<MissionImportDto>> ImportFileCheck(IFormFile file, int lang)
+    public async Task<IEnumerable<MissionImportDto>> ImportFileCheck(IFormFile file, int lang, Guid? teamId)
     {
-        return await _missionAppService.ImportFileCheck(file, lang);
+        return await _missionAppService.ImportFileCheck(file, lang, teamId);
     }
 
     /// <summary>
@@ -213,7 +213,7 @@ public class MissionController : AbpController
     {
         return _missionAppService.UploadFile(input, file);
     }
-    
+
     /// <summary>
     /// 刪除任務附件
     /// </summary>
@@ -224,7 +224,7 @@ public class MissionController : AbpController
     {
         await _missionAppService.DeleteFile(id);
     }
-    
+
     /// <summary>
     /// 取得某一任務所有附件
     /// </summary>
@@ -242,7 +242,7 @@ public class MissionController : AbpController
     /// <param name="id">附件 Id</param>
     [HttpPost]
     [Route("update-note")]
-    public Task UpdateAttachmentNote(Guid id , string aNote)
+    public Task UpdateAttachmentNote(Guid id, string aNote)
     {
         return _missionAppService.UpdateAttachmentNote(id);
     }

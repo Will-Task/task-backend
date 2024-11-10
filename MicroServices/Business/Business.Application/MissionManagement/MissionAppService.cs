@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Linq.Dynamic.Core;
 using System.Net;
 using System.Net.Mail;
 using System.Reflection;
@@ -24,6 +25,7 @@ using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Data;
 using Volo.Abp.Domain.Repositories;
+using XCZ.Extensions;
 
 namespace Business.MissionManagement;
 
@@ -49,6 +51,12 @@ public class MissionAppService : ApplicationService, IMissionAppService
 
     // 設定定時任務最大數量
     private readonly int maxScheduleCount = 10;
+
+    // 根據MissionImportDto除去匯入檢查不需要的欄位
+    private readonly List<string> ImportNotIncluded = new List<string>
+    {
+        "TeamId", "UserId", "ParentMissionId", "Lang" , "Id"
+    };
 
     public MissionAppService(IRepository<Mission, Guid> Mission,
         IRepository<MissionI18N, Guid> MissionI18N,
@@ -295,7 +303,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// <summary>
     /// 範本下載
     /// </summary>
-    public async Task<MyFileInfoDto> DNSample(string fileName, int lang)
+    public async Task<MyFileInfoDto> DNSample(string fileName, int lang, Guid teamId)
     {
         var currentUserId = CurrentUser.Id;
         // 根據名稱取得範本
@@ -309,22 +317,25 @@ public class MissionAppService : ApplicationService, IMissionAppService
         // 父類別任務名稱下拉選單設定
         var parentMissions = await _repositoys.MissionView.GetQueryableAsync();
         var parentNames = parentMissions
-            .Where(pn => pn.UserId == currentUserId && pn.ParentMissionId == null && pn.Lang == lang)
+            .Where(pn => pn.UserId == currentUserId && pn.ParentMissionId == null && pn.Lang == lang && pn.TeamId == teamId)
             .Select(p => p.MissionName).ToList();
         SetExcelFormattion(ref worksheet, parentNames, 'A');
 
         // 類別下拉選單設定
         var categories = await _repositoys.MissionCategoryView.GetQueryableAsync();
-        var categoryNames = categories.Where(c => c.UserId == currentUserId && c.Lang == lang)
+        var categoryNames = categories.Where(c => c.UserId == currentUserId && c.Lang == lang  && c.TeamId == teamId)
             .Select(mcn => mcn.MissionCategoryName).ToList();
         SetExcelFormattion(ref worksheet, categoryNames, 'B');
 
         // 任務優先度下拉選單設定(1~5)
         var priority = new List<string> { "1", "2", "3", "4", "5" };
-        SetExcelFormattion(ref worksheet, priority, 'C');
+        SetExcelFormattion(ref worksheet, priority, 'J');
 
         // TODO
         // 任務狀態下拉選單設定
+        
+        // TODO
+        // 任務提醒時間下拉選單設定
 
         // 日期格式設定
         var rangeDate = worksheet.Range($"E{ExcelBeginLine}:F{ExcelEndLine}");
@@ -333,38 +344,42 @@ public class MissionAppService : ApplicationService, IMissionAppService
             cell.Style.NumberFormat.Format = "yyyy/m/d h:mm:ss";
         }
 
-        // 語言設定
-        var languages = new List<string> { "1", "2" };
-        SetExcelFormattion(ref worksheet, languages, 'I');
-
         // 設置固定區塊為唯讀
         var range = worksheet.Range($"A1:F{ExcelEndLine}");
         range.Style.Protection.Locked = true;
 
         using var savingMemoryStream = new MemoryStream();
         workbook.SaveAs(savingMemoryStream);
+        myFileInfo.FileContent = savingMemoryStream.ToArray();
 
-        return new MyFileInfoDto { FileContent = savingMemoryStream.ToArray(), FileName = myFileInfo.FileName };
+        return myFileInfo;
     }
 
     /// <summary>
     /// 資料匯入檢查
     /// </summary>
-    public async Task<IEnumerable<MissionImportDto>> ImportFileCheck(IFormFile file, int lang)
+    public async Task<IEnumerable<MissionImportDto>> ImportFileCheck(IFormFile file, int lang, Guid? teamId)
     {
         try
         {
             var currentUserId = CurrentUser.Id;
-            // 增加欄位，為了取得新增資料
-            var extraKeys = new List<string> { "SubMissionName", "SubMissionDescription", "SubMissionLang" };
-            extraKeys = ExcelKeys.Concat(extraKeys).ToList();
+            var dtos = new List<MissionImportDto>();
 
             using var memoryStream = new MemoryStream();
             await file.CopyToAsync(memoryStream);
             using var workbook = new XLWorkbook(memoryStream);
             var worksheet = workbook.Worksheet(1);
 
-            var importDtos = new List<MissionImportDto>();
+            // 取得所有當前用者、所在團隊 的所有 name mapping Id
+            var queryCategory = await _repositoys.MissionCategoryView.GetQueryableAsync();
+            var categoryMap = queryCategory
+                .Where(x => x.Lang == lang && x.UserId == currentUserId && x.TeamId == teamId)
+                .ToDictionary(x => x.MissionCategoryName, x => x.MissionCategoryId);
+
+            var queryMission = await _repositoys.MissionView.GetQueryableAsync();
+            var missionMap = queryMission
+                .Where(x => x.Lang == lang && x.UserId == currentUserId && x.TeamId == teamId)
+                .ToDictionary(x => x.MissionName, x => x.MissionId);
 
             // 從excel取出資料
             for (int i = ExcelBeginLine; i <= ExcelEndLine; i++)
@@ -375,72 +390,65 @@ public class MissionAppService : ApplicationService, IMissionAppService
                     break;
                 }
 
-                var importDto = new MissionImportDto();
+                var dto = new MissionImportDto();
+                dto.UserId = currentUserId;
+                dto.TeamId = teamId;
+                dto.Lang = lang;
+
                 var nextchar = 'A';
                 // 根據excelKey對物件賦值
-                foreach (var extraKey in extraKeys)
+                foreach (var propertyInfo in dto.GetType().GetProperties()
+                             .Where(x => !ImportNotIncluded.Contains(x.Name)))
                 {
-                    var property = typeof(MissionImportDto).GetProperty(extraKey);
-                    if (extraKey == "MissionCategoryName")
+                    var value = $"{worksheet.Cell($"{nextchar}{i}").Value}";
+                    if (propertyInfo.PropertyType == typeof(Guid))
                     {
-                        var categoryName = $"{worksheet.Cell($"{nextchar}{i}").Value}";
-                        var query = await _repositoys.MissionCategoryI18N.GetQueryableAsync();
-                        var categoryId = query.AsNoTracking().Where(mcn =>
-                                mcn.MissionCategoryName == categoryName && mcn.Lang == lang)
-                            .Select(mcn => mcn.MissionCategoryId).First();
-                        property.SetValue(importDto, categoryName);
-                        property = typeof(MissionImportDto).GetProperty("MissionCategoryId");
-                        property.SetValue(importDto, categoryId);
+                        propertyInfo.SetValue(dto, categoryMap[value]);
                     }
-                    else if (extraKey == "MissionName")
+                    else if (propertyInfo.PropertyType == typeof(int) ||
+                             propertyInfo.PropertyType == typeof(MissionState))
                     {
-                        var parentMissionName = $"{worksheet.Cell($"{nextchar}{i}").Value}";
-                        property.SetValue(importDto, parentMissionName);
-                        if (!parentMissionName.IsNullOrEmpty())
+                        propertyInfo.SetValue(dto, Convert.ToInt32(value));
+                    }
+                    else if (propertyInfo.PropertyType == typeof(DateTime))
+                    {
+                        if (value.IsNullOrEmpty())
                         {
-                            var query = await _repositoys.MissionView.GetQueryableAsync();
-                            var parentMissionId = query.Where(mv =>
-                                    mv.MissionName == parentMissionName && mv.Lang == lang)
-                                .Select(mv => mv.MissionId).First();
-                            property = typeof(MissionImportDto).GetProperty("ParentMissionId");
-                            property.SetValue(importDto, parentMissionId);
+                            continue;
                         }
-                    }
-                    else if (extraKey == "MissionPriority" || extraKey == "SubMissionLang")
-                    {
-                        property.SetValue(importDto, int.Parse($"{worksheet.Cell($"{nextchar}{i}").Value}"));
-                    }
-                    else if (extraKey == "MissionState")
-                    {
-                        property.SetValue(importDto,
-                            (MissionState)int.Parse($"{worksheet.Cell($"{nextchar}{i}").Value}"));
-                    }
-                    else if (extraKey == "MissionStartTime" || extraKey == "MissionEndTime")
-                    {
+
                         string format = "yyyy/M/d tt h:mm:ss";
                         var culture = new CultureInfo("zh-TW");
-                        DateTime.TryParseExact($"{worksheet.Cell($"{nextchar}{i}").Value}", format, culture,
+                        DateTime.TryParseExact(value, format, culture,
                             DateTimeStyles.AllowWhiteSpaces, out DateTime dateTime);
-                        property.SetValue(importDto, dateTime);
+                        propertyInfo.SetValue(dto, dateTime);
                     }
-                    else
+                    else if(propertyInfo.PropertyType == typeof(string))
                     {
-                        property.SetValue(importDto, $"{worksheet.Cell($"{nextchar}{i}").Value}");
+                        if (!value.IsNullOrEmpty())
+                        {
+                            propertyInfo.SetValue(dto, value);
+                        }
+
+                        if (propertyInfo.Name == "MissionName")
+                        {
+                            dto.ParentMissionId = missionMap[value];
+                        }
                     }
 
                     nextchar++;
                 }
 
-                importDtos.Add(importDto);
+                dtos.Add(dto);
             }
 
-            return importDtos;
+            return dtos;
         }
         catch (Exception e)
         {
             _logger.LogInformation(
                 $"===========================mission import error {e.StackTrace.ToString()}================================================");
-            return null;
+            throw new BusinessException("500", "import file check Wrong !!!!!!");
         }
     }
 
@@ -466,7 +474,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
             {
                 MissionName = dto.SubMissionName,
                 MissionDescription = dto.SubMissionDescription,
-                Lang = dto.SubMissionLang
+                Lang = dto.Lang
             });
             missions.Add(mission);
             await _repositoys.Mission.InsertAsync(mission, autoSave: true);
@@ -688,7 +696,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
             workBook.SaveAs(savingMemoryStream);
 
             var fileDto = new MyFileInfoDto
-                { FileContent = savingMemoryStream.ToArray(), FileName = parentMissionName };
+            { FileContent = savingMemoryStream.ToArray(), FileName = parentMissionName };
 
             await SendEmail("每周任務報告", "這是你一周以來完成和過期的任務統計", email, fileDto);
         }
@@ -753,7 +761,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         // 取消定時任務(刪除)
         var query = await _repositoys.MissionView.GetQueryableAsync();
         var idLangMaps = query.Where(m =>
-                m.ScheduleMissionId == input.ScheduleMissionId &&　m.MissionId != input.ScheduleMissionId)
+                m.ScheduleMissionId == input.ScheduleMissionId && m.MissionId != input.ScheduleMissionId)
             .GroupBy(m => new { m.MissionId, m.Lang }).ToDictionary(m => m.Key, m => m.First().Lang);
         foreach (var idLangMap in idLangMaps)
         {

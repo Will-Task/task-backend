@@ -68,12 +68,12 @@ public interface IMissionAppService : IApplicationService
     /// <summary>
     /// 範本下載
     /// </summary>
-    Task<MyFileInfoDto> DNSample(string fileName, int lang);
+    Task<MyFileInfoDto> DNSample(string fileName, int lang, Guid teamId);
 
     /// <summary>
     /// 資料匯入檢查
     /// </summary>
-    Task<IEnumerable<MissionImportDto>> ImportFileCheck(IFormFile file, int lang);
+    Task<IEnumerable<MissionImportDto>> ImportFileCheck(IFormFile file, int lang, Guid? teamId);
 
     /// <summary>
     /// 資料匯入
@@ -110,7 +110,7 @@ public interface IMissionAppService : IApplicationService
     /// </summary>
     /// <param name="id">附件 Id</param>
     Task DeleteFile(Guid id);
-    
+
     /// <summary>
     /// 取得某一任務所有附件
     /// </summary>
