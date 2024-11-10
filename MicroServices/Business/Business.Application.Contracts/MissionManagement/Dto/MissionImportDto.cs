@@ -5,6 +5,9 @@ using Volo.Abp.Application.Dtos;
 
 namespace Business.MissionManagement.Dto;
 
+/// <summary>
+/// 只匯入子任務
+/// </summary>
 public class MissionImportDto : EntityDto<Guid?>
 {
     public Guid? ParentMissionId { get; set; }

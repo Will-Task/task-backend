@@ -66,7 +66,7 @@ public class Mission: AuditedAggregateRoot<Guid> , ISoftDelete,IIsActive
     public Guid? TeamId { get; set; }
 
     public bool IsDeleted { get; set; }
-    public bool IsActive { get; set; }
+    public bool IsActive { get; set; } = true;
 
     /// <summary>
     /// 資料庫不須對應欄位，也可以在查詢時加仔關聯資訊

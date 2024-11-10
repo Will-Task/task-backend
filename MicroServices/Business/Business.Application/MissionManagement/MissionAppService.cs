@@ -147,7 +147,6 @@ public class MissionAppService : ApplicationService, IMissionAppService
             newMission.MissionState = input.MissionState;
             newMission.UserId = CurrentUser.Id;
             newMission.Email = CurrentUser.Email;
-            newMission.ScheduleMissionId = input.Id;
             newMission.TeamId = input.TeamId;
             newMission.MissionI18Ns = new List<MissionI18N>();
             newMission.MissionI18Ns.Add(newMissionI18N);
@@ -464,9 +463,6 @@ public class MissionAppService : ApplicationService, IMissionAppService
         foreach (var dto in dtos)
         {
             var mission = ObjectMapper.Map<MissionImportDto, Mission>(dto);
-            dto.MissionName = dto.MissionName.IsNullOrEmpty()
-                ? dto.SubMissionName
-                : dto.MissionName;
             mission.UserId = currentUserId;
             mission.Email = CurrentUser.Email;
             mission.MissionI18Ns = new List<MissionI18N>();
