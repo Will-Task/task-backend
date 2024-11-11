@@ -22,7 +22,8 @@ public class MissionCategoryAppService : ApplicationService, IMissionCategoryApp
     private readonly (
         IRepository<MissionCategory, Guid> MissionCategory,
         IRepository<MissionCategoryI18N, Guid> MissionCategoryI18N,
-        IRepository<MissionCategoryView> MissionCategoryView
+        IRepository<MissionCategoryView> MissionCategoryView,
+        IRepository<Mission> Mission
         ) _repositorys;
 
     private readonly ILogger<MissionCategoryAppService> _logger;
@@ -30,9 +31,10 @@ public class MissionCategoryAppService : ApplicationService, IMissionCategoryApp
     public MissionCategoryAppService(IRepository<MissionCategory, Guid> missionCategory,
         IRepository<MissionCategoryI18N, Guid> missionCategoryI18N,
         IRepository<MissionCategoryView> missionCategoryView,
+        IRepository<Mission> mission,
         ILogger<MissionCategoryAppService> logger)
     {
-        _repositorys = (missionCategory, missionCategoryI18N, missionCategoryView);
+        _repositorys = (missionCategory, missionCategoryI18N, missionCategoryView, mission);
         _logger = logger;
     }
 
@@ -95,7 +97,7 @@ public class MissionCategoryAppService : ApplicationService, IMissionCategoryApp
         {
             var currentUserId = CurrentUser.Id;
             var newI18N = ObjectMapper.Map<CreateOrUpdateMissionCategoryDto, MissionCategoryI18N>(input);
-            
+
             // 修改(修改category或新增categoryI18N)
             if (input.Id.HasValue)
             {
@@ -131,7 +133,7 @@ public class MissionCategoryAppService : ApplicationService, IMissionCategoryApp
                 newCategory.UserId = currentUserId;
                 newCategory.MissionCategoryI18Ns = new List<MissionCategoryI18N>();
                 newCategory.MissionCategoryI18Ns.Add(newI18N);
-                
+
                 await _repositorys.MissionCategory.InsertAsync(newCategory, autoSave: true);
             }
 
@@ -152,6 +154,14 @@ public class MissionCategoryAppService : ApplicationService, IMissionCategoryApp
     {
         try
         {
+            // 判斷是否任務是此類別(不管語系)
+            var queryMission = await _repositorys.Mission.GetQueryableAsync();
+            var missionCount = await queryMission.Where(x => x.MissionCategoryId == id).CountAsync();
+            if (missionCount != 0)
+            {
+                throw new BusinessException("有任務根據此任務類別，刪除失敗!!");
+            }
+
             var query = await _repositorys.MissionCategoryI18N.GetQueryableAsync();
             // 1. 刪除任務類別I18N
             await _repositorys.MissionCategoryI18N.DeleteAsync(x => x.MissionCategoryId == id && x.Lang == lang,
