@@ -8,10 +8,10 @@ public class MissionCategoryAutoMapperProfile : Profile
 {
     public MissionCategoryAutoMapperProfile()
     {
-        CreateMap<MissionCategory, MissionCategoryDto>();
-        CreateMap<MissionCategoryI18N, MissionCategoryI18Dto>();
-        CreateMap<CreateOrUpodateMissionCategoryDto, MissionCategory>();
-        CreateMap<CreateOrUpodateMissionCategoryDto, MissionCategoryI18Dto>();
+
+        CreateMap<CreateOrUpdateMissionCategoryDto, MissionCategory>();
+        CreateMap<CreateOrUpdateMissionCategoryDto, MissionCategoryI18N>();
+        CreateMap<CreateOrUpdateMissionCategoryDto, MissionCategoryI18Dto>();
         CreateMap<MissionCategoryView, MissionCategoryViewDto>();
     }
 }

@@ -4,7 +4,7 @@ using Volo.Abp.Application.Dtos;
 
 namespace Business.MissionCategoryManagement.Dto;
 
-public class CreateOrUpodateMissionCategoryDto : EntityDto<Guid?>
+public class CreateOrUpdateMissionCategoryDto : EntityDto<Guid?>
 {
     
     [Required]

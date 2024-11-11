@@ -43,115 +43,134 @@ public class MissionCategoryAppService : ApplicationService, IMissionCategoryApp
     /// </summary>
     public async Task<PagedResultDto<MissionCategoryViewDto>> GetAll(Guid? teamId, int page, int pageSize, bool allData)
     {
-        // 1. 取出當前使用者Id
-        var currentUserId = CurrentUser.Id;
-        var query = await _repositorys.MissionCategoryView.GetQueryableAsync();
-        query = query.Where(mcv => mcv.UserId == currentUserId && mcv.TeamId == teamId);
-        var count = await query.CountAsync();
-        // 拿全部or分頁
-        var categories = allData
-            ? await query.ToListAsync()
-            : await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+        try
+        {
+            // 1. 取出當前使用者Id
+            var currentUserId = CurrentUser.Id;
+            var query = await _repositorys.MissionCategoryView.GetQueryableAsync();
+            query = query.Where(x => x.UserId == currentUserId && x.TeamId == teamId);
+            var count = await query.CountAsync();
+            // 拿全部or分頁
+            var categories = allData
+                ? await query.ToListAsync()
+                : await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 
-        var dtos = ObjectMapper.Map<List<MissionCategoryView>, List<MissionCategoryViewDto>>(categories);
+            var dtos = ObjectMapper.Map<List<MissionCategoryView>, List<MissionCategoryViewDto>>(categories);
 
-        return new PagedResultDto<MissionCategoryViewDto>(count, dtos);
+            return new PagedResultDto<MissionCategoryViewDto>(count, dtos);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(
+                $"========================= 獲取多筆任務類別失敗 !!!!!!!!!==================== {e.StackTrace.ToString()}");
+            throw new BusinessException("獲取多筆任務類別失敗");
+        }
     }
 
     /// <summary>
     /// 查看特定任務類別
     /// </summary>
-    public async Task<MissionCategoryViewDto> Get(Guid id)
+    public async Task<MissionCategoryViewDto> Get(Guid id, int lang)
     {
-        var category = await _repositorys.MissionCategoryView.GetAsync(mc => mc.MissionCategoryId == id);
-        return ObjectMapper.Map<MissionCategoryView, MissionCategoryViewDto>(category);
+        try
+        {
+            var category =
+                await _repositorys.MissionCategoryView.GetAsync(x => x.MissionCategoryId == id &&　x.Lang == lang);
+            return ObjectMapper.Map<MissionCategoryView, MissionCategoryViewDto>(category);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(
+                $"========================= 獲取單筆任務類別失敗 !!!!!!!!!==================== {e.StackTrace.ToString()}");
+            throw new BusinessException("獲取單筆任務類別失敗");
+        }
     }
 
     /// <summary>
     /// 新增或修改當前使用者所建立的任務類別
     /// </summary>
-    public async Task<MissionCategoryI18Dto> DataPost(CreateOrUpodateMissionCategoryDto input)
+    public async Task<MissionCategoryI18Dto> DataPost(CreateOrUpdateMissionCategoryDto input)
     {
-        var newMissionCategoryI18N = new MissionCategoryI18N()
+        try
         {
-            MissionCategoryName = input.MissionCategoryName,
-            Lang = input.Lang
-        };
-        if (input.Id.HasValue)
-        {
-            newMissionCategoryI18N.MissionCategoryId = input.Id.Value;
-        }
-
-        // 1. 判斷進行修改還是刪除
-        // 修改(修改category或新增categoryI18N)
-        if (input.Id.HasValue)
-        {
-            // 取出category和對應I18N(若有的話)
-            var missionCategory = await _repositorys.MissionCategory.GetAsync(input.Id.Value);
-            await _repositorys.MissionCategory.EnsureCollectionLoadedAsync(missionCategory, c
-                => c.MissionCategoryI18Ns);
-
-            var missionCategoryI18Ns = missionCategory.MissionCategoryI18Ns;
-            var missionCategoryI18N = missionCategoryI18Ns.FirstOrDefault(cn =>
-                cn.MissionCategoryId == input.Id && cn.Lang == input.Lang);
-
-            // 修改categoryI18N
-            if (missionCategoryI18N != null)
+            var currentUserId = CurrentUser.Id;
+            var newI18N = ObjectMapper.Map<CreateOrUpdateMissionCategoryDto, MissionCategoryI18N>(input);
+            
+            // 修改(修改category或新增categoryI18N)
+            if (input.Id.HasValue)
             {
-                missionCategoryI18N.MissionCategoryName = input.MissionCategoryName;
-                missionCategoryI18N.Lang = input.Lang;
+                // 連結I18N和主體
+                newI18N.MissionCategoryId = input.Id.Value;
+                // 取出category和對應I18N(若有的話)
+                var category = await _repositorys.MissionCategory.GetAsync(input.Id.Value);
+                await _repositorys.MissionCategory.EnsureCollectionLoadedAsync(category, c
+                    => c.MissionCategoryI18Ns);
+
+                var categoryI18Ns = category.MissionCategoryI18Ns;
+                var categoryI18N = categoryI18Ns.FirstOrDefault(cn =>
+                    cn.MissionCategoryId == input.Id && cn.Lang == input.Lang);
+
+                // 修改categoryI18N
+                if (categoryI18N != null)
+                {
+                    ObjectMapper.Map(input, category);
+                    categoryI18N.MissionCategoryName = input.MissionCategoryName;
+                }
+                // 新增categoryI18N
+                else
+                {
+                    categoryI18Ns.Add(newI18N);
+                }
+
+                await _repositorys.MissionCategory.UpdateAsync(category);
             }
-            // 新增categoryI18N
+            // 新增categeory
             else
             {
-                missionCategoryI18Ns.Add(newMissionCategoryI18N);
+                var newCategory = ObjectMapper.Map<CreateOrUpdateMissionCategoryDto, MissionCategory>(input);
+                newCategory.UserId = currentUserId;
+                newCategory.MissionCategoryI18Ns = new List<MissionCategoryI18N>();
+                newCategory.MissionCategoryI18Ns.Add(newI18N);
+                
+                await _repositorys.MissionCategory.InsertAsync(newCategory, autoSave: true);
             }
 
-            await _repositorys.MissionCategory.UpdateAsync(missionCategory);
+            return ObjectMapper.Map<CreateOrUpdateMissionCategoryDto, MissionCategoryI18Dto>(input);
         }
-        // 新增categeory
-        else
+        catch (Exception e)
         {
-            var newMissionCategory = ObjectMapper.Map<CreateOrUpodateMissionCategoryDto, MissionCategory>(input);
-            newMissionCategory.UserId = CurrentUser.Id;
-            newMissionCategory.MissionCategoryI18Ns = new List<MissionCategoryI18N>();
-
-            newMissionCategory.MissionCategoryI18Ns.Add(newMissionCategoryI18N);
-            await _repositorys.MissionCategory.InsertAsync(newMissionCategory, autoSave: true);
-            input.Id = newMissionCategory.Id;
+            _logger.LogError(
+                $"======================== 任務類別新增失敗!!!!!!!!!! ====================================== {e.StackTrace.ToString()}");
+            throw new BusinessException("任務類別新增失敗");
         }
-
-        return ObjectMapper.Map<CreateOrUpodateMissionCategoryDto, MissionCategoryI18Dto>(input);
     }
 
     /// <summary>
     /// 刪除當前使用者所建立的任務類別
     /// </summary>
-    public async Task Delete(List<Guid> ids)
+    public async Task Delete(Guid id, int lang)
     {
         try
         {
-            var categories =
-                await _repositorys.MissionCategoryI18N.GetListAsync(mc => ids.Contains(mc.MissionCategoryId));
+            var query = await _repositorys.MissionCategoryI18N.GetQueryableAsync();
             // 1. 刪除任務類別I18N
-            await _repositorys.MissionCategoryI18N.DeleteManyAsync(categories, autoSave: true);
+            await _repositorys.MissionCategoryI18N.DeleteAsync(x => x.MissionCategoryId == id && x.Lang == lang,
+                autoSave: true);
 
-            foreach (var id in ids)
+            query = query.Where(x => x.MissionCategoryId == id);
+            var count = await query.CountAsync();
+
+            // 2. 沒有關聯I18N刪除
+            if (count == 0)
             {
-                var query = await _repositorys.MissionCategoryI18N.GetQueryableAsync();
-                query = query.Where(mc => mc.MissionCategoryId == id);
-                var count = await query.CountAsync();
-
-                // 2. 沒有關聯I18N刪除
-                if (count == 0)
-                {
-                    await _repositorys.MissionCategory.DeleteAsync(id);
-                }
+                await _repositorys.MissionCategory.DeleteAsync(id);
             }
         }
         catch (Exception e)
         {
-            _logger.LogInformation("=========================刪除任務類別失敗====================" + e.StackTrace.ToString());
+            _logger.LogError(
+                $"========================= 刪除任務類別失敗 !!!!!!!!!==================== {e.StackTrace.ToString()}");
+            throw new BusinessException("刪除任務類別失敗");
         }
     }
 

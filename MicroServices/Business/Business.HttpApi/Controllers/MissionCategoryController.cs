@@ -28,7 +28,7 @@ public class MissionCategoryController : AbpController
     [Route("all")]
     public Task<PagedResultDto<MissionCategoryViewDto>> GetAll(Guid? teamId, int page, int pageSize, bool allData)
     {
-        return _missionCategoryAppService.GetAll(teamId,page, pageSize, allData);
+        return _missionCategoryAppService.GetAll(teamId, page, pageSize, allData);
     }
 
     /// <summary>
@@ -36,9 +36,9 @@ public class MissionCategoryController : AbpController
     /// </summary>
     [HttpGet]
     [Route("{id}")]
-    public Task<MissionCategoryViewDto> Get(Guid id)
+    public Task<MissionCategoryViewDto> Get(Guid id, int lang)
     {
-        return _missionCategoryAppService.Get(id);
+        return _missionCategoryAppService.Get(id, lang);
     }
 
     /// <summary>
@@ -46,7 +46,7 @@ public class MissionCategoryController : AbpController
     /// </summary>
     [HttpPost]
     [Route("data-post")]
-    public Task<MissionCategoryI18Dto> DataPost([FromBody] CreateOrUpodateMissionCategoryDto input)
+    public Task<MissionCategoryI18Dto> DataPost([FromBody] CreateOrUpdateMissionCategoryDto input)
     {
         return _missionCategoryAppService.DataPost(input);
     }
@@ -56,8 +56,11 @@ public class MissionCategoryController : AbpController
     /// </summary>
     [HttpPost]
     [Route("delete")]
-    public async Task Delete([FromBody] List<Guid> ids)
+    public async Task Delete([FromBody] List<Guid> ids, int lang)
     {
-        await _missionCategoryAppService.Delete(ids);
+        foreach (var id in ids)
+        {
+            await _missionCategoryAppService.Delete(id, lang);
+        }
     }
 }

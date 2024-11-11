@@ -18,15 +18,15 @@ public interface IMissionCategoryAppService : IApplicationService
     /// <summary>
     /// 查看特定任務類別
     /// </summary>
-    Task<MissionCategoryViewDto> Get(Guid id);
+    Task<MissionCategoryViewDto> Get(Guid id, int lang);
 
     /// <summary>
     /// 新增或修改當前使用者所建立的任務類別
     /// </summary>
-    Task<MissionCategoryI18Dto> DataPost(CreateOrUpodateMissionCategoryDto input);
+    Task<MissionCategoryI18Dto> DataPost(CreateOrUpdateMissionCategoryDto input);
 
     /// <summary>
     /// 刪除當前使用者所建立的任務類別
     /// </summary>
-    Task Delete(List<Guid> ids);
+    Task Delete(Guid id, int lang);
 }
