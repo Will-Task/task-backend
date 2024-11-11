@@ -78,8 +78,6 @@ public class MissionAppService : ApplicationService, IMissionAppService
 
     #region CRUD方法
 
-    #endregion
-
     /// <summary>
     /// 新增/修改任務
     /// </summary>
@@ -120,6 +118,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
             {
                 missionI18Ns.Add(newI18N);
             }
+
             await _repositoys.Mission.UpdateAsync(mission);
         }
         // 新增任務
@@ -163,19 +162,6 @@ public class MissionAppService : ApplicationService, IMissionAppService
     }
 
     /// <summary>
-    /// 獲取父任務下的子任務(多個)
-    /// </summary>
-    public async Task<PagedResultDto<MissionViewDto>> GetSubMission(Guid id, int page, int pageSize, bool allData)
-    {
-        var query = await _repositoys.MissionView.GetQueryableAsync();
-        query = query.Where(mv => mv.ParentMissionId == id);
-        var totalCount = await query.CountAsync();
-        var subMissions = query.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-        var dtos = ObjectMapper.Map<List<MissionView>, List<MissionViewDto>>(subMissions);
-        return new PagedResultDto<MissionViewDto>(totalCount, dtos);
-    }
-
-    /// <summary>
     /// 查詢所有父任務(多個)
     /// </summary>
     public async Task<PagedResultDto<MissionViewDto>> GetParentMission(int page, int pageSize, bool allData,
@@ -196,17 +182,6 @@ public class MissionAppService : ApplicationService, IMissionAppService
     }
 
     /// <summary>
-    /// 根據類別取得父任務
-    /// </summary>
-    public async Task<IEnumerable<MissionViewDto>> GetParentMissionByCategoryId(Guid categoryId)
-    {
-        // 根據類別取得父任務(parentId = null)
-        var missionViews = await _repositoys.MissionView.GetListAsync(mv =>
-            mv.ParentMissionId == null && mv.MissionCategoryId == categoryId);
-        return ObjectMapper.Map<List<MissionView>, List<MissionViewDto>>(missionViews);
-    }
-
-    /// <summary>
     /// 查詢特定任務(單個)
     /// </summary>
     public async Task<MissionViewDto> Get(Guid id)
@@ -217,14 +192,29 @@ public class MissionAppService : ApplicationService, IMissionAppService
         return ObjectMapper.Map<MissionView, MissionViewDto>(mission);
     }
 
+    #endregion CRUD方法
+
     /// <summary>
-    /// 查詢特定類別下的任務(多個)
+    /// 獲取父任務下的子任務(多個)
     /// </summary>
-    public async Task<IEnumerable<MissionViewDto>> GetMission(Guid id)
+    public async Task<PagedResultDto<MissionViewDto>> GetSubMission(Guid id, int page, int pageSize, bool allData)
     {
-        // 1. 撈特定類別的任務(直接透過sql中的view抓)
-        var missionViews = await _repositoys.MissionView.GetListAsync(
-            mv => mv.MissionCategoryId == id);
+        var query = await _repositoys.MissionView.GetQueryableAsync();
+        query = query.Where(mv => mv.ParentMissionId == id);
+        var totalCount = await query.CountAsync();
+        var subMissions = query.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+        var dtos = ObjectMapper.Map<List<MissionView>, List<MissionViewDto>>(subMissions);
+        return new PagedResultDto<MissionViewDto>(totalCount, dtos);
+    }
+    
+    /// <summary>
+    /// 根據類別取得父任務
+    /// </summary>
+    public async Task<IEnumerable<MissionViewDto>> GetParentMissionByCategoryId(Guid categoryId)
+    {
+        // 根據類別取得父任務(parentId = null)
+        var missionViews = await _repositoys.MissionView.GetListAsync(mv =>
+            mv.ParentMissionId == null && mv.MissionCategoryId == categoryId);
         return ObjectMapper.Map<List<MissionView>, List<MissionViewDto>>(missionViews);
     }
 

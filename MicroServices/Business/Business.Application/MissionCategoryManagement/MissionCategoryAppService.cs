@@ -6,7 +6,6 @@ using Business.MissionCategoryManagement.Dto;
 using Business.Models;
 using Business.Permissions;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Volo.Abp;
@@ -20,7 +19,7 @@ namespace Business.MissionCategoryManagement;
 [RemoteService(false)]
 public class MissionCategoryAppService : ApplicationService, IMissionCategoryAppService
 {
-    private (
+    private readonly (
         IRepository<MissionCategory, Guid> MissionCategory,
         IRepository<MissionCategoryI18N, Guid> MissionCategoryI18N,
         IRepository<MissionCategoryView> MissionCategoryView
@@ -28,14 +27,16 @@ public class MissionCategoryAppService : ApplicationService, IMissionCategoryApp
 
     private readonly ILogger<MissionCategoryAppService> _logger;
 
-    public MissionCategoryAppService(IRepository<MissionCategory, Guid> MissionCategory,
-        IRepository<MissionCategoryI18N, Guid> MissionCategoryI18N,
-        IRepository<MissionCategoryView> MissionCategoryView,
+    public MissionCategoryAppService(IRepository<MissionCategory, Guid> missionCategory,
+        IRepository<MissionCategoryI18N, Guid> missionCategoryI18N,
+        IRepository<MissionCategoryView> missionCategoryView,
         ILogger<MissionCategoryAppService> logger)
     {
-        _repositorys = (MissionCategory, MissionCategoryI18N, MissionCategoryView);
+        _repositorys = (missionCategory, missionCategoryI18N, missionCategoryView);
         _logger = logger;
     }
+
+    #region CRUD方法
 
     /// <summary>
     /// 查看當前使用者所建立的任務類別
@@ -153,4 +154,6 @@ public class MissionCategoryAppService : ApplicationService, IMissionCategoryApp
             _logger.LogInformation("=========================刪除任務類別失敗====================" + e.StackTrace.ToString());
         }
     }
+
+    #endregion CRUD方法
 }

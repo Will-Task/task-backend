@@ -88,16 +88,6 @@ public class MissionController : AbpController
     }
 
     /// <summary>
-    /// 查詢特定類別下的任務(多個)
-    /// </summary>
-    [HttpGet]
-    [Route("category/{id}")]
-    public Task<IEnumerable<MissionViewDto>> GetMission(Guid id)
-    {
-        return _missionAppService.GetMission(id);
-    }
-
-    /// <summary>
     /// 任務提醒通知(寄email)
     /// </summary>
     [HttpGet]
@@ -112,9 +102,9 @@ public class MissionController : AbpController
     /// </summary>
     [HttpGet]
     [Route("set-remind")]
-    public async Task setRemindTime(Guid id, int hour)
+    public async Task SetRemindTime(Guid id, int hour)
     {
-        await _missionAppService.setRemindTime(id, hour);
+        await _missionAppService.SetRemindTime(id, hour);
     }
 
 
@@ -135,7 +125,7 @@ public class MissionController : AbpController
     /// <returns></returns>
     [HttpGet]
     [Route("sample")]
-    public async Task<IActionResult> DNSample(string fileName, int lang, Guid teamId)
+    public async Task<IActionResult> DNSample(string fileName, int lang, Guid? teamId)
     {
         var fileDto = await _missionAppService.DNSample(fileName, lang, teamId);
         return File(fileDto.FileContent, "application/octet-stream",

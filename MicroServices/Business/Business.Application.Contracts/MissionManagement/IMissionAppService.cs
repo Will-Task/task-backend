@@ -44,11 +44,6 @@ public interface IMissionAppService : IApplicationService
     Task<MissionViewDto> Get(Guid id);
 
     /// <summary>
-    /// 查詢特定類別下的任務(多個)
-    /// </summary>
-    Task<IEnumerable<MissionViewDto>> GetMission(Guid id);
-
-    /// <summary>
     /// 任務提醒通知
     /// </summary>
     Task MissionReminder();
