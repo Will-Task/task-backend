@@ -22,26 +22,22 @@ public interface IMissionAppService : IApplicationService
     /// 刪除任務(單 or 多筆)
     /// </summary>
     Task Delete(Guid id, int lang);
-
-    /// <summary>
-    /// 獲取父任務下的子任務(多個)
-    /// </summary>
-    Task<PagedResultDto<MissionViewDto>> GetSubMission(Guid id, int page, int pageSize, bool allData);
-
-    /// <summary>
-    /// 查詢所有父任務(多個)
-    /// </summary>
-    Task<PagedResultDto<MissionViewDto>> GetParentMission(int page, int pageSize, bool allData, Guid? teamId);
-
-    /// <summary>
-    /// 根據類別取得父任務
-    /// </summary>
-    Task<IEnumerable<MissionViewDto>> GetParentMissionByCategoryId(Guid categoryId);
-
+    
     /// <summary>
     /// 查詢特定任務(單個)
     /// </summary>
     Task<MissionViewDto> Get(Guid id);
+
+    /// <summary>
+    /// 查詢所有父任務(多個)
+    /// </summary>
+    Task<PagedResultDto<MissionViewDto>> GetAll(int page, int pageSize, bool allData, Guid? teamId, Guid? categoryId, Guid? parentId);
+    
+    /// <summary>
+    /// 查詢特定類別任務總攬
+    /// </summary>
+    /// <param name="id">任務子類別 Id</param>
+    Task<MissionOverviewDto> GetOverview(Guid id);
 
     /// <summary>
     /// 任務提醒通知

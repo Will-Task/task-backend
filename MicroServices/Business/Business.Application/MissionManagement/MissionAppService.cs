@@ -160,27 +160,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
             await _repositoys.Mission.DeleteAsync(id);
         }
     }
-
-    /// <summary>
-    /// 查詢所有父任務(多個)
-    /// </summary>
-    public async Task<PagedResultDto<MissionViewDto>> GetParentMission(int page, int pageSize, bool allData,
-        Guid? teamId)
-    {
-        // 1. 抓該當前使用者mission & 所有parentId為null的(直接透過sql中的view抓)
-        var currentUserId = CurrentUser.Id;
-        var query = await _repositoys.MissionView.GetQueryableAsync();
-        query = query.Where(mv => mv.ParentMissionId == null && mv.UserId == currentUserId && mv.TeamId == teamId);
-        var count = await query.CountAsync();
-        // 拿全部or分頁
-        var parents = allData
-            ? await query.ToListAsync()
-            : await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
-        var dtos = ObjectMapper.Map<List<MissionView>, List<MissionViewDto>>(parents);
-        dtos = allData ? dtos : dtos.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-        return new PagedResultDto<MissionViewDto>(count, dtos);
-    }
-
+    
     /// <summary>
     /// 查詢特定任務(單個)
     /// </summary>
@@ -192,31 +172,37 @@ public class MissionAppService : ApplicationService, IMissionAppService
         return ObjectMapper.Map<MissionView, MissionViewDto>(mission);
     }
 
-    #endregion CRUD方法
+    /// <summary>
+    /// 查詢所有父任務(多個)
+    /// </summary>
+    public async Task<PagedResultDto<MissionViewDto>> GetAll(int page, int pageSize, bool allData,
+        Guid? teamId, Guid? categoryId, Guid? parentId)
+    {
+        // 1. 抓該當前使用者所有mission
+        var currentUserId = CurrentUser.Id;
+        var query = await _repositoys.MissionView.GetQueryableAsync();
+        query = query.Where(mv => mv.ParentMissionId == parentId && mv.UserId == currentUserId && mv.TeamId == teamId)
+            .WhereIf(categoryId.HasValue, x => x.MissionCategoryId == categoryId);
+        var count = await query.CountAsync();
+        // 拿全部or分頁
+        var parents = allData
+            ? await query.ToListAsync()
+            : await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+        var dtos = ObjectMapper.Map<List<MissionView>, List<MissionViewDto>>(parents);
+        dtos = allData ? dtos : dtos.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+        return new PagedResultDto<MissionViewDto>(count, dtos);
+    }
 
     /// <summary>
-    /// 獲取父任務下的子任務(多個)
+    /// 查詢特定類別任務總攬
     /// </summary>
-    public async Task<PagedResultDto<MissionViewDto>> GetSubMission(Guid id, int page, int pageSize, bool allData)
+    /// <param name="id">任務子類別 Id</param>
+    public async Task<MissionOverviewDto> GetOverview(Guid id)
     {
-        var query = await _repositoys.MissionView.GetQueryableAsync();
-        query = query.Where(mv => mv.ParentMissionId == id);
-        var totalCount = await query.CountAsync();
-        var subMissions = query.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-        var dtos = ObjectMapper.Map<List<MissionView>, List<MissionViewDto>>(subMissions);
-        return new PagedResultDto<MissionViewDto>(totalCount, dtos);
+        throw new NotImplementedException();
     }
-    
-    /// <summary>
-    /// 根據類別取得父任務
-    /// </summary>
-    public async Task<IEnumerable<MissionViewDto>> GetParentMissionByCategoryId(Guid categoryId)
-    {
-        // 根據類別取得父任務(parentId = null)
-        var missionViews = await _repositoys.MissionView.GetListAsync(mv =>
-            mv.ParentMissionId == null && mv.MissionCategoryId == categoryId);
-        return ObjectMapper.Map<List<MissionView>, List<MissionViewDto>>(missionViews);
-    }
+
+    #endregion CRUD方法
 
     /// <summary>
     /// 任務提醒通知(寄email)
