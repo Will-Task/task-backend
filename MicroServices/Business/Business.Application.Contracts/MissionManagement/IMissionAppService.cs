@@ -36,8 +36,8 @@ public interface IMissionAppService : IApplicationService
     /// <summary>
     /// 查詢特定類別任務總攬
     /// </summary>
-    /// <param name="id">任務子類別 Id</param>
-    Task<MissionOverviewDto> GetOverview(Guid id);
+    /// <param name="categoryId">任務子類別 Id</param>
+    Task<List<MissionOverviewDto>> GetOverview(Guid categoryId, Guid? teamId);
 
     /// <summary>
     /// 任務提醒通知

@@ -46,7 +46,7 @@ public class MissionController : AbpController
             await _missionAppService.Delete(id, lang);
         }
     }
-    
+
     /// <summary>
     /// 查詢特定任務(單個)
     /// </summary>
@@ -67,16 +67,16 @@ public class MissionController : AbpController
     {
         return _missionAppService.GetAll(page, pageSize, allData, teamId, categoryId, parentId);
     }
-    
+
     /// <summary>
     /// 查詢特定類別任務總攬
     /// </summary>
-    /// <param name="id">任務子類別 Id</param>
+    /// <param name="categoryId">任務子類別 Id</param>
     [HttpGet]
-    [Route("overview/{id}")]
-    public Task<MissionOverviewDto> GetOverview(Guid id)
+    [Route("overview")]
+    public Task<List<MissionOverviewDto>> GetOverview(Guid categoryId, Guid? teamId)
     {
-        return _missionAppService.GetOverview(id);
+        return _missionAppService.GetOverview(categoryId, teamId);
     }
 
     /// <summary>

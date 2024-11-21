@@ -25,6 +25,7 @@ using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Data;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.ObjectMapping;
 using XCZ.Extensions;
 
 namespace Business.MissionManagement;
@@ -160,7 +161,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
             await _repositoys.Mission.DeleteAsync(id);
         }
     }
-    
+
     /// <summary>
     /// 查詢特定任務(單個)
     /// </summary>
@@ -196,10 +197,32 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// <summary>
     /// 查詢特定類別任務總攬
     /// </summary>
-    /// <param name="id">任務子類別 Id</param>
-    public async Task<MissionOverviewDto> GetOverview(Guid id)
+    /// <param name="categoryId">任務子類別 Id</param>
+    public async Task<List<MissionOverviewDto>> GetOverview(Guid categoryId, Guid? teamId)
     {
-        throw new NotImplementedException();
+        var currentUserId = CurrentUser.Id;
+        var dtos = new List<MissionOverviewDto>();
+        var queryMission = await _repositoys.MissionView.GetQueryableAsync();
+        queryMission = queryMission.Where(x => x.TeamId == teamId)
+            .WhereIf(!teamId.HasValue, x => x.UserId == currentUserId);
+        var parents = await queryMission.Where(x => x.ParentMissionId == null).ToListAsync();
+        var subMap = queryMission.Where(x => x.ParentMissionId != null).GroupBy(x => x.ParentMissionId)
+            .ToDictionary(x => x.Key);
+        
+        foreach (var parent in parents)
+        {
+            var dto = new MissionOverviewDto();
+            ObjectMapper.Map(parent, dto);
+            // 父任務是否有子任務檢查
+            if (subMap.ContainsKey(parent.MissionId))
+            {
+                var subs = subMap[parent.MissionId].ToList();
+                dto.SubMissions = ObjectMapper.Map<List<MissionView>, List<SubMissionOverviewDto>>(subs);
+            }
+            dtos.Add(dto);
+        }
+
+        return dtos;
     }
 
     #endregion CRUD方法

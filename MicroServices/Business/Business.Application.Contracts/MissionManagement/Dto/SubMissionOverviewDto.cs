@@ -4,8 +4,11 @@ using Volo.Abp.Application.Dtos;
 
 namespace Business.MissionManagement.Dto;
 
-public class SubMissionOverviewDto : EntityDto<Guid>
+public class SubMissionOverviewDto : EntityDto<Int64>
 {
+    
+    public Guid MissionId { get; set; }
+    
     /// <summary>
     /// 父任務資訊
     /// </summary>

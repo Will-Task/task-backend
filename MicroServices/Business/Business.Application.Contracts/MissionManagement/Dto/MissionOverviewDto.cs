@@ -5,8 +5,10 @@ using Volo.Abp.Application.Dtos;
 
 namespace Business.MissionManagement.Dto;
 
-public class MissionOverviewDto : EntityDto<Guid>
+public class MissionOverviewDto : EntityDto<Int64>
 {
+    public Guid MissionId { get; set; }
+    
     /// <summary>
     /// 父任務資訊
     /// </summary>
@@ -20,9 +22,9 @@ public class MissionOverviewDto : EntityDto<Guid>
     public DateTime MissionEndTime { get; set; }
     
     public DateTime? MissionFinishTime { get; set; }
-    
+
     /// <summary>
     /// 子任務資訊
     /// </summary>
-    public List<SubMissionOverviewDto> SubMissions { get; set; }
+    public List<SubMissionOverviewDto> SubMissions { get; set; } = new List<SubMissionOverviewDto>();
 }
