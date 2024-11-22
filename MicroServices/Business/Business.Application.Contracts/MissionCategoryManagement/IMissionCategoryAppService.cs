@@ -13,7 +13,7 @@ public interface IMissionCategoryAppService : IApplicationService
     /// <summary>
     /// 查看當前使用者所建立的任務類別
     /// </summary>
-    Task<PagedResultDto<MissionCategoryViewDto>> GetAll(Guid? teamId, int page, int pageSize, bool allData);
+    Task<PagedResultDto<MissionCategoryViewDto>> GetAll(string name, Guid? teamId, int page, int pageSize, bool allData);
 
     /// <summary>
     /// 查看特定任務類別
