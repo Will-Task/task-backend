@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Side Project\\TaskManagement(ABP)\\MicroServices\\Business\\Business.Batch.Trigger\\Business.Batch.Trigger.csproj": {}
+    "D:\\SidePorject\\TaskManagement\\task-backend\\MicroServices\\Business\\Business.Batch.Trigger\\Business.Batch.Trigger.csproj": {}
   },
   "projects": {
-    "D:\\Side Project\\TaskManagement(ABP)\\MicroServices\\Business\\Business.Batch.Trigger\\Business.Batch.Trigger.csproj": {
+    "D:\\SidePorject\\TaskManagement\\task-backend\\MicroServices\\Business\\Business.Batch.Trigger\\Business.Batch.Trigger.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Side Project\\TaskManagement(ABP)\\MicroServices\\Business\\Business.Batch.Trigger\\Business.Batch.Trigger.csproj",
+        "projectUniqueName": "D:\\SidePorject\\TaskManagement\\task-backend\\MicroServices\\Business\\Business.Batch.Trigger\\Business.Batch.Trigger.csproj",
         "projectName": "Business.Batch.Trigger",
-        "projectPath": "D:\\Side Project\\TaskManagement(ABP)\\MicroServices\\Business\\Business.Batch.Trigger\\Business.Batch.Trigger.csproj",
+        "projectPath": "D:\\SidePorject\\TaskManagement\\task-backend\\MicroServices\\Business\\Business.Batch.Trigger\\Business.Batch.Trigger.csproj",
         "packagesPath": "D:\\.NET\\nuget",
-        "outputPath": "D:\\Side Project\\TaskManagement(ABP)\\MicroServices\\Business\\Business.Batch.Trigger\\obj\\",
+        "outputPath": "D:\\SidePorject\\TaskManagement\\task-backend\\MicroServices\\Business\\Business.Batch.Trigger\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\USER\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -22,7 +22,6 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -35,7 +34,13 @@
           "warnAsError": [
             "NU1605"
           ]
-        }
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "all"
+        },
+        "SdkAnalysisLevel": "9.0.100"
       },
       "frameworks": {
         "net8.0": {
@@ -61,6 +66,24 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[8.0.8, 8.0.8]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Host.win-x64",
+              "version": "[8.0.8, 8.0.8]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[8.0.8, 8.0.8]"
+            },
+            {
+              "name": "Microsoft.WindowsDesktop.App.Ref",
+              "version": "[8.0.8, 8.0.8]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.AspNetCore.App": {
               "privateAssets": "none"
@@ -69,7 +92,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.304/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Users\\USER\\.dotnet\\sdk\\9.0.100-rc.1.24452.12/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
