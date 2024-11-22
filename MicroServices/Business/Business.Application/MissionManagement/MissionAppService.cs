@@ -182,7 +182,8 @@ public class MissionAppService : ApplicationService, IMissionAppService
         // 1. 抓該當前使用者所有mission
         var currentUserId = CurrentUser.Id;
         var query = await _repositoys.MissionView.GetQueryableAsync();
-        query = query.Where(mv => mv.ParentMissionId == parentId && mv.UserId == currentUserId && mv.TeamId == teamId)
+        query = query.Where(mv => mv.ParentMissionId == parentId && mv.TeamId == teamId)
+            .WhereIf(!teamId.HasValue, x => x.UserId == currentUserId)
             .WhereIf(categoryId.HasValue, x => x.MissionCategoryId == categoryId);
         var count = await query.CountAsync();
         // 拿全部or分頁
