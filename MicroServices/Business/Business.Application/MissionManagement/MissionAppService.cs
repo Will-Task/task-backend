@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Linq.Dynamic.Core;
 using System.Net;
 using System.Net.Mail;
 using System.Reflection;
@@ -25,8 +24,6 @@ using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Data;
 using Volo.Abp.Domain.Repositories;
-using Volo.Abp.ObjectMapping;
-using XCZ.Extensions;
 
 namespace Business.MissionManagement;
 
@@ -209,7 +206,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         var parents = await queryMission.Where(x => x.ParentMissionId == null).ToListAsync();
         var subMap = queryMission.Where(x => x.ParentMissionId != null).GroupBy(x => x.ParentMissionId)
             .ToDictionary(x => x.Key);
-        
+
         foreach (var parent in parents)
         {
             var dto = new MissionOverviewDto();
@@ -220,6 +217,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
                 var subs = subMap[parent.MissionId].ToList();
                 dto.SubMissions = ObjectMapper.Map<List<MissionView>, List<SubMissionOverviewDto>>(subs);
             }
+
             dtos.Add(dto);
         }
 
@@ -283,30 +281,32 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// <summary>
     /// 範本下載
     /// </summary>
-    public async Task<MyFileInfoDto> DNSample(string fileName, int lang, Guid? teamId)
+    public async Task<MyFileInfoDto> DNSample(Guid parentId, Guid? teamId, int lang)
     {
         var currentUserId = CurrentUser.Id;
         // 根據名稱取得範本
-        var myFileInfo = await _fileAppService.DNFile(fileName);
+        var myFileInfo = await _fileAppService.DNFile("匯入子任務.xlsx");
 
         using var memoryStream = new MemoryStream(myFileInfo.FileContent);
         using var workbook = new XLWorkbook(memoryStream);
         var worksheet = workbook.Worksheet(1);
         worksheet.Name = myFileInfo.FileName;
 
-        // 父類別任務名稱下拉選單設定
-        var parentMissions = await _repositoys.MissionView.GetQueryableAsync();
-        var parentNames = parentMissions
-            .Where(pn => pn.UserId == currentUserId && pn.ParentMissionId == null && pn.Lang == lang &&
-                         pn.TeamId == teamId)
-            .Select(p => p.MissionName).ToList();
-        SetExcelFormattion(ref worksheet, parentNames, 'A');
+        var parentMissionColumn = 'A';
+        var categoryColumn = 'C';
 
-        // 類別下拉選單設定
-        var categories = await _repositoys.MissionCategoryView.GetQueryableAsync();
-        var categoryNames = categories.Where(c => c.UserId == currentUserId && c.Lang == lang && c.TeamId == teamId)
-            .Select(mcn => mcn.MissionCategoryName).ToList();
-        SetExcelFormattion(ref worksheet, categoryNames, 'B');
+        // 父類別任務和類別名稱取得和設定
+        var queryMission = await _repositoys.MissionView.GetQueryableAsync();
+        var parentAndCategory = queryMission
+            .Where(x => x.TeamId == teamId && x.ParentMissionId == parentId && x.Lang == lang)
+            .WhereIf(!teamId.HasValue, x => x.UserId == currentUserId)
+            .Select(x => new { x.MissionName, x.MissionCategoryName }).FirstOrDefault();
+        for (int i = ExcelBeginLine; i < ExcelEndLine; i++)
+        {
+            worksheet.Cell($"{parentMissionColumn}{i}").Value = $"{parentAndCategory.MissionName}";
+            worksheet.Cell($"{categoryColumn}{i}").Value = $"{parentAndCategory.MissionCategoryName}";
+        }
+        // TODO 設定唯讀
 
         // 任務優先度下拉選單設定(1~5)
         var priority = new List<string> { "1", "2", "3", "4", "5" };
@@ -326,8 +326,8 @@ public class MissionAppService : ApplicationService, IMissionAppService
         }
 
         // 設置固定區塊為唯讀
-        var range = worksheet.Range($"A1:F{ExcelEndLine}");
-        range.Style.Protection.Locked = true;
+        // var range = worksheet.Range($"A1:F{ExcelEndLine}");
+        // range.Style.Protection.Locked = true;
 
         using var savingMemoryStream = new MemoryStream();
         workbook.SaveAs(savingMemoryStream);
@@ -341,6 +341,8 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// </summary>
     public async Task<IEnumerable<MissionImportDto>> ImportFileCheck(IFormFile file, int lang, Guid? teamId)
     {
+        // TODO 判斷是否為該父任務下載的範本
+        
         try
         {
             var currentUserId = CurrentUser.Id;
@@ -464,6 +466,8 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// </summary>
     public async Task<MyFileInfoDto> ExportFile(List<Guid> parentIds, int lang)
     {
+        // TODO 匯出父任務的所有子任務(包括父任務說明)
+        
         // 增加欄位，為了匯出資料
         var columns = new List<string>() { "任務名稱", "類別", "優先程度", "進度", "開始時間", "截止時間", "完成時間", "任務描述" };
         var extraImportKeys = new List<string>() { "MissionFinishTime", "MissionDescription" };
