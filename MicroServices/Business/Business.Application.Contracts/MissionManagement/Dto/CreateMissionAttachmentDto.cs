@@ -1,8 +1,7 @@
 ﻿using System;
-using Business.Enums;
 using Volo.Abp.Application.Dtos;
 
-namespace Business.Models;
+namespace Business.MissionManagement.Dto;
 
 public class CreateMissionAttachmentDto: EntityDto<Guid?>
 {
