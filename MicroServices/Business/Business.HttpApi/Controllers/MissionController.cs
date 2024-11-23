@@ -117,9 +117,9 @@ public class MissionController : AbpController
     /// <returns></returns>
     [HttpGet]
     [Route("sample")]
-    public async Task<IActionResult> DNSample(string fileName, int lang, Guid? teamId)
+    public async Task<IActionResult> DNSample(Guid parentId, Guid? teamId, int lang)
     {
-        var fileDto = await _missionAppService.DNSample(fileName, lang, teamId);
+        var fileDto = await _missionAppService.DNSample(parentId, lang, teamId);
         return File(fileDto.FileContent, "application/octet-stream",
             fileDto.FileName);
     }

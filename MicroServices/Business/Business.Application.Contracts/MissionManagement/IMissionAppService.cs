@@ -59,7 +59,7 @@ public interface IMissionAppService : IApplicationService
     /// <summary>
     /// 範本下載
     /// </summary>
-    Task<MyFileInfoDto> DNSample(string fileName, int lang, Guid? teamId);
+    Task<MyFileInfoDto> DNSample(Guid parentId, Guid? teamId, int lang);
 
     /// <summary>
     /// 資料匯入檢查
