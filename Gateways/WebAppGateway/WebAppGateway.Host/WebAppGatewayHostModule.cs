@@ -144,7 +144,8 @@ namespace WebAppGateway
                         .SetIsOriginAllowedToAllowWildcardSubdomains()
                         .AllowAnyHeader()
                         .AllowAnyMethod()
-                        .AllowCredentials();
+                        .AllowCredentials()
+                        .WithExposedHeaders("Content-Disposition");
                 });
             });
         }

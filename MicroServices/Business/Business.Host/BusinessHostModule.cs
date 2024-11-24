@@ -210,7 +210,8 @@ namespace Business
                         .SetIsOriginAllowedToAllowWildcardSubdomains()
                         .AllowAnyHeader()
                         .AllowAnyMethod()
-                        .AllowCredentials();
+                        .AllowCredentials()
+                        .WithExposedHeaders("Content-Disposition");
                 });
             });
         }

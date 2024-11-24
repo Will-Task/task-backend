@@ -8,7 +8,7 @@ namespace Business.MissionManagement.Dto;
 /// <summary>
 /// 只匯入子任務
 /// </summary>
-public class MissionImportDto : EntityDto<Guid?>
+public class MissionImportDto : EntityDto<Int64?>
 {
     public Guid? UserId { get; set; }
     

@@ -465,7 +465,6 @@ public class MissionAppService : ApplicationService, IMissionAppService
         // 將讀出資料進行匯入
         foreach (var dto in dtos)
         {
-            dto.Id = GuidGenerator.Create();
             var mission = ObjectMapper.Map<MissionImportDto, Mission>(dto);
             mission.Email = CurrentUser.Email;
             mission.MissionI18Ns = new List<MissionI18N>();
@@ -479,7 +478,6 @@ public class MissionAppService : ApplicationService, IMissionAppService
             mission.MissionI18Ns.Add(ObjectMapper.Map<MissionI18NDto, MissionI18N>(i18NDto));
             missions.Add(mission);
         }
-
         await _repositoys.Mission.InsertManyAsync(missions, autoSave: true);
     }
 
