@@ -300,9 +300,9 @@ public class MissionAppService : ApplicationService, IMissionAppService
 
         // 父類別資訊取得
         var queryMission = await _repositoys.MissionView.GetQueryableAsync();
-        var parentMission = queryMission
-            .Where(x => x.ParentMissionId == parentId && x.Lang == lang)
-            .FirstOrDefault();
+        var parentMission = await queryMission
+            .Where(x => x.MissionId == parentId && x.Lang == lang)
+            .FirstAsync();
         var parentMissionDto = ObjectMapper.Map<MissionView, MissionImportDto>(parentMission);
         var properties = typeof(MissionImportDto).GetProperties();
         
@@ -361,6 +361,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         using var savingMemoryStream = new MemoryStream();
         workbook.SaveAs(savingMemoryStream);
         myFileInfo.FileContent = savingMemoryStream.ToArray();
+        myFileInfo.FileName = $"{parentMission.MissionName}的下載範本.xlsx";
         return myFileInfo;
     }
 
@@ -527,7 +528,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
 
         using var savingMemoryStream = new MemoryStream();
         workBook.SaveAs(savingMemoryStream);
-        return new MyFileInfoDto { FileContent = savingMemoryStream.ToArray(), FileName = parent.MissionName };
+        return new MyFileInfoDto { FileContent = savingMemoryStream.ToArray(), FileName = $"{parent.MissionName}的匯出檔案.xlsx" };
     }
 
     /// <summary>
