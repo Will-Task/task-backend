@@ -5,7 +5,7 @@ using Volo.Abp.Application.Dtos;
 
 namespace Business.MissionManagement.Dto;
 
-public class MissionExportDto : EntityDto<Guid?>
+public class MissionExportDto
 {
     //任務名稱
     [Required]
@@ -14,12 +14,8 @@ public class MissionExportDto : EntityDto<Guid?>
     [Required]
     public string MissionCategoryName { get; set; }
     
-    // 任務重要程度
     [Required]
-    public int MissionPriority { get; set; }
-
-    [Required]
-    public MissionState MissionState { get; set; } 
+    public string MissionDescription { get; set; }
     
     [Required]
     public DateTime MissionStartTime { get; set; }
@@ -27,14 +23,14 @@ public class MissionExportDto : EntityDto<Guid?>
     [Required]
     public DateTime MissionEndTime { get; set; }
     
-    [Required]
-    public string? SubMissionName { get; set; }
+    public DateTime? MissionFinishTime { get; set; }
     
+    public int? MissionBeforeEnd { get; set; }
+    
+    // 任務重要程度
     [Required]
-    public string? SubMissionDescription { get; set; }
- 
-    /// <summary>
-    /// 所屬哪個Team的任務
-    /// </summary>
-    public Guid? TeamId { get; set; }
+    public int MissionPriority { get; set; }
+
+    [Required]
+    public MissionState MissionState { get; set; } 
 }

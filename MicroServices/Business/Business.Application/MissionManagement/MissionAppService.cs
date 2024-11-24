@@ -14,6 +14,7 @@ using Business.MissionManagement.Dto;
 using Business.Models;
 using Business.Permissions;
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -43,17 +44,16 @@ public class MissionAppService : ApplicationService, IMissionAppService
     private readonly IConfiguration _Configuration;
     private readonly ILogger<MissionAppService> _logger;
     private readonly IDataFilter _dataFilter;
-    private readonly int ExcelBeginLine = 4;
-
-    private readonly int ExcelEndLine = 13;
+    private readonly int ExcelBeginLine = 5;
+    private readonly int ExcelEndLine = 14;
 
     // 設定定時任務最大數量
     private readonly int maxScheduleCount = 10;
 
-    // 根據MissionImportDto除去匯入檢查不需要的欄位
+    // 根據MissionImportDto除去匯入不需要的欄位
     private readonly List<string> ImportNotIncluded = new List<string>
     {
-        "TeamId", "UserId", "ParentMissionId", "Lang", "Id"
+        "Id", "MissionFinishTime", "UserId", "TeamId", "ParentMissionId", "MissionCategoryId", "Lang"
     };
 
     public MissionAppService(IRepository<Mission, Guid> Mission,
@@ -281,94 +281,117 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// <summary>
     /// 範本下載
     /// </summary>
-    public async Task<MyFileInfoDto> DNSample(Guid parentId, Guid? teamId, int lang)
+    public async Task<MyFileInfoDto> DNSample(Guid parentId, int lang)
     {
-        var currentUserId = CurrentUser.Id;
-        // 根據名稱取得範本
         var myFileInfo = await _fileAppService.DNFile("匯入子任務.xlsx");
-
         using var memoryStream = new MemoryStream(myFileInfo.FileContent);
         using var workbook = new XLWorkbook(memoryStream);
         var worksheet = workbook.Worksheet(1);
         worksheet.Name = myFileInfo.FileName;
 
-        var parentMissionColumn = 'A';
+        var missionColumn = 'A';
         var categoryColumn = 'C';
+        var startTimeColumn = 'D';
+        var endTimeColumn = 'E';
+        var remindTimeColumn = 'F';
+        var priorityColumn = 'G';
+        var stateColumn = 'H';
+        var parentIdColumn = 'I';
 
-        // 父類別任務和類別名稱取得和設定
+        // 父類別資訊取得
         var queryMission = await _repositoys.MissionView.GetQueryableAsync();
-        var parentAndCategory = queryMission
-            .Where(x => x.TeamId == teamId && x.ParentMissionId == parentId && x.Lang == lang)
-            .WhereIf(!teamId.HasValue, x => x.UserId == currentUserId)
-            .Select(x => new { x.MissionName, x.MissionCategoryName }).FirstOrDefault();
-        for (int i = ExcelBeginLine; i < ExcelEndLine; i++)
+        var parentMission = queryMission
+            .Where(x => x.ParentMissionId == parentId && x.Lang == lang)
+            .FirstOrDefault();
+        var parentMissionDto = ObjectMapper.Map<MissionView, MissionImportDto>(parentMission);
+        var properties = typeof(MissionImportDto).GetProperties();
+        
+        // 父類別資訊設定
+        var nextChar = 'A';
+        foreach (var property in properties.Where(x => !ImportNotIncluded.Contains(x.Name)))
         {
-            worksheet.Cell($"{parentMissionColumn}{i}").Value = $"{parentAndCategory.MissionName}";
-            worksheet.Cell($"{categoryColumn}{i}").Value = $"{parentAndCategory.MissionCategoryName}";
+            worksheet.Cell($"{nextChar++}{ExcelBeginLine - 2}").Value = $"{property.GetValue(parentMissionDto)}";
         }
-        // TODO 設定唯讀
 
-        // 任務優先度下拉選單設定(1~5)
-        var priority = new List<string> { "1", "2", "3", "4", "5" };
-        SetExcelFormattion(ref worksheet, priority, 'J');
-
-        // TODO
-        // 任務狀態下拉選單設定
-
-        // TODO
-        // 任務提醒時間下拉選單設定
+        // 類別設定
+        var categoryRange = worksheet.Range($"{categoryColumn}{ExcelBeginLine}:{categoryColumn}{ExcelEndLine}");
+        foreach (var cell in categoryRange.Cells())
+        {
+            cell.Value = $"{parentMission.MissionCategoryName}";
+        }
 
         // 日期格式設定
-        var rangeDate = worksheet.Range($"E{ExcelBeginLine}:F{ExcelEndLine}");
+        var rangeDate = worksheet.Range($"{startTimeColumn}{ExcelBeginLine}:{endTimeColumn}{ExcelEndLine}");
         foreach (var cell in rangeDate.Cells())
         {
             cell.Style.NumberFormat.Format = "yyyy/m/d h:mm:ss";
         }
 
+        // TODO
+        // 任務提醒時間下拉選單設定
+        var remindTime = new List<string> { "", "24", "16", "6", "3", "1" };
+        SetExcelFormattion(ref worksheet, remindTime, remindTimeColumn);
+
+        // 任務優先度下拉選單設定(1~5)
+        var priority = new List<string> { "1", "2", "3", "4", "5" };
+        SetExcelFormattion(ref worksheet, priority, priorityColumn);
+
+        // 任務狀態下拉選單設定
+        var state = new List<string> { "TODO", "IN_PROCESS", "COMPLETED" };
+        SetExcelFormattion(ref worksheet, state, stateColumn);
+
         // 設置固定區塊為唯讀
-        // var range = worksheet.Range($"A1:F{ExcelEndLine}");
-        // range.Style.Protection.Locked = true;
+        // 全鎖
+        worksheet.Protect();
+        // 指定區塊解鎖
+        worksheet.Range($"{missionColumn}{ExcelBeginLine}:B{ExcelEndLine}").Style.Protection
+            .SetLocked(false);
+        worksheet.Range($"{startTimeColumn}{ExcelBeginLine}:{stateColumn}{ExcelEndLine}").Style.Protection
+            .SetLocked(false);
+
+        // 寫入父任務missionId
+        var range = worksheet.Range($"{parentIdColumn}{ExcelBeginLine}:{parentIdColumn}{ExcelEndLine}");
+        foreach (var cell in range.Cells())
+        {
+            cell.Value = $"{parentId.ToString()}";
+        }
+
+        worksheet.Column($"{parentIdColumn}").Hide();
 
         using var savingMemoryStream = new MemoryStream();
         workbook.SaveAs(savingMemoryStream);
         myFileInfo.FileContent = savingMemoryStream.ToArray();
-
         return myFileInfo;
     }
 
     /// <summary>
     /// 資料匯入檢查
     /// </summary>
-    public async Task<IEnumerable<MissionImportDto>> ImportFileCheck(IFormFile file, int lang, Guid? teamId)
+    public async Task<List<MissionImportDto>> ImportFileCheck(Guid parentId, Guid? teamId, int lang, IFormFile file)
     {
         // TODO 判斷是否為該父任務下載的範本
-        
+
         try
         {
             var currentUserId = CurrentUser.Id;
             var dtos = new List<MissionImportDto>();
-
             using var memoryStream = new MemoryStream();
             await file.CopyToAsync(memoryStream);
             using var workbook = new XLWorkbook(memoryStream);
             var worksheet = workbook.Worksheet(1);
-
-            // 取得所有當前用者、所在團隊 的所有 name mapping Id
-            var queryCategory = await _repositoys.MissionCategoryView.GetQueryableAsync();
-            var categoryMap = queryCategory
-                .Where(x => x.Lang == lang && x.UserId == currentUserId && x.TeamId == teamId)
-                .ToDictionary(x => x.MissionCategoryName, x => x.MissionCategoryId);
-
-            var queryMission = await _repositoys.MissionView.GetQueryableAsync();
-            var missionMap = queryMission
-                .Where(x => x.Lang == lang && x.UserId == currentUserId && x.TeamId == teamId)
-                .ToDictionary(x => x.MissionName, x => x.MissionId);
+            var missionColumn = 'A';
+            var parentIdColumn = 'I';
 
             // 從excel取出資料
             for (int i = ExcelBeginLine; i <= ExcelEndLine; i++)
             {
-                // 若種類沒被選擇，代表該row沒被填 -> 直接結束
-                if (worksheet.Cell($"B{i}").IsEmpty())
+                if (Guid.TryParse(worksheet.Cell($"{parentIdColumn}{i}").GetString(), out var pId) && pId != parentId)
+                {
+                    throw new BusinessException("範本不符合當前父任務");
+                }
+
+                // row沒被填 -> 直接結束
+                if (worksheet.Cell($"{missionColumn}{i}").IsEmpty())
                 {
                     break;
                 }
@@ -376,47 +399,44 @@ public class MissionAppService : ApplicationService, IMissionAppService
                 var dto = new MissionImportDto();
                 dto.UserId = currentUserId;
                 dto.TeamId = teamId;
+                dto.ParentMissionId = parentId;
                 dto.Lang = lang;
+                var queryMission = await _repositoys.Mission.GetQueryableAsync();
+                var categoryId = await queryMission.Where(x => x.Id == parentId)
+                    .Select(x => x.MissionCategoryId).FirstAsync();
+                dto.MissionCategoryId = categoryId;
 
                 var nextchar = 'A';
                 // 根據excelKey對物件賦值
-                foreach (var propertyInfo in dto.GetType().GetProperties()
+                var properties = dto.GetType().GetProperties();
+                foreach (var property in properties
                              .Where(x => !ImportNotIncluded.Contains(x.Name)))
                 {
-                    var value = $"{worksheet.Cell($"{nextchar}{i}").Value}";
-                    if (propertyInfo.PropertyType == typeof(Guid))
+                    var value = worksheet.Cell($"{nextchar}{i}").GetString();
+                    if (value.IsNullOrEmpty())
                     {
-                        propertyInfo.SetValue(dto, categoryMap[value]);
+                        nextchar++;
+                        continue;
                     }
-                    else if (propertyInfo.PropertyType == typeof(int) ||
-                             propertyInfo.PropertyType == typeof(MissionState))
-                    {
-                        propertyInfo.SetValue(dto, Convert.ToInt32(value));
-                    }
-                    else if (propertyInfo.PropertyType == typeof(DateTime))
-                    {
-                        if (value.IsNullOrEmpty())
-                        {
-                            continue;
-                        }
 
+                    if (property.PropertyType == typeof(int) ||
+                        property.PropertyType == typeof(MissionState) ||
+                        property.PropertyType == typeof(int?))
+                    {
+                        MissionState.TryParse<MissionState>(value, out var state);
+                        property.SetValue(dto, Convert.ToInt32(state));
+                    }
+                    else if (property.PropertyType == typeof(DateTime))
+                    {
                         string format = "yyyy/M/d tt h:mm:ss";
                         var culture = new CultureInfo("zh-TW");
                         DateTime.TryParseExact(value, format, culture,
                             DateTimeStyles.AllowWhiteSpaces, out DateTime dateTime);
-                        propertyInfo.SetValue(dto, dateTime);
+                        property.SetValue(dto, dateTime);
                     }
-                    else if (propertyInfo.PropertyType == typeof(string))
+                    else
                     {
-                        if (!value.IsNullOrEmpty())
-                        {
-                            propertyInfo.SetValue(dto, value);
-                        }
-
-                        if (propertyInfo.Name == "MissionName")
-                        {
-                            dto.ParentMissionId = missionMap[value];
-                        }
+                        property.SetValue(dto, value);
                     }
 
                     nextchar++;
@@ -441,102 +461,75 @@ public class MissionAppService : ApplicationService, IMissionAppService
     public async Task ImportFile(List<MissionImportDto> dtos)
     {
         var missions = new List<Mission>();
-        var currentUserId = CurrentUser.Id;
 
         // 將讀出資料進行匯入
         foreach (var dto in dtos)
         {
+            dto.Id = GuidGenerator.Create();
             var mission = ObjectMapper.Map<MissionImportDto, Mission>(dto);
-            mission.UserId = currentUserId;
             mission.Email = CurrentUser.Email;
             mission.MissionI18Ns = new List<MissionI18N>();
-            mission.MissionI18Ns.Add(new MissionI18N
+            var i18NDto = new MissionI18NDto
             {
-                MissionName = dto.SubMissionName,
-                MissionDescription = dto.SubMissionDescription,
+                Id = GuidGenerator.Create(),
+                MissionName = dto.MissionName,
+                MissionDescription = dto.MissionDescription,
                 Lang = dto.Lang
-            });
+            };
+            mission.MissionI18Ns.Add(ObjectMapper.Map<MissionI18NDto, MissionI18N>(i18NDto));
             missions.Add(mission);
-            await _repositoys.Mission.InsertAsync(mission, autoSave: true);
         }
+
+        await _repositoys.Mission.InsertManyAsync(missions, autoSave: true);
     }
 
     /// <summary>
     /// 資料匯出(子任務)
     /// </summary>
-    public async Task<MyFileInfoDto> ExportFile(List<Guid> parentIds, int lang)
+    public async Task<MyFileInfoDto> ExportFile(Guid parentId, int lang)
     {
-        // TODO 匯出父任務的所有子任務(包括父任務說明)
-        
-        // 增加欄位，為了匯出資料
-        var columns = new List<string>() { "任務名稱", "類別", "優先程度", "進度", "開始時間", "截止時間", "完成時間", "任務描述" };
-        var extraImportKeys = new List<string>() { "MissionFinishTime", "MissionDescription" };
-        extraImportKeys = ExcelKeys.Concat(extraImportKeys).ToList();
-
         // 取得欲寫入的範本檔案
         var fileInfoDto = await _fileAppService.DNFile("匯出子任務.xlsx");
         using var memoryStream = new MemoryStream(fileInfoDto.FileContent);
         using var workBook = new XLWorkbook(memoryStream);
 
-        // 開始的工作表
-        int startWorkSheet = 2;
-        int columnLine = 1;
+        // 取得父任務
+        var parent = await _repositoys.MissionView.FirstAsync(x =>
+            x.MissionId == parentId && x.Lang == lang);
+        var parentExportDto = ObjectMapper.Map<MissionView, MissionExportDto>(parent);
+        // 取得parentId的子任務
+        var subs = await _repositoys.MissionView.GetListAsync(x =>
+            x.ParentMissionId == parentId && x.Lang == lang);
+        var subExportDtos = ObjectMapper.Map<List<MissionView>, List<MissionExportDto>>(subs);
+        int start = 3;
+        var nextChar = 'A';
 
-        foreach (var parentId in parentIds)
+        var worksheet = workBook.Worksheet(1);
+        worksheet.Name = parent.MissionName;
+
+        var propertys = typeof(MissionExportDto).GetProperties();
+        foreach (var property in propertys)
         {
-            // 取得父任務
-            var parentMission = await _repositoys.MissionView.FirstAsync(mv =>
-                mv.MissionId == parentId && mv.Lang == lang);
-            // 取得parentId的子任務
-            var subMissions = await _repositoys.MissionView.GetListAsync(mv =>
-                mv.ParentMissionId == parentId && mv.Lang == lang);
-            int start = 2;
-            var nextChar = 'A';
+            worksheet.Cell($"{nextChar++}{start}").Value = $"{property.GetValue(parentExportDto)}";
+        }
 
-            IXLWorksheet worksheet;
-            int index = 0;
-            while (workBook.TryGetWorksheet(parentMission.MissionName, out var name))
+        start += 2;
+
+        // 資料寫入檔案
+        foreach (var dto in subExportDtos)
+        {
+            nextChar = 'A';
+            foreach (var property in propertys)
             {
-                index++;
+                worksheet.Cell($"{nextChar++}{start}").Value = $"{property.GetValue(dto)}";
             }
 
-            if (!workBook.TryGetWorksheet("工作表1", out worksheet))
-            {
-                // 指定workSheet名字為當前匯出的父任務(動態生成tab)
-                worksheet = workBook.AddWorksheet(
-                    index == 0 ? parentMission.MissionName : parentMission.MissionName + $"({index})",
-                    startWorkSheet++);
-            }
-            else
-            {
-                worksheet.Name = parentMission.MissionName;
-            }
-
-            // Column Name寫入
-            for (int i = 0; i < columns.Count; i++)
-            {
-                worksheet.Cell($"{nextChar++}{columnLine}").Value = columns[i];
-            }
-
-            // 資料寫入檔案
-            foreach (var subMission in subMissions)
-            {
-                nextChar = 'A';
-                for (int i = 0; i < extraImportKeys.Count; i++)
-                {
-                    // 子任務
-                    PropertyInfo propertyInfo = subMission.GetType().GetProperty(extraImportKeys[i]);
-                    worksheet.Cell($"{nextChar++}{start}").Value = $"{propertyInfo.GetValue(subMission)}";
-                }
-
-                start++;
-            }
+            start++;
         }
 
         using var savingMemoryStream = new MemoryStream();
         workBook.SaveAs(savingMemoryStream);
-
-        return new MyFileInfoDto { FileContent = savingMemoryStream.ToArray(), FileName = "111" };
+        return new MyFileInfoDto { FileContent = savingMemoryStream.ToArray(), FileName = parent.MissionName };
     }
 
     /// <summary>

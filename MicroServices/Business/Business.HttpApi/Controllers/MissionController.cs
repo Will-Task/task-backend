@@ -117,9 +117,9 @@ public class MissionController : AbpController
     /// <returns></returns>
     [HttpGet]
     [Route("sample")]
-    public async Task<IActionResult> DNSample(Guid parentId, Guid? teamId, int lang)
+    public async Task<IActionResult> DNSample(Guid parentId, int lang)
     {
-        var fileDto = await _missionAppService.DNSample(parentId, teamId, lang);
+        var fileDto = await _missionAppService.DNSample(parentId, lang);
         return File(fileDto.FileContent, "application/octet-stream",
             fileDto.FileName);
     }
@@ -129,9 +129,9 @@ public class MissionController : AbpController
     /// </summary>
     [HttpPost]
     [Route("import-file-check")]
-    public async Task<IEnumerable<MissionImportDto>> ImportFileCheck(IFormFile file, int lang, Guid? teamId)
+    public async Task<List<MissionImportDto>> ImportFileCheck(Guid parentId, Guid? teamId, int lang, IFormFile file)
     {
-        return await _missionAppService.ImportFileCheck(file, lang, teamId);
+        return await _missionAppService.ImportFileCheck(parentId, teamId, lang, file);
     }
 
     /// <summary>
@@ -149,9 +149,9 @@ public class MissionController : AbpController
     /// </summary>
     [HttpPost]
     [Route("export")]
-    public async Task<IActionResult> ExportFile([FromBody] List<Guid> parentIds, int lang)
+    public async Task<IActionResult> ExportFile(Guid parentId, int lang)
     {
-        var fileDto = await _missionAppService.ExportFile(parentIds, lang);
+        var fileDto = await _missionAppService.ExportFile(parentId, lang);
         return File(fileDto.FileContent, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             fileDto.FileName);
     }

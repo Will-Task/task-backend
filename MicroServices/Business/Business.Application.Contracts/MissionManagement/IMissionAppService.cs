@@ -22,7 +22,7 @@ public interface IMissionAppService : IApplicationService
     /// 刪除任務(單 or 多筆)
     /// </summary>
     Task Delete(Guid id, int lang);
-    
+
     /// <summary>
     /// 查詢特定任務(單個)
     /// </summary>
@@ -31,8 +31,9 @@ public interface IMissionAppService : IApplicationService
     /// <summary>
     /// 查詢所有父任務(多個)
     /// </summary>
-    Task<PagedResultDto<MissionViewDto>> GetAll(int page, int pageSize, bool allData, Guid? teamId, Guid? categoryId, Guid? parentId);
-    
+    Task<PagedResultDto<MissionViewDto>> GetAll(int page, int pageSize, bool allData, Guid? teamId, Guid? categoryId,
+        Guid? parentId);
+
     /// <summary>
     /// 查詢特定類別任務總攬
     /// </summary>
@@ -59,12 +60,12 @@ public interface IMissionAppService : IApplicationService
     /// <summary>
     /// 範本下載
     /// </summary>
-    Task<MyFileInfoDto> DNSample(Guid parentId, Guid? teamId, int lang);
+    Task<MyFileInfoDto> DNSample(Guid parentId, int lang);
 
     /// <summary>
     /// 資料匯入檢查
     /// </summary>
-    Task<IEnumerable<MissionImportDto>> ImportFileCheck(IFormFile file, int lang, Guid? teamId);
+    Task<List<MissionImportDto>> ImportFileCheck(Guid parentId, Guid? teamId, int lang, IFormFile file);
 
     /// <summary>
     /// 資料匯入
@@ -74,7 +75,7 @@ public interface IMissionAppService : IApplicationService
     /// <summary>
     /// 資料匯出(子任務)
     /// </summary>
-    Task<MyFileInfoDto> ExportFile(List<Guid> parentIds, int lang);
+    Task<MyFileInfoDto> ExportFile(Guid parentId, int lang);
 
     /// <summary>
     /// 任務即將到期(24小時)通知

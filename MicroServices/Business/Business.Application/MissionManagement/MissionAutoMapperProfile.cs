@@ -17,10 +17,12 @@ public class MissionAutoMapperProfile: Profile
         CreateMap<MissionView, MissionViewDto>();
 
         CreateMap<MissionImportDto, Mission>();
+        CreateMap<MissionView, MissionImportDto>();
         CreateMap<MissionView, MissionExportDto>();
         CreateMap<MissionViewDto, MissionViewDto>();
         CreateMap<MissionView, MissionView>();
         CreateMap<MissionView, MissionOverviewDto>();
         CreateMap<MissionView, SubMissionOverviewDto>();
+        CreateMap<MissionI18NDto, MissionI18N>();
     }
 }
