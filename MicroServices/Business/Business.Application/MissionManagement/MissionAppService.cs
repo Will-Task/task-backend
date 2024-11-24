@@ -305,7 +305,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
             .FirstAsync();
         var parentMissionDto = ObjectMapper.Map<MissionView, MissionImportDto>(parentMission);
         var properties = typeof(MissionImportDto).GetProperties();
-        
+
         // 父類別資訊設定
         var nextChar = 'A';
         foreach (var property in properties.Where(x => !ImportNotIncluded.Contains(x.Name)))
@@ -370,90 +370,79 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// </summary>
     public async Task<List<MissionImportDto>> ImportFileCheck(Guid parentId, Guid? teamId, int lang, IFormFile file)
     {
-        // TODO 判斷是否為該父任務下載的範本
+        var currentUserId = CurrentUser.Id;
+        var dtos = new List<MissionImportDto>();
+        using var memoryStream = new MemoryStream();
+        await file.CopyToAsync(memoryStream);
+        using var workbook = new XLWorkbook(memoryStream);
+        var worksheet = workbook.Worksheet(1);
+        var missionColumn = 'A';
+        var parentIdColumn = 'I';
 
-        try
+        // 從excel取出資料
+        for (int i = ExcelBeginLine; i <= ExcelEndLine; i++)
         {
-            var currentUserId = CurrentUser.Id;
-            var dtos = new List<MissionImportDto>();
-            using var memoryStream = new MemoryStream();
-            await file.CopyToAsync(memoryStream);
-            using var workbook = new XLWorkbook(memoryStream);
-            var worksheet = workbook.Worksheet(1);
-            var missionColumn = 'A';
-            var parentIdColumn = 'I';
-
-            // 從excel取出資料
-            for (int i = ExcelBeginLine; i <= ExcelEndLine; i++)
+            if (Guid.TryParse(worksheet.Cell($"{parentIdColumn}{i}").GetString(), out var pId) && pId != parentId)
             {
-                if (Guid.TryParse(worksheet.Cell($"{parentIdColumn}{i}").GetString(), out var pId) && pId != parentId)
-                {
-                    throw new BusinessException("範本不符合當前父任務");
-                }
-
-                // row沒被填 -> 直接結束
-                if (worksheet.Cell($"{missionColumn}{i}").IsEmpty())
-                {
-                    break;
-                }
-
-                var dto = new MissionImportDto();
-                dto.UserId = currentUserId;
-                dto.TeamId = teamId;
-                dto.ParentMissionId = parentId;
-                dto.Lang = lang;
-                var queryMission = await _repositoys.Mission.GetQueryableAsync();
-                var categoryId = await queryMission.Where(x => x.Id == parentId)
-                    .Select(x => x.MissionCategoryId).FirstAsync();
-                dto.MissionCategoryId = categoryId;
-
-                var nextchar = 'A';
-                // 根據excelKey對物件賦值
-                var properties = dto.GetType().GetProperties();
-                foreach (var property in properties
-                             .Where(x => !ImportNotIncluded.Contains(x.Name)))
-                {
-                    var value = worksheet.Cell($"{nextchar}{i}").GetString();
-                    if (value.IsNullOrEmpty())
-                    {
-                        nextchar++;
-                        continue;
-                    }
-
-                    if (property.PropertyType == typeof(int) ||
-                        property.PropertyType == typeof(MissionState) ||
-                        property.PropertyType == typeof(int?))
-                    {
-                        MissionState.TryParse<MissionState>(value, out var state);
-                        property.SetValue(dto, Convert.ToInt32(state));
-                    }
-                    else if (property.PropertyType == typeof(DateTime))
-                    {
-                        string format = "yyyy/M/d tt h:mm:ss";
-                        var culture = new CultureInfo("zh-TW");
-                        DateTime.TryParseExact(value, format, culture,
-                            DateTimeStyles.AllowWhiteSpaces, out DateTime dateTime);
-                        property.SetValue(dto, dateTime);
-                    }
-                    else
-                    {
-                        property.SetValue(dto, value);
-                    }
-
-                    nextchar++;
-                }
-
-                dtos.Add(dto);
+                throw new BusinessException("範本不符合當前父任務");
             }
 
-            return dtos;
+            // row沒被填 -> 直接結束
+            if (worksheet.Cell($"{missionColumn}{i}").IsEmpty())
+            {
+                break;
+            }
+
+            var dto = new MissionImportDto();
+            dto.UserId = currentUserId;
+            dto.TeamId = teamId;
+            dto.ParentMissionId = parentId;
+            dto.Lang = lang;
+            var queryMission = await _repositoys.Mission.GetQueryableAsync();
+            var categoryId = await queryMission.Where(x => x.Id == parentId)
+                .Select(x => x.MissionCategoryId).FirstAsync();
+            dto.MissionCategoryId = categoryId;
+
+            var nextchar = 'A';
+            // 根據excelKey對物件賦值
+            var properties = dto.GetType().GetProperties();
+            foreach (var property in properties
+                         .Where(x => !ImportNotIncluded.Contains(x.Name)))
+            {
+                var value = worksheet.Cell($"{nextchar}{i}").GetString();
+                if (value.IsNullOrEmpty())
+                {
+                    nextchar++;
+                    continue;
+                }
+
+                if (property.PropertyType == typeof(int) ||
+                    property.PropertyType == typeof(MissionState) ||
+                    property.PropertyType == typeof(int?))
+                {
+                    MissionState.TryParse<MissionState>(value, out var state);
+                    property.SetValue(dto, Convert.ToInt32(state));
+                }
+                else if (property.PropertyType == typeof(DateTime))
+                {
+                    string format = "yyyy/M/d tt h:mm:ss";
+                    var culture = new CultureInfo("zh-TW");
+                    DateTime.TryParseExact(value, format, culture,
+                        DateTimeStyles.AllowWhiteSpaces, out DateTime dateTime);
+                    property.SetValue(dto, dateTime);
+                }
+                else
+                {
+                    property.SetValue(dto, value);
+                }
+
+                nextchar++;
+            }
+
+            dtos.Add(dto);
         }
-        catch (Exception e)
-        {
-            _logger.LogInformation(
-                $"===========================mission import error {e.StackTrace.ToString()}================================================");
-            throw new BusinessException("500", "import file check Wrong !!!!!!");
-        }
+
+        return dtos;
     }
 
     /// <summary>
@@ -479,6 +468,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
             mission.MissionI18Ns.Add(ObjectMapper.Map<MissionI18NDto, MissionI18N>(i18NDto));
             missions.Add(mission);
         }
+
         await _repositoys.Mission.InsertManyAsync(missions, autoSave: true);
     }
 
@@ -528,7 +518,8 @@ public class MissionAppService : ApplicationService, IMissionAppService
 
         using var savingMemoryStream = new MemoryStream();
         workBook.SaveAs(savingMemoryStream);
-        return new MyFileInfoDto { FileContent = savingMemoryStream.ToArray(), FileName = $"{parent.MissionName}的匯出檔案.xlsx" };
+        return new MyFileInfoDto
+            { FileContent = savingMemoryStream.ToArray(), FileName = $"{parent.MissionName}的匯出檔案.xlsx" };
     }
 
     /// <summary>
