@@ -42,7 +42,7 @@ public class MissionView: Entity<Int64>
     
     public Guid? ParentMissionId { get; set; }
     
-    public Guid? MissionCategoryId { get; set; }
+    public Guid MissionCategoryId { get; set; }
     
     // 定時任務排成(0 -> 不會重複 1 -> weekly 2 -> daily 3-> monthly)
     public int? Schedule { get; set; }
