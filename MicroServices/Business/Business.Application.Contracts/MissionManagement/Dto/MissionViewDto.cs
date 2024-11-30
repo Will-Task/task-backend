@@ -40,7 +40,13 @@ public class MissionViewDto : EntityDto<Int64>
     
     public Guid? ParentMissionId { get; set; }
     
-    public Guid? MissionCategoryId { get; set; }
+    /// <summary>
+    /// 父類別 Id
+    /// </summary>
+    
+    public Guid? ParentCategoryId { get; set; }
+    
+    public Guid MissionCategoryId { get; set; }
     
     // 定時任務排成(0 -> 不會重複 1 -> weekly 2 -> daily 3-> monthly)
     public int? Schedule { get; set; }

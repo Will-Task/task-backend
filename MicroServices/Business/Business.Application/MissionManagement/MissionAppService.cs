@@ -36,6 +36,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         IRepository<Mission, Guid> Mission,
         IRepository<MissionI18N, Guid> MissionI18N,
         IRepository<MissionView> MissionView,
+        IRepository<MissionCategory, Guid> MissionCategory,
         IRepository<MissionCategoryI18N, Guid> MissionCategoryI18N,
         IRepository<MissionCategoryView> MissionCategoryView
         ) _repositoys;
@@ -59,6 +60,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
     public MissionAppService(IRepository<Mission, Guid> Mission,
         IRepository<MissionI18N, Guid> MissionI18N,
         IRepository<MissionView> MissionView,
+        IRepository<MissionCategory, Guid> MissionCategory,
         IRepository<MissionCategoryI18N, Guid> MissionCategoryI18N,
         IRepository<MissionCategoryView> MissionCategoryView,
         IFileAppService fileAppService,
@@ -66,7 +68,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         IDataFilter dataFilter,
         ILogger<MissionAppService> logger)
     {
-        _repositoys = (Mission, MissionI18N, MissionView, MissionCategoryI18N,
+        _repositoys = (Mission, MissionI18N, MissionView, MissionCategory, MissionCategoryI18N,
             MissionCategoryView);
         _fileAppService = fileAppService;
         _Configuration = Configuration;
@@ -167,7 +169,9 @@ public class MissionAppService : ApplicationService, IMissionAppService
         // 1. 撈特定類別的任務(直接透過sql中的view抓)
         var mission = await _repositoys.MissionView.GetAsync(
             mv => mv.MissionId == id);
-        return ObjectMapper.Map<MissionView, MissionViewDto>(mission);
+        var dto = ObjectMapper.Map<MissionView, MissionViewDto>(mission);
+        dto.ParentCategoryId = (await _repositoys.MissionCategory.GetAsync(mission.MissionCategoryId)).ParentId;
+        return dto;
     }
 
     /// <summary>
