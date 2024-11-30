@@ -26,10 +26,10 @@ public class MissionCategoryController : AbpController
     /// </summary>
     [HttpGet]
     [Route("all")]
-    public Task<PagedResultDto<MissionCategoryViewDto>> GetAll(string name, Guid? teamId, int page, int pageSize,
-        bool allData)
+    public Task<PagedResultDto<MissionCategoryViewDto>> GetAll(string name, Guid? teamId, Guid? parentId, int page,
+        int pageSize, bool allData)
     {
-        return _missionCategoryAppService.GetAll(name, teamId, page, pageSize, allData);
+        return _missionCategoryAppService.GetAll(name, teamId,parentId ,page, pageSize, allData);
     }
 
     /// <summary>

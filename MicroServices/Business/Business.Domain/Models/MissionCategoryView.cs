@@ -19,6 +19,12 @@ public class MissionCategoryView: Entity<Int64>
     /// </summary>
     public Guid? TeamId { get; set; }
     
+    /// <summary>
+    /// 父類別 Id
+    /// </summary>
+    
+    public Guid? ParentId { get; set; }
+    
     public int Lang { get; set; }
 
 }

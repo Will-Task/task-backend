@@ -201,7 +201,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         var currentUserId = CurrentUser.Id;
         var dtos = new List<MissionOverviewDto>();
         var queryMission = await _repositoys.MissionView.GetQueryableAsync();
-        queryMission = queryMission.Where(x => x.TeamId == teamId)
+        queryMission = queryMission.Where(x => x.TeamId == teamId && x.MissionCategoryId == categoryId)
             .WhereIf(!teamId.HasValue, x => x.UserId == currentUserId);
         var parents = await queryMission.Where(x => x.ParentMissionId == null).ToListAsync();
         var subMap = queryMission.Where(x => x.ParentMissionId != null).GroupBy(x => x.ParentMissionId)

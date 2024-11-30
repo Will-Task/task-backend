@@ -14,5 +14,11 @@ public class MissionCategoryDto : EntityDto<Guid>
     /// </summary>
     public Guid? TeamId { get; set; }
     
+    /// <summary>
+    /// 父類別 Id
+    /// </summary>
+    
+    public Guid? ParentId { get; set; }
+    
     public ICollection<MissionCategoryI18Dto> MissionCategoryI18Dtos { get; set; }
 }
