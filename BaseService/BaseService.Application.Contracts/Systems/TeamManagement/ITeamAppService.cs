@@ -48,7 +48,7 @@ public interface ITeamAppService : IApplicationService
     /// 1. 受邀人為當前使用者
     /// 2. 邀請人為當前使用者
     /// </summary>
-    Task<List<TeamInvitationViewDto>> GetInvitations(int? state , string name);
+    Task<List<TeamInvitationViewDto>> GetInvitations(Guid? teamId, int? state , string name);
     
     /// <summary>
     /// 取消團隊邀請請求

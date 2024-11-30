@@ -84,9 +84,9 @@ public class TeamController : BaseServiceController
     /// </summary>
     [HttpGet]
     [Route("invites")]
-    public async Task<List<TeamInvitationViewDto>> GetInvitations(int? state, string name)
+    public async Task<List<TeamInvitationViewDto>> GetInvitations(Guid? teamId, int? state, string name)
     {
-        return await _teamAppService.GetInvitations(state, name);
+        return await _teamAppService.GetInvitations(teamId, state, name);
     }
 
     /// <summary>
@@ -138,7 +138,7 @@ public class TeamController : BaseServiceController
     /// </summary>
     [HttpPost]
     [Route("export")]
-    public Task<IActionResult> Export(int? state, string name , string code)
+    public Task<IActionResult> Export(int? state, string name, string code)
     {
         _teamAppService.Export(state, name, code);
         return null;

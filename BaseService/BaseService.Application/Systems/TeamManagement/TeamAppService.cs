@@ -135,11 +135,11 @@ public class TeamAppService : ApplicationService, ITeamAppService
     /// 1. 受邀人為當前使用者
     /// 2. 邀請人為當前使用者
     /// </summary>
-    public async Task<List<TeamInvitationViewDto>> GetInvitations(int? state, string name)
+    public async Task<List<TeamInvitationViewDto>> GetInvitations(Guid? teamId, int? state, string name)
     {
         var currentUserId = CurrentUser.Id;
         var inviteQuery = await _repositorys.TeamInvitationView.GetQueryableAsync();
-        var invitations = await inviteQuery.Where(x => x.UserId == currentUserId || x.InvitedUserId == currentUserId)
+        var invitations = await inviteQuery.Where(x => (x.UserId == currentUserId || x.InvitedUserId == currentUserId) && x.TeamId == teamId)
             .WhereIf(state.HasValue, x => x.State == (Invitation)state)
             .WhereIf(!name.IsNullOrEmpty(),
                 x => x.TeamName.Contains(name) || x.UserName.Contains(name) || x.InvitedUserName.Contains(name))
