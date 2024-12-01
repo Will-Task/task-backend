@@ -41,7 +41,7 @@ public class TeamAppService : ApplicationService, ITeamAppService
     /// <summary>
     /// 獲取當前使用者所在的所有群組資訊
     /// </summary>
-    public async Task<List<TeamDto>> GetAll(string name)
+    public async Task<List<TeamDto>> GetAll(string name, int? year)
     {
         var userId = CurrentUser.Id;
         var teamMissionQuery = await _repositorys.TeamMission.GetQueryableAsync();
@@ -49,6 +49,7 @@ public class TeamAppService : ApplicationService, ITeamAppService
         var teamIds = await teamMissionQuery.Where(x => x.UserId == userId).Select(x => x.TeamId).ToListAsync();
         var teamQuery = await _repositorys.Team.GetQueryableAsync();
         var teams = await teamQuery.Where(x => teamIds.Contains(x.Id))
+            .WhereIf(year.HasValue, x => x.Year == year)
             .WhereIf(!name.IsNullOrEmpty(), x => x.Name.Contains(name)).ToListAsync();
         return ObjectMapper.Map<List<Team>, List<TeamDto>>(teams);
     }
@@ -82,8 +83,9 @@ public class TeamAppService : ApplicationService, ITeamAppService
         // For 新增
         else
         {
-            result = await _repositorys.Team.InsertAsync(ObjectMapper.Map<CreateOrUpdateTeamDto, Team>(input),
-                autoSave: true);
+            var team = ObjectMapper.Map<CreateOrUpdateTeamDto, Team>(input);
+            team.UserId = CurrentUser.Id.Value;
+            result = await _repositorys.Team.InsertAsync(team, autoSave: true);
             // 把當前使用者加入團隊
             await _repositorys.TeamMission.InsertAsync(new TeamMission
             {
@@ -139,7 +141,8 @@ public class TeamAppService : ApplicationService, ITeamAppService
     {
         var currentUserId = CurrentUser.Id;
         var inviteQuery = await _repositorys.TeamInvitationView.GetQueryableAsync();
-        var invitations = await inviteQuery.Where(x => (x.UserId == currentUserId || x.InvitedUserId == currentUserId) && x.TeamId == teamId)
+        var invitations = await inviteQuery.Where(x =>
+                (x.UserId == currentUserId || x.InvitedUserId == currentUserId) && x.TeamId == teamId)
             .WhereIf(state.HasValue, x => x.State == (Invitation)state)
             .WhereIf(!name.IsNullOrEmpty(),
                 x => x.TeamName.Contains(name) || x.UserName.Contains(name) || x.InvitedUserName.Contains(name))

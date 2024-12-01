@@ -9,11 +9,16 @@ namespace BaseService.BaseData;
 
 public class Team : AuditedAggregateRoot<Guid>, ISoftDelete
 {
-    [Required]
+    [Required] 
     public string Name { get; set; }
 
-    [Required]
+    [Required] 
     public string Description { get; set; }
+
+    [Required]
+    public int Year { get; set; }
+    
+    public Guid UserId { get; set; }
 
     public bool IsDeleted { get; set; }
 }

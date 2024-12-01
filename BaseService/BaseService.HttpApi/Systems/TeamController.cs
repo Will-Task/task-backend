@@ -25,9 +25,9 @@ public class TeamController : BaseServiceController
     /// </summary>
     [HttpGet]
     [Route("all")]
-    public async Task<List<TeamDto>> GetAll(string name)
+    public async Task<List<TeamDto>> GetAll(string name, int? year)
     {
-        return await _teamAppService.GetAll(name);
+        return await _teamAppService.GetAll(name, year);
     }
 
     /// <summary>

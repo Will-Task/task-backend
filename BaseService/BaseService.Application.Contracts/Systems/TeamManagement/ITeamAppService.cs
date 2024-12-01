@@ -12,7 +12,7 @@ public interface ITeamAppService : IApplicationService
     /// <summary>
     /// 獲取當前使用者所在的所有群組資訊
     /// </summary>
-    Task<List<TeamDto>> GetAll(string name);
+    Task<List<TeamDto>> GetAll(string name, int? year);
 
     /// <summary>
     /// 獲取某團隊成員資訊

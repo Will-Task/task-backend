@@ -11,6 +11,11 @@ public class CreateOrUpdateTeamDto : EntityDto<Guid?>
 
     [Required]
     public string Description { get; set; }
+    
+    [Required]
+    public int Year { get; set; }
+    
+    public Guid? UserId { get; set; }
 
     public bool IsDeleted { get; set; }
 }
