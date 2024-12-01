@@ -39,6 +39,11 @@ namespace Business.Permissions
             Dashboard.AddChild(BusinessPermissions.TaskDashboard.Delete, L("Delete"));
             Dashboard.AddChild(BusinessPermissions.TaskDashboard.Create, L("Create"));
             
+            var Report = Business.AddPermission(BusinessPermissions.TaskReport.Default, L("TaskReport"));
+            Dashboard.AddChild(BusinessPermissions.TaskReport.Update, L("Edit"));
+            Dashboard.AddChild(BusinessPermissions.TaskReport.Delete, L("Delete"));
+            Dashboard.AddChild(BusinessPermissions.TaskReport.Create, L("Create"));
+            
             var organization = Business.AddPermission(BusinessPermissions.TaskOrganization.Default, L("TaskOrganization"));
             organization.AddChild(BusinessPermissions.TaskOrganization.Update, L("Edit"));
             organization.AddChild(BusinessPermissions.TaskOrganization.Delete, L("Delete"));
