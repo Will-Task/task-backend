@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Business.MissionCategoryManagement.Dto;
 using Business.Models;
 using Business.ReportManagement;
 using Microsoft.AspNetCore.Mvc;
@@ -18,11 +20,24 @@ public class ReportController : AbpController
         _reportAppService = reportAppService;
     }
 
-    [Route("/finishRate")]
-    [HttpGet]
-    public async Task<IActionResult> GetFinishRateReport(Guid? teamId, string name, string code)
+    /// <summary>
+    /// 匯出任務完成度報告
+    /// </summary>
+    [Route("finishRate")]
+    [HttpPost]
+    public async Task<IActionResult> GetFinishRateReport([FromBody]List<Guid> ids ,Guid? teamId, string name, string code)
     {
-        var fileDto = await _reportAppService.GetFinishRateReport(teamId, name, code);
+        var fileDto = await _reportAppService.GetFinishRateReport(ids, teamId, name, code);
         return File(fileDto.FileContent, "application/octet-stream", fileDto.FileName);
+    }
+
+    /// <summary>
+    /// 獲取可匯出任務完成度報告的類別
+    /// </summary>
+    [Route("reportData")]
+    [HttpGet]
+    public async Task<List<MissionCategoryViewDto>> GetReportData(Guid? teamId, string code)
+    {
+        return await _reportAppService.GetReportData(teamId, code);
     }
 }

@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Business.FileManagement.Dto;
+using Business.MissionCategoryManagement.Dto;
 using Business.MissionManagement;
 using Business.Models;
 using Business.Permissions;
 using ClosedXML.Excel;
-using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.Application.Services;
@@ -21,7 +21,8 @@ public class ReportAppService : ApplicationService, IReportAppService
 {
     private readonly (
         IRepository<Language> Langugage,
-        IRepository<MissionOverAllView> MissionOverAllView
+        IRepository<MissionOverAllView> MissionOverAllView,
+        IRepository<MissionCategoryView> MissionCategoryView
         ) _repositorys;
 
     private readonly ILogger<MissionAppService> _logger;
@@ -29,13 +30,17 @@ public class ReportAppService : ApplicationService, IReportAppService
     public ReportAppService(
         IRepository<Language> Langugage,
         IRepository<MissionOverAllView> MissionOverAllView,
+        IRepository<MissionCategoryView> MissionCategoryView,
         ILogger<MissionAppService> logger)
     {
-        _repositorys = (Langugage, MissionOverAllView);
+        _repositorys = (Langugage, MissionOverAllView, MissionCategoryView);
         _logger = logger;
     }
 
-    public async Task<MyFileInfoDto> GetFinishRateReport(Guid? teamId, string name, string code)
+    /// <summary>
+    /// 匯出任務完成度報告
+    /// </summary>
+    public async Task<MyFileInfoDto> GetFinishRateReport(List<Guid> ids ,Guid? teamId, string name, string code)
     {
         var workbook = new XLWorkbook();
         var worksheet = workbook.AddWorksheet($"{name}的任務完成度報告");
@@ -46,7 +51,7 @@ public class ReportAppService : ApplicationService, IReportAppService
 
         // 獲取任務overAllView
         var missions = await _repositorys.MissionOverAllView
-            .GetListAsync(x => x.TeamId == teamId && x.Lang == lang);
+            .GetListAsync(x => x.TeamId == teamId && x.Lang == lang && ids.Contains(x.SubCategoryId));
 
         var startColumn = 1;
         var startRow = 1;
@@ -112,5 +117,20 @@ public class ReportAppService : ApplicationService, IReportAppService
         workbook.SaveAs(memoryStream);
 
         return new MyFileInfoDto { FileContent = memoryStream.ToArray(), FileName = $"{name}的任務完成度報告.xlsx" };
+    }
+
+    /// <summary>
+    /// 獲取可匯出任務完成度報告的類別
+    /// </summary>
+    public async Task<List<MissionCategoryViewDto>> GetReportData(Guid? teamId, string code)
+    {
+        var lang = 1;
+        var lauguage = await _repositorys.Langugage.GetAsync(x => x.Code == code);
+        lang = !lauguage.IsNullOrEmpty() ? lauguage.Id : lang;
+        // 取得父任務和子任務同筆的數據
+        var categories = await _repositorys.MissionCategoryView
+            .GetListAsync(x => x.TeamId == teamId && x.Lang == lang && x.ParentId != null);
+
+        return ObjectMapper.Map<List<MissionCategoryView>, List<MissionCategoryViewDto>>(categories);
     }
 }

@@ -26,4 +26,6 @@ public class MissionCategoryViewDto: EntityDto<Int64>
     /// </summary>
     
     public Guid? ParentId { get; set; }
+    
+    public string ParentName { get; set; }
 }

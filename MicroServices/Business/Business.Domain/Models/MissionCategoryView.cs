@@ -25,6 +25,8 @@ public class MissionCategoryView: Entity<Int64>
     
     public Guid? ParentId { get; set; }
     
+    public string ParentName { get; set; }
+    
     public int Lang { get; set; }
 
 }

@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Business.FileManagement.Dto;
+using Business.MissionCategoryManagement.Dto;
 using Business.Models;
 using Volo.Abp.Application.Services;
 
@@ -8,5 +10,13 @@ namespace Business.ReportManagement;
 
 public interface IReportAppService : IApplicationService
 {
-    Task<MyFileInfoDto> GetFinishRateReport(Guid? teamId, string name, string code);
+    /// <summary>
+    /// 匯出任務完成度報告
+    /// </summary>
+    Task<MyFileInfoDto> GetFinishRateReport(List<Guid> ids ,Guid? teamId, string name, string code);
+    
+    /// <summary>
+    /// 獲取可匯出任務完成度報告的類別
+    /// </summary>
+    Task<List<MissionCategoryViewDto>> GetReportData(Guid? teamId, string code);
 }
