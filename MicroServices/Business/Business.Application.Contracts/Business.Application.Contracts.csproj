@@ -43,8 +43,4 @@
     <ProjectReference Include="..\Business.Domain\Business.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="ReportManagement\Dto\" />
-  </ItemGroup>
-
 </Project>

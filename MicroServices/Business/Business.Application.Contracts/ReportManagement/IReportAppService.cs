@@ -8,5 +8,5 @@ namespace Business.ReportManagement;
 
 public interface IReportAppService : IApplicationService
 {
-    Task<MyFileInfoDto> GetFinishRateReport(Guid? teamId, string name);
+    Task<MyFileInfoDto> GetFinishRateReport(Guid? teamId, string name, string code);
 }

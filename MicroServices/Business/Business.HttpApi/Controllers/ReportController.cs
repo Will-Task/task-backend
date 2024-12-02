@@ -20,9 +20,9 @@ public class ReportController : AbpController
 
     [Route("/finishRate")]
     [HttpGet]
-    public async Task<IActionResult> GetFinishRateReport(Guid? teamId, string name)
+    public async Task<IActionResult> GetFinishRateReport(Guid? teamId, string name, string code)
     {
-        var fileDto = await _reportAppService.GetFinishRateReport(teamId, name);
+        var fileDto = await _reportAppService.GetFinishRateReport(teamId, name, code);
         return File(fileDto.FileContent, "application/octet-stream", fileDto.FileName);
     }
 }

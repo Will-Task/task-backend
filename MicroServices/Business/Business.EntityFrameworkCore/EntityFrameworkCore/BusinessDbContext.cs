@@ -10,17 +10,29 @@ namespace Business.EntityFrameworkCore
     public class BusinessDbContext : AbpDbContext<BusinessDbContext>
     {
         // 自定義model
+        public DbSet<Language> Language { get; set; }
+        
         public DbSet<Mission> Mission { get; set; }
+        
         public DbSet<MissionI18N> MissionI18N { get; set; }
+        
         public DbSet<MissionCategory> MissionCategory { get; set; }
+        
         public DbSet<MissionCategoryI18N> MissionCategoryI18N { get; set; }
+        
         public DbSet<MissionTag> MissionTag { get; set; }
+        
         public DbSet<MissionTagI18N> MissionTagI18N { get; set; }
+        
         public DbSet<MyFileInfo> MyFileInfo { get; set; }
-
-        public DbSet<MissionView> MissionView { get; set; }
-        public DbSet<MissionCategoryView> MissionCategoryView { get; set; }
+        
         public DbSet<MissionAttachment> MissionAttachment { get; set; }
+        
+        public DbSet<MissionView> MissionView { get; set; }
+        
+        public DbSet<MissionCategoryView> MissionCategoryView { get; set; }
+        
+        public DbSet<MissionOverAllView> MissionOverAllView { get; set; }
 
         //Code generation...
         public BusinessDbContext(DbContextOptions<BusinessDbContext> options)
