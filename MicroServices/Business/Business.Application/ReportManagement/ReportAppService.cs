@@ -46,7 +46,7 @@ public class ReportAppService : ApplicationService, IReportAppService
         var worksheet = workbook.AddWorksheet($"{name}的任務完成度報告");
 
         var lang = 1;
-        var language = await _repositorys.Langugage.GetAsync(x => x.Code == code);
+        var language = await _repositorys.Langugage.FindAsync(x => x.Code == code);
         lang = !lang.IsNullOrEmpty() ? language.Id : lang;
 
         // 獲取任務overAllView
@@ -125,7 +125,7 @@ public class ReportAppService : ApplicationService, IReportAppService
     public async Task<List<MissionCategoryViewDto>> GetReportData(Guid? teamId, string code)
     {
         var lang = 1;
-        var lauguage = await _repositorys.Langugage.GetAsync(x => x.Code == code);
+        var lauguage = await _repositorys.Langugage.FindAsync(x => x.Code == code);
         lang = !lauguage.IsNullOrEmpty() ? lauguage.Id : lang;
         // 取得父任務和子任務同筆的數據
         var categories = await _repositorys.MissionCategoryView
