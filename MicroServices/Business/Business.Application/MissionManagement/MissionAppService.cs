@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
-using System.Reflection;
 using System.Threading.Tasks;
 using Business.Enums;
 using Business.FileManagement;
@@ -14,7 +13,6 @@ using Business.MissionManagement.Dto;
 using Business.Models;
 using Business.Permissions;
 using ClosedXML.Excel;
-using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -90,7 +88,6 @@ public class MissionAppService : ApplicationService, IMissionAppService
         {
             newI18N.MissionId = input.Id.Value;
             var mission = await _repositoys.Mission.GetAsync(input.Id.Value);
-            await _repositoys.Mission.EnsureCollectionLoadedAsync(mission, m => m.MissionI18Ns);
             var missionI18Ns = mission.MissionI18Ns;
             var missionI18N = missionI18Ns.FirstOrDefault(mn => mn.MissionId == input.Id && mn.Lang == input.Lang);
 
@@ -116,7 +113,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
             // 不存在 => 增加現有任務的語系
             else
             {
-                missionI18Ns.Add(newI18N);
+                mission.AddMissionI18N(newI18N);
             }
 
             await _repositoys.Mission.UpdateAsync(mission);
@@ -129,8 +126,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
             newMission.UserId = CurrentUser.Id;
             newMission.Email = CurrentUser.Email;
             newMission.TeamId = input.TeamId;
-            newMission.MissionI18Ns = new List<MissionI18N>();
-            newMission.MissionI18Ns.Add(newI18N);
+            newMission.AddMissionI18N(newI18N);
 
             // 定時任務新增
             if (input.Schedule.HasValue)
@@ -170,7 +166,8 @@ public class MissionAppService : ApplicationService, IMissionAppService
         var mission = await _repositoys.MissionView.GetAsync(
             mv => mv.MissionId == id);
         var dto = ObjectMapper.Map<MissionView, MissionViewDto>(mission);
-        dto.ParentCategoryId = (await _repositoys.MissionCategory.GetAsync(mission.MissionCategoryId)).ParentId;
+        dto.ParentCategoryId =
+            (await _repositoys.MissionCategory.GetAsync(mission.MissionCategoryId, includeDetails: false)).ParentId;
         return dto;
     }
 

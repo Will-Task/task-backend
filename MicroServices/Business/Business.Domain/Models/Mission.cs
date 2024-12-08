@@ -72,6 +72,15 @@ public class Mission: AuditedAggregateRoot<Guid> , ISoftDelete,IIsActive
     /// 資料庫不須對應欄位，也可以在查詢時加仔關聯資訊
     /// </summary>
     public virtual List<MissionI18N> MissionI18Ns { get; set; }
+
+    public void AddMissionI18N(MissionI18N missionI18N)
+    {
+        if (MissionI18Ns == null)
+        {
+            MissionI18Ns = new List<MissionI18N>();
+        }
+        MissionI18Ns.Add(missionI18N);
+    }
     
     public virtual List<MissionTag> MissionTags { get; set; }
 }

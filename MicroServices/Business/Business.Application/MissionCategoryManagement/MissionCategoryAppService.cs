@@ -108,8 +108,6 @@ public class MissionCategoryAppService : ApplicationService, IMissionCategoryApp
                 newI18N.MissionCategoryId = input.Id.Value;
                 // 取出category和對應I18N(若有的話)
                 var category = await _repositorys.MissionCategory.GetAsync(input.Id.Value);
-                await _repositorys.MissionCategory.EnsureCollectionLoadedAsync(category, c
-                    => c.MissionCategoryI18Ns);
 
                 var categoryI18Ns = category.MissionCategoryI18Ns;
                 var categoryI18N = categoryI18Ns.FirstOrDefault(cn =>
@@ -124,7 +122,7 @@ public class MissionCategoryAppService : ApplicationService, IMissionCategoryApp
                 // 新增categoryI18N
                 else
                 {
-                    categoryI18Ns.Add(newI18N);
+                    category.AddCategoryI18N(newI18N);
                 }
 
                 await _repositorys.MissionCategory.UpdateAsync(category);
@@ -134,8 +132,7 @@ public class MissionCategoryAppService : ApplicationService, IMissionCategoryApp
             {
                 var newCategory = ObjectMapper.Map<CreateOrUpdateMissionCategoryDto, MissionCategory>(input);
                 newCategory.UserId = currentUserId;
-                newCategory.MissionCategoryI18Ns = new List<MissionCategoryI18N>();
-                newCategory.MissionCategoryI18Ns.Add(newI18N);
+                newCategory.AddCategoryI18N(newI18N);
 
                 await _repositorys.MissionCategory.InsertAsync(newCategory, autoSave: true);
             }

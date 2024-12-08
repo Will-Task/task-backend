@@ -21,6 +21,15 @@ public class MissionCategory: AuditedAggregateRoot<Guid>,ISoftDelete
     public Guid? ParentId { get; set; }
 
     public List<MissionCategoryI18N> MissionCategoryI18Ns { get; set; }
+
+    public void AddCategoryI18N(MissionCategoryI18N missionCategoryI18N)
+    {
+        if (MissionCategoryI18Ns == null)
+        {
+            MissionCategoryI18Ns = new List<MissionCategoryI18N>();
+        }
+        MissionCategoryI18Ns.Add(missionCategoryI18N);
+    }
     
     public bool IsDeleted { get; set; }
 

@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Business.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
 using Volo.Abp.Modularity;
@@ -31,6 +33,21 @@ namespace Business.EntityFrameworkCore
             context.Services.AddAbpDbContext<BusinessDbContext>(options =>
             {
                 options.AddDefaultRepositories(includeAllEntities: true);
+                
+                // 配置Eager Loading
+                options.Entity<Mission>(
+                    x =>
+                    {
+                        x.DefaultWithDetailsFunc = query => query.Include(m => m.MissionI18Ns);
+                    }
+                );
+                
+                options.Entity<MissionCategory>(
+                    x =>
+                    {
+                        x.DefaultWithDetailsFunc = query => query.Include(m => m.MissionCategoryI18Ns);
+                    }
+                );
             });
         }
     }
