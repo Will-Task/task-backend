@@ -12,6 +12,7 @@ using Business.FileManagement.Dto;
 using Business.MissionManagement.Dto;
 using Business.Models;
 using Business.Permissions;
+using Business.Specifications;
 using ClosedXML.Excel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -23,6 +24,7 @@ using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Data;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Specifications;
 
 namespace Business.MissionManagement;
 
@@ -147,10 +149,9 @@ public class MissionAppService : ApplicationService, IMissionAppService
     public async Task Delete(Guid id, int lang)
     {
         // 透過missionId和lang共同判斷要刪除的I18N
-        await _repositoys.MissionI18N.DeleteAsync(x => x.MissionId == id
-                                                       && x.Lang == lang, autoSave: true);
+        await _repositoys.MissionI18N.DeleteAsync(new MissionI18NSpecification(id, lang), autoSave: true);
         // 若該任務不存在任何語系則刪除任務本體
-        var count = await _repositoys.MissionI18N.CountAsync(x => x.MissionId == id);
+        var count = await _repositoys.MissionI18N.CountAsync(new MissionI18NSpecification(id));
         if (count == 0)
         {
             await _repositoys.Mission.DeleteAsync(id);
@@ -163,8 +164,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
     public async Task<MissionViewDto> Get(Guid id)
     {
         // 1. 撈特定類別的任務(直接透過sql中的view抓)
-        var mission = await _repositoys.MissionView.GetAsync(
-            mv => mv.MissionId == id);
+        var mission = await _repositoys.MissionView.GetAsync(new MissionSpecification(id));
         var dto = ObjectMapper.Map<MissionView, MissionViewDto>(mission);
         dto.ParentCategoryId =
             (await _repositoys.MissionCategory.GetAsync(mission.MissionCategoryId, includeDetails: false)).ParentId;
@@ -180,9 +180,12 @@ public class MissionAppService : ApplicationService, IMissionAppService
         // 1. 抓該當前使用者所有mission
         var currentUserId = CurrentUser.Id;
         var query = await _repositoys.MissionView.GetQueryableAsync();
-        query = query.Where(mv => mv.ParentMissionId == parentId && mv.TeamId == teamId)
-            .WhereIf(!teamId.HasValue, x => x.UserId == currentUserId)
-            .WhereIf(categoryId.HasValue, x => x.MissionCategoryId == categoryId);
+        // (當前使用者or所屬team) 且當前的任務類別且當前的parentId
+        query = query.Where((new TeamMissionSpecification(teamId)
+                .Or(new UserMissionSpecification(currentUserId)))
+            .And(new ParentMissionSpecification(parentId))
+            .And(new CategoryMissionSpecification(categoryId.HasValue ? categoryId : null)).ToExpression()
+        );
         var count = await query.CountAsync();
         // 拿全部or分頁
         var parents = allData
@@ -202,8 +205,11 @@ public class MissionAppService : ApplicationService, IMissionAppService
         var currentUserId = CurrentUser.Id;
         var dtos = new List<MissionOverviewDto>();
         var queryMission = await _repositoys.MissionView.GetQueryableAsync();
-        queryMission = queryMission.Where(x => x.TeamId == teamId && x.MissionCategoryId == categoryId)
-            .WhereIf(!teamId.HasValue, x => x.UserId == currentUserId);
+        // (當前使用者or所屬team) 且當前的任務類別
+        queryMission = queryMission.Where((new TeamMissionSpecification(teamId)
+                .Or(new UserMissionSpecification(currentUserId)))
+            .And(new CategoryMissionSpecification(categoryId)).ToExpression()
+        );
         var parents = await queryMission.Where(x => x.ParentMissionId == null).ToListAsync();
         var subMap = queryMission.Where(x => x.ParentMissionId != null).GroupBy(x => x.ParentMissionId)
             .ToDictionary(x => x.Key);
