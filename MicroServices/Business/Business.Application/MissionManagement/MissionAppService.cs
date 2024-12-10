@@ -288,13 +288,13 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// <summary>
     /// 範本下載
     /// </summary>
-    public async Task<MyFileInfoDto> DNSample(Guid parentId, int lang)
+    public async Task<BlobDto> DNSample(Guid parentId, int lang)
     {
-        var myFileInfo = await _fileAppService.DNFile("匯入子任務.xlsx");
-        using var memoryStream = new MemoryStream(myFileInfo.FileContent);
+        var blobDto = await _fileAppService.DNFile("匯入子任務.xlsx");
+        using var memoryStream = new MemoryStream(blobDto.Content);
         using var workbook = new XLWorkbook(memoryStream);
         var worksheet = workbook.Worksheet(1);
-        worksheet.Name = myFileInfo.FileName;
+        worksheet.Name = blobDto.Name;
 
         var missionColumn = 'A';
         var categoryColumn = 'C';
@@ -367,9 +367,9 @@ public class MissionAppService : ApplicationService, IMissionAppService
 
         using var savingMemoryStream = new MemoryStream();
         workbook.SaveAs(savingMemoryStream);
-        myFileInfo.FileContent = savingMemoryStream.ToArray();
-        myFileInfo.FileName = $"{parentMission.MissionName}的下載範本.xlsx";
-        return myFileInfo;
+        blobDto.Content = savingMemoryStream.ToArray();
+        blobDto.Name = $"{parentMission.MissionName}的下載範本.xlsx";
+        return blobDto;
     }
 
     /// <summary>
@@ -485,8 +485,8 @@ public class MissionAppService : ApplicationService, IMissionAppService
     public async Task<MyFileInfoDto> ExportFile(Guid parentId, int lang)
     {
         // 取得欲寫入的範本檔案
-        var fileInfoDto = await _fileAppService.DNFile("匯出子任務.xlsx");
-        using var memoryStream = new MemoryStream(fileInfoDto.FileContent);
+        var blobDto = await _fileAppService.DNFile("匯出子任務.xlsx");
+        using var memoryStream = new MemoryStream(blobDto.Content);
         using var workBook = new XLWorkbook(memoryStream);
 
         // 取得父任務
@@ -612,8 +612,8 @@ public class MissionAppService : ApplicationService, IMissionAppService
 
         // 過期 -> 期限內未完成 ， 輸出報告也需顯示
         // 拿到輸入的報告範本
-        var fileInfoDto = await _fileAppService.DNFile("每周輸出報告.xlsx");
-        using var memoryStream = new MemoryStream(fileInfoDto.FileContent);
+        var blobDto = await _fileAppService.DNFile("每周輸出報告.xlsx");
+        using var memoryStream = new MemoryStream(blobDto.Content);
         using var workBook = new XLWorkbook(memoryStream);
         var worksheet = workBook.Worksheet(1);
 

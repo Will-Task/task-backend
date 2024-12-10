@@ -10,20 +10,20 @@ namespace Business.Controllers;
 [Route("/api/file")]
 public class FileController : AbpController
 {
-    private readonly IFileAppService _fileAppService;
-
-    public FileController(IFileAppService fileAppService)
-    {
-        _fileAppService = fileAppService;
-    }
-
-    /// <summary>
-    /// 範文匯入
-    /// </summary>
-    [Route("upload")]
-    [HttpPost]
-    public Task upload(ImportMyFileDto importMyFileDto)
-    {
-        return _fileAppService.Upload(importMyFileDto);
-    }
+    // private readonly IFileAppService _fileAppService;
+    //
+    // public FileController(IFileAppService fileAppService)
+    // {
+    //     _fileAppService = fileAppService;
+    // }
+    //
+    // /// <summary>
+    // /// 範文匯入
+    // /// </summary>
+    // [Route("upload")]
+    // [HttpPost]
+    // public Task upload(ImportMyFileDto importMyFileDto)
+    // {
+    //     return _fileAppService.Upload(importMyFileDto);
+    // }
 }

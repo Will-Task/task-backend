@@ -119,9 +119,9 @@ public class MissionController : AbpController
     [Route("sample")]
     public async Task<IActionResult> DNSample(Guid parentId, int lang)
     {
-        var fileDto = await _missionAppService.DNSample(parentId, lang);
-        return File(fileDto.FileContent, "application/octet-stream",
-            fileDto.FileName);
+        var blobDto = await _missionAppService.DNSample(parentId, lang);
+        return File(blobDto.Content, "application/octet-stream",
+            blobDto.Name);
     }
 
     /// <summary>

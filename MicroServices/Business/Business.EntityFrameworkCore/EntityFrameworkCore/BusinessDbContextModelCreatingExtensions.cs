@@ -11,6 +11,7 @@ namespace Business.EntityFrameworkCore
         {
             Check.NotNull(builder, nameof(builder));
             //Code generation...
+            builder.Entity<FileInfo>(x => x.ToTable("file_info"));
         }
     }
 }

@@ -1,5 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Threading.Tasks;
 using Business.FileManagement.Dto;
+using Microsoft.AspNetCore.Http;
+using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 
 namespace Business.FileManagement;
@@ -7,12 +10,16 @@ namespace Business.FileManagement;
 public interface IFileAppService : IApplicationService
 {
     /// <summary>
-    /// 範文匯入
+    /// 下載檔案
     /// </summary>
-    Task Upload(ImportMyFileDto fileDto);
-
+    Task<BlobDto> DNFile(string fileName);
+    
     /// <summary>
-    /// 取得範本檔案
+    /// 檔案匯入
     /// </summary>
-    Task<MyFileInfoDto> DNFile(string fileName);
+    Task<FileInfoDto> Upload([Required] string name, [Required] IFormFile file);
+    
+    Task<PagedResultDto<FileInfoDto>> GetAll(GetFileInputDto input);
+
+    Task UploadPrivate([Required] string name, [Required] IFormFile file);
 }

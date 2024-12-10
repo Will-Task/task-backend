@@ -60,7 +60,7 @@ public interface IMissionAppService : IApplicationService
     /// <summary>
     /// 範本下載
     /// </summary>
-    Task<MyFileInfoDto> DNSample(Guid parentId, int lang);
+    Task<BlobDto> DNSample(Guid parentId, int lang);
 
     /// <summary>
     /// 資料匯入檢查

@@ -33,6 +33,8 @@ namespace Business.EntityFrameworkCore
         public DbSet<MissionCategoryView> MissionCategoryView { get; set; }
         
         public DbSet<MissionOverAllView> MissionOverAllView { get; set; }
+        
+        public DbSet<FileInfo> FileInfo { get; set; }
 
         //Code generation...
         public BusinessDbContext(DbContextOptions<BusinessDbContext> options)
