@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Business.MissionCategoryManagement.Dto;
 using Business.Models;
 using Business.Permissions;
+using Business.Specifications.CategoryI18N;
+using Business.Specifications.CategoryView;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -12,6 +14,7 @@ using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Specifications;
 
 namespace Business.MissionCategoryManagement;
 
@@ -43,7 +46,8 @@ public class MissionCategoryAppService : ApplicationService, IMissionCategoryApp
     /// <summary>
     /// 查看當前使用者所建立的任務類別
     /// </summary>
-    public async Task<PagedResultDto<MissionCategoryViewDto>> GetAll(string name, Guid? teamId, Guid? parentId, int page,
+    public async Task<PagedResultDto<MissionCategoryViewDto>> GetAll(string name, Guid? teamId, Guid? parentId,
+        int page,
         int pageSize, bool allData)
     {
         try
@@ -51,9 +55,11 @@ public class MissionCategoryAppService : ApplicationService, IMissionCategoryApp
             // 1. 取出當前使用者Id
             var currentUserId = CurrentUser.Id;
             var query = await _repositorys.MissionCategoryView.GetQueryableAsync();
-            query = query.Where(x => x.TeamId == teamId && x.ParentId == parentId)
-                .WhereIf(!teamId.HasValue, x => x.UserId == currentUserId)
+            query = query.Where((new TeamCategorySpecification(teamId)
+                        .Or(new UserCategorySpecification(currentUserId)))
+                    .And(new ParentCategorySpecification(parentId)).ToExpression())
                 .WhereIf(!name.IsNullOrEmpty(), x => x.MissionCategoryName.Contains(name));
+
             var count = await query.CountAsync();
             // 拿全部or分頁
             var categories = allData
@@ -80,7 +86,7 @@ public class MissionCategoryAppService : ApplicationService, IMissionCategoryApp
         try
         {
             var category =
-                await _repositorys.MissionCategoryView.GetAsync(x => x.MissionCategoryId == id &&　x.Lang == lang);
+                await _repositorys.MissionCategoryView.GetAsync(new CategorySpecification(id, lang));
             return ObjectMapper.Map<MissionCategoryView, MissionCategoryViewDto>(category);
         }
         catch (Exception e)
@@ -164,10 +170,10 @@ public class MissionCategoryAppService : ApplicationService, IMissionCategoryApp
 
             var query = await _repositorys.MissionCategoryI18N.GetQueryableAsync();
             // 1. 刪除任務類別I18N
-            await _repositorys.MissionCategoryI18N.DeleteAsync(x => x.MissionCategoryId == id && x.Lang == lang,
+            await _repositorys.MissionCategoryI18N.DeleteAsync(new CategoryI18NSpecification(id, lang),
                 autoSave: true);
 
-            query = query.Where(x => x.MissionCategoryId == id);
+            query = query.Where(new CategoryI18NSpecification(id));
             var count = await query.CountAsync();
 
             // 2. 沒有關聯I18N刪除
