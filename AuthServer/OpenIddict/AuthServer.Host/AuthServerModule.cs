@@ -25,7 +25,6 @@ using Volo.Abp.DistributedLocking;
 using Volo.Abp.Localization;
 using Volo.Abp.Modularity;
 using Volo.Abp.UI.Navigation.Urls;
-using Volo.Abp.VirtualFileSystem;
 using Volo.Abp.PermissionManagement.EntityFrameworkCore;
 using Volo.Abp.TenantManagement.EntityFrameworkCore;
 using Volo.Abp.Identity.EntityFrameworkCore;
@@ -40,8 +39,8 @@ namespace AuthServer;
 
 [DependsOn(
     typeof(AbpAutofacModule),
-    //typeof(AbpCachingStackExchangeRedisModule),
-    //typeof(AbpDistributedLockingModule),
+    typeof(AbpCachingStackExchangeRedisModule),
+    typeof(AbpDistributedLockingModule),
     typeof(AbpAccountWebOpenIddictModule),
     typeof(AbpAccountApplicationModule),
     typeof(AbpAccountHttpApiModule),
@@ -155,19 +154,19 @@ public class AuthServerModule : AbpModule
             options.KeyPrefix = "AuthServer:";
         });
 
-        //var dataProtectionBuilder = context.Services.AddDataProtection().SetApplicationName("AuthServer");
-        //if (!hostingEnvironment.IsDevelopment())
-        //{
-        //    var redis = ConnectionMultiplexer.Connect(configuration["Redis:Configuration"]);
-        //    dataProtectionBuilder.PersistKeysToStackExchangeRedis(redis, "AuthServer-Protection-Keys");
-        //}
+        var dataProtectionBuilder = context.Services.AddDataProtection().SetApplicationName("AuthServer");
+        if (!hostingEnvironment.IsDevelopment())
+        {
+            var redis = ConnectionMultiplexer.Connect(configuration["Redis:Configuration"]);
+            dataProtectionBuilder.PersistKeysToStackExchangeRedis(redis, "AuthServer-Protection-Keys");
+        }
         
-        //context.Services.AddSingleton<IDistributedLockProvider>(sp =>
-        //{
-        //    var connection = ConnectionMultiplexer
-        //        .Connect(configuration["Redis:Configuration"]);
-        //    return new RedisDistributedSynchronizationProvider(connection.GetDatabase());
-        //});
+        context.Services.AddSingleton<IDistributedLockProvider>(sp =>
+        {
+            var connection = ConnectionMultiplexer
+                .Connect(configuration["Redis:Configuration"]);
+            return new RedisDistributedSynchronizationProvider(connection.GetDatabase());
+        });
 
         context.Services.AddCors(options =>
         {

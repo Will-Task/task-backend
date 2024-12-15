@@ -20,6 +20,8 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Volo.Abp.Security.Claims;
 using System.Security.Claims;
+using Microsoft.AspNetCore.DataProtection;
+using StackExchange.Redis;
 using Volo.Abp.PermissionManagement;
 using Volo.Abp.FeatureManagement;
 
@@ -93,10 +95,10 @@ namespace BaseService
                 options.UseSqlServer();
             });
 
-            //context.Services.AddStackExchangeRedisCache(options =>
-            //{
-            //    options.Configuration = configuration["Redis:Configuration"];
-            //});
+            context.Services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = configuration["Redis:Configuration"];
+            });
 
             Configure<AbpAuditingOptions>(options =>
             {
@@ -123,9 +125,9 @@ namespace BaseService
                 });
             });
 
-            //var redis = ConnectionMultiplexer.Connect(configuration["Redis:Configuration"]);
-            //context.Services.AddDataProtection()
-            //    .PersistKeysToStackExchangeRedis(redis, "DataProtection-Keys");
+            var redis = ConnectionMultiplexer.Connect(configuration["Redis:Configuration"]);
+            context.Services.AddDataProtection()
+                .PersistKeysToStackExchangeRedis(redis, "DataProtection-Keys");
 
             Configure<AbpLocalizationOptions>(options =>
             {

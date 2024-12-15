@@ -36,7 +36,7 @@ namespace WebAppGateway
 
             ConfigureAuthentication(context, configuration);
             //ConfigureSql();
-            //ConfigureRedis(context, configuration, hostingEnvironment);
+            ConfigureRedis(context, configuration, hostingEnvironment);
             ConfigureCors(context, configuration);
             //ConfigureSwaggerServices(context);
             ConfigureLocalization();
