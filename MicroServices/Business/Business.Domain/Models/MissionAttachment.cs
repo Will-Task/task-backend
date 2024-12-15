@@ -9,6 +9,7 @@ public class MissionAttachment : AuditedAggregateRoot<Guid> , ISoftDelete
 {
     public Guid MissionId { get; set; }
  
+    // 該任務的第幾個子任務
     public int FileIndex { get; set; }
 
     public string ANote { get; set; }

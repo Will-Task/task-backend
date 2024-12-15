@@ -181,8 +181,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         var currentUserId = CurrentUser.Id;
         var query = await _repositoys.MissionView.GetQueryableAsync();
         // (當前使用者or所屬team) 且當前的任務類別且當前的parentId
-        query = query.Where((new TeamMissionSpecification(teamId)
-                .Or(new UserMissionSpecification(currentUserId)))
+        query = query.Where(new TeamOrUserMissionSpecification(teamId, currentUserId)
             .And(new ParentMissionSpecification(parentId))
             .And(new CategoryMissionSpecification(categoryId.HasValue ? categoryId : null)).ToExpression()
         );
@@ -206,8 +205,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         var dtos = new List<MissionOverviewDto>();
         var queryMission = await _repositoys.MissionView.GetQueryableAsync();
         // (當前使用者or所屬team) 且當前的任務類別
-        queryMission = queryMission.Where((new TeamMissionSpecification(teamId)
-                .Or(new UserMissionSpecification(currentUserId)))
+        queryMission = queryMission.Where(new TeamOrUserMissionSpecification(teamId, currentUserId)
             .And(new CategoryMissionSpecification(categoryId)).ToExpression()
         );
         var parents = await queryMission.Where(x => x.ParentMissionId == null).ToListAsync();
@@ -687,6 +685,8 @@ public class MissionAppService : ApplicationService, IMissionAppService
         missions.ForEach(m => m.IsActive = false);
     }
 
+    #region 附件上傳
+
     /// <summary>
     /// 上傳任務附件
     /// </summary>
@@ -708,19 +708,21 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// 取得某一任務所有附件
     /// </summary>
     /// <param name="id">任務 Id</param>
-    public async Task<List<MissionAttachmentDto>> GetAllFiles(Guid id)
+    public async Task<List<FileInfoDto>> GetAllFiles(Guid id)
     {
-        throw new NotImplementedException();
+        return await _fileAppService.GetAllFiles(id);
     }
 
     /// <summary>
     /// 更新附件的備註
     /// </summary>
     /// <param name="id">附件 Id</param>
-    public async Task UpdateAttachmentNote(Guid id)
+    public async Task UpdateAttachmentNote(Guid id, string note)
     {
-        throw new NotImplementedException();
+        _fileAppService.UpdateNote(id, note);
     }
+
+    #endregion 附件上傳
 
     /// <summary>
     /// 設定自己的定時任務

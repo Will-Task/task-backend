@@ -107,11 +107,11 @@ public interface IMissionAppService : IApplicationService
     /// 取得某一任務所有附件
     /// </summary>
     /// <param name="id">任務 Id</param>
-    Task<List<MissionAttachmentDto>> GetAllFiles(Guid id);
+    Task<List<FileInfoDto>> GetAllFiles(Guid id);
 
     /// <summary>
     /// 更新附件的備註
     /// </summary>
     /// <param name="id">附件 Id</param>
-    Task UpdateAttachmentNote(Guid id);
+    Task UpdateAttachmentNote(Guid id, string note);
 }

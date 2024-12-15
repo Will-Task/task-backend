@@ -27,4 +27,22 @@ public class FileManager: DomainService
             url,
             type));
     }
+    
+    public async Task<FileInfo> Create(Guid? userId, Guid? teamId, Guid missionId, string note, int fileIndex, string name, string realName, string suffix, string md5, string size, string path, string url, FileType type)
+    {
+        return await _repository.InsertAsync(new FileInfo(GuidGenerator.Create(),
+            userId,
+            teamId,
+            missionId,
+            note,
+            fileIndex,
+            name,
+            realName,
+            suffix,
+            md5,
+            size,
+            path,
+            url,
+            type));
+    }
 }

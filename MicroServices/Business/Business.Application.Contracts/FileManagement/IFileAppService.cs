@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using Business.FileManagement.Dto;
 using Microsoft.AspNetCore.Http;
@@ -13,11 +15,34 @@ public interface IFileAppService : IApplicationService
     /// 下載檔案
     /// </summary>
     Task<BlobDto> DNFile(string fileName);
+
+    /// <summary>
+    /// 獲取某任務下所有附件
+    /// </summary>
+    /// <param name="id"> 任務Id </param>
+    Task<List<FileInfoDto>> GetAllFiles(Guid id);
     
     /// <summary>
     /// 檔案匯入
     /// </summary>
     Task<FileInfoDto> Upload([Required] string name, [Required] IFormFile file);
+    
+    /// <summary>
+    /// 上傳附件
+    /// </summary>
+    Task<FileInfoDto> UploadAttachment(Guid? userId, Guid? teamId, Guid missionId, int fileIndex, string name, string Note, IFormFile file);
+
+    /// <summary>
+    /// 更新備註
+    /// </summary>
+    /// <param name="id"> 任務Id </param>
+    Task UpdateNote(Guid id, string note);
+    
+    /// <summary>
+    /// 更新備註
+    /// </summary>
+    /// <param name="id"> 附件Id </param>
+    Task DeleteAttachment(Guid id);
     
     Task<PagedResultDto<FileInfoDto>> GetAll(GetFileInputDto input);
 

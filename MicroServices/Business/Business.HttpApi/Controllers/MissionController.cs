@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Business.CommonManagement.Dto;
+using Business.FileManagement.Dto;
 using Business.MissionManagement;
 using Business.MissionManagement.Dto;
 using Business.Models;
@@ -213,7 +214,7 @@ public class MissionController : AbpController
     /// <param name="id">任務 Id</param>
     [HttpGet]
     [Route("file/all")]
-    public Task<List<MissionAttachmentDto>> GetAllFiles(Guid id)
+    public Task<List<FileInfoDto>> GetAllFiles(Guid id)
     {
         return _missionAppService.GetAllFiles(id);
     }
@@ -224,8 +225,8 @@ public class MissionController : AbpController
     /// <param name="id">附件 Id</param>
     [HttpPost]
     [Route("update-note")]
-    public Task UpdateAttachmentNote(Guid id, string aNote)
+    public Task UpdateAttachmentNote(Guid id, string note)
     {
-        return _missionAppService.UpdateAttachmentNote(id);
+        return _missionAppService.UpdateAttachmentNote(id, note);
     }
 }
