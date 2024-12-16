@@ -30,7 +30,7 @@ public interface IFileAppService : IApplicationService
     /// <summary>
     /// 上傳附件
     /// </summary>
-    Task<FileInfoDto> UploadAttachment(Guid? userId, Guid? teamId, Guid missionId, int fileIndex, string name, string Note, IFormFile file);
+    Task<FileInfoDto> UploadAttachment(Guid? teamId, Guid missionId, int fileIndex, string name, string Note, IFormFile file);
 
     /// <summary>
     /// 更新備註

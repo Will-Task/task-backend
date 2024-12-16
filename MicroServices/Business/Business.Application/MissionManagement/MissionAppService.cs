@@ -696,7 +696,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// </summary>
     public async Task<FileInfoDto> UploadFile(Guid? teamId, Guid missionId, string name, int fileIndex, string note, IFormFile file)
     {
-        return await _fileAppService.UploadAttachment(CurrentUser.Id, teamId, missionId, fileIndex, name, note, file);
+        return await _fileAppService.UploadAttachment(teamId, missionId, fileIndex, name, note, file);
     }
 
     /// <summary>

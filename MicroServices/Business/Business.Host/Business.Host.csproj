@@ -37,6 +37,7 @@
 
   <ItemGroup>
     <Folder Include="DataSeeder\" />
+    <Folder Include="wwwroot\attachment\" />
     <Folder Include="wwwroot\samples\" />
   </ItemGroup>
 

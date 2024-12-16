@@ -8,18 +8,14 @@ using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Linq.Dynamic.Core;
-using System.Net.Mail;
 using System.Threading.Tasks;
-using AutoMapper.Internal.Mappers;
 using Business.Models;
-using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using Microsoft.AspNetCore.Mvc;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 using FileInfo = Business.Models.FileInfo;
-using Castle.Core.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace Business.FileManagement;
@@ -45,19 +41,19 @@ public class FileAppService : ApplicationService, IFileAppService
     /// </summary>
     public async Task<FileInfoDto> Upload([Required] string name, [Required] IFormFile file)
     {
-        if (file == null || file.Length == 0) throw new BusinessException("无法上传空文件");
+        if (file == null || file.Length == 0) throw new BusinessException("無法上傳空文件");
 
         //限制100M
         if (file.Length > 104857600)
         {
-            throw new BusinessException("上传文件过大");
+            throw new BusinessException("上傳文件過大");
         }
 
         //文件格式
         var fileExtension = Path.GetExtension(file.FileName);
         if (!pictureFormatArray.Contains(fileExtension))
         {
-            throw new BusinessException("上传文件格式错误");
+            throw new BusinessException("上傳文件格式錯誤");
         }
 
         var size = "";
@@ -75,7 +71,7 @@ public class FileAppService : ApplicationService, IFileAppService
             Directory.CreateDirectory(uploadsFolder);
         }
 
-        var uniqueFileName = Guid.NewGuid().ToString() + fileExtension;
+        var uniqueFileName = name;
         string filePath = Path.Combine(uploadsFolder, uniqueFileName);
         using (var fileStream = new FileStream(filePath, FileMode.Create))
         {
@@ -83,31 +79,45 @@ public class FileAppService : ApplicationService, IFileAppService
             fileStream.Flush();
         }
 
-        //TODO：文件md5哈希校验
+        //TODO：文件md5哈希校驗
         var result = await _fileManager.Create(name, uniqueFileName, fileExtension, "", size, filePath,
-            "/files/" + uniqueFileName, FileType.IMAGE);
+            "/samples/" + uniqueFileName, FileType.IMAGE);
         return ObjectMapper.Map<FileInfo, FileInfoDto>(result);
     }
 
     /// <summary>
+    /// 取得範本檔案
+    /// </summary>
+    public async Task<BlobDto> DNFile(string fileName)
+    {
+        // 透過名稱撈檔案路徑
+        var filePath = Path.Combine(Environment.CurrentDirectory, "wwwroot", "templates", fileName);
+        if (!File.Exists(filePath)) throw new BusinessException("找不到文件");
+        var bytes = await File.ReadAllBytesAsync(filePath);
+        return new BlobDto { Name = fileName, Content = bytes };
+    }
+
+    #region 附件相關操作
+
+    /// <summary>
     /// 上傳附件
     /// </summary>
-    public async Task<FileInfoDto> UploadAttachment(Guid? userId, Guid? teamId, Guid missionId, int fileIndex, string name, string note,
+    public async Task<FileInfoDto> UploadAttachment(Guid? teamId, Guid missionId, int fileIndex, string name, string note,
         IFormFile file)
     {
-        if (file == null || file.Length == 0) throw new BusinessException("无法上传空文件");
+        if (file == null || file.Length == 0) throw new BusinessException("無法上傳空文件");
 
         //限制100M
         if (file.Length > 104857600)
         {
-            throw new BusinessException("上传文件过大");
+            throw new BusinessException("上傳文件過大");
         }
 
         //文件格式
         var fileExtension = Path.GetExtension(file.FileName);
         if (!pictureFormatArray.Contains(fileExtension))
         {
-            throw new BusinessException("上传文件格式错误");
+            throw new BusinessException("上傳文件格式錯誤");
         }
 
         var size = "";
@@ -133,23 +143,10 @@ public class FileAppService : ApplicationService, IFileAppService
             fileStream.Flush();
         }
 
-        //TODO：文件md5哈希校验
-        var result = await _fileManager.Create(userId, teamId, missionId, note,fileIndex, name, uniqueFileName, fileExtension, "", size, filePath,
+        //TODO：文件md5哈希校驗
+        var result = await _fileManager.Create(CurrentUser.Id, teamId, missionId, note, fileIndex, name, uniqueFileName, fileExtension, "", size, filePath,
             "/attachment/" + uniqueFileName, FileType.IMAGE);
         return ObjectMapper.Map<FileInfo, FileInfoDto>(result);
-    }
-
-    /// <summary>
-    /// 取得範本檔案
-    /// </summary>
-    public async Task<BlobDto> DNFile(string fileName)
-    {
-        // 透過名稱撈檔案路徑
-        var filePath = Path.Combine(Environment.CurrentDirectory, "wwwroot", "templates", fileName);
-        if (!File.Exists(filePath)) throw new BusinessException("找不到文件");
-        var bytes = await File.ReadAllBytesAsync(filePath);
-
-        return new BlobDto { Name = fileName, Content = bytes};
     }
 
     /// <summary>
@@ -159,7 +156,7 @@ public class FileAppService : ApplicationService, IFileAppService
     public async Task<List<FileInfoDto>> GetAllFiles(Guid id)
     {
         var attachments = await _repository.GetListAsync(x => x.MissionId == id);
-        return ObjectMapper.Map<List<FileInfo>,List<FileInfoDto>>(attachments);
+        return ObjectMapper.Map<List<FileInfo>, List<FileInfoDto>>(attachments);
     }
 
     /// <summary>
@@ -182,7 +179,7 @@ public class FileAppService : ApplicationService, IFileAppService
         // 刪除路徑中對應的照片
         var path = Environment.CurrentDirectory + "/wwwroot" + attachment.Url;
         _logger.LogError($"=============================== 照片路徑 {path}");
-        
+
         if (File.Exists(path))
         {
             File.Delete(path);
@@ -203,57 +200,5 @@ public class FileAppService : ApplicationService, IFileAppService
         return await _repository.CountAsync(x => x.MissionId == id);
     }
 
-    public async Task<PagedResultDto<FileInfoDto>> GetAll(GetFileInputDto input)
-    {
-        var query = (await _repository.GetQueryableAsync()).WhereIf(!string.IsNullOrWhiteSpace(input.Filter),
-            _ => _.Name.Contains(input.Filter));
-
-        var totalCount = await query.CountAsync();
-        var items = await query.OrderBy(input.Sorting ?? "Facility")
-            .Skip(input.SkipCount)
-            .Take(input.MaxResultCount)
-            .ToListAsync();
-
-        var dtos = ObjectMapper.Map<List<FileInfo>, List<FileInfoDto>>(items);
-        return new PagedResultDto<FileInfoDto>(totalCount, dtos);
-    }
-
-    public async Task UploadPrivate([Required] string name, [Required] IFormFile file)
-    {
-        if (file == null || file.Length == 0) throw new BusinessException("无法上传空文件");
-        if (file.Length > 104857600) throw new BusinessException("上传文件过大");
-        var fileExtension = Path.GetExtension(file.FileName);
-        if (!pictureFormatArray.Contains(fileExtension)) throw new BusinessException("上传文件格式错误");
-
-        var size = "";
-        if (file.Length < 1024)
-            size = file.Length.ToString() + "B";
-        else if (file.Length >= 1024 && file.Length < 1048576)
-            size = ((float)file.Length / 1024).ToString("F2") + "KB";
-        else if (file.Length >= 1048576 && file.Length < 104857600)
-            size = ((float)file.Length / 1024 / 1024).ToString("F2") + "MB";
-        else size = file.Length.ToString() + "B";
-
-        string uploadsFolder = Path.Combine(Environment.CurrentDirectory, "files");
-        if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
-
-        var uniqueFileName = Guid.NewGuid().ToString() + fileExtension;
-        string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-        using (var fileStream = new FileStream(filePath, FileMode.Create))
-        {
-            file.CopyTo(fileStream);
-            fileStream.Flush();
-        }
-
-        await _fileManager.Create(name, uniqueFileName, fileExtension, "", size, filePath, "/files/" + uniqueFileName,
-            FileType.IMAGE);
-    }
-
-    public dynamic Download([Required] string name)
-    {
-        var filePath = Path.Combine(Environment.CurrentDirectory, "files", name);
-        if (!File.Exists(filePath)) throw new BusinessException("找不到文件");
-        return new FileStreamResult(new FileStream(filePath, FileMode.Open), "application/octet-stream")
-            { FileDownloadName = name };
-    }
+    #endregion 附件相關操作
 }
