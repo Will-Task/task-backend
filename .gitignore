@@ -2,9 +2,9 @@
 # 此 .gitignore 文件已由 Microsoft(R) Visual Studio 自动创建。
 ################################################################################
 
-/.jpg
-/.jpeg
-/.png
+/MicroServices/Business/Business.Host/wwwroot/**/*.jpg
+/MicroServices/Business/Business.Host/wwwroot/**/*.jpeg
+/MicroServices/Business/Business.Host/wwwroot/**/*.png
 /.vs
 /AuthServer/AuthServer.Host/node_modules
 /AuthServer/AuthServer.Host/.vs/AuthServer.Host
