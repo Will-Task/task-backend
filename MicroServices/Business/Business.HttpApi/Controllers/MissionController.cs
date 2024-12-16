@@ -192,9 +192,9 @@ public class MissionController : AbpController
     /// </summary>
     [HttpPost]
     [Route("upload-file")]
-    public Task<MissionAttachmentDto> UploadFile([FromBody] CreateMissionAttachmentDto input, IFormFile file)
+    public Task<FileInfoDto> UploadFile(Guid? teamId, Guid missionId, string name, int fileIndex, string note, IFormFile file)
     {
-        return _missionAppService.UploadFile(input, file);
+        return _missionAppService.UploadFile(teamId, missionId, name, fileIndex, note, file);
     }
 
     /// <summary>
@@ -213,7 +213,7 @@ public class MissionController : AbpController
     /// </summary>
     /// <param name="id">任務 Id</param>
     [HttpGet]
-    [Route("file/all")]
+    [Route("{id}/files")]
     public Task<List<FileInfoDto>> GetAllFiles(Guid id)
     {
         return _missionAppService.GetAllFiles(id);

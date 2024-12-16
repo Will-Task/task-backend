@@ -95,7 +95,7 @@ public interface IMissionAppService : IApplicationService
     /// <summary>
     /// 上傳任務附件
     /// </summary>
-    Task<MissionAttachmentDto> UploadFile(CreateMissionAttachmentDto input, IFormFile file);
+    Task<FileInfoDto> UploadFile(Guid? teamId, Guid missionId, string name, int fileIndex, string note, IFormFile file);
 
     /// <summary>
     /// 刪除任務附件

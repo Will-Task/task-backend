@@ -19,6 +19,8 @@ using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 using FileInfo = Business.Models.FileInfo;
+using Castle.Core.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace Business.FileManagement;
 
@@ -26,14 +28,16 @@ public class FileAppService : ApplicationService, IFileAppService
 {
     private readonly IRepository<FileInfo, Guid> _repository;
     private readonly FileManager _fileManager;
+    private readonly ILogger<FileAppService> _logger;
 
     List<string> pictureFormatArray = new List<string>
         { ".png", ".jpg", ".jpeg", ".gif", ".PNG", ".JPG", ".JPEG", ".GIF" };
 
-    public FileAppService(IRepository<FileInfo, Guid> repository, FileManager fileManager)
+    public FileAppService(IRepository<FileInfo, Guid> repository, FileManager fileManager, ILogger<FileAppService> logger)
     {
         _repository = repository;
         _fileManager = fileManager;
+        _logger = logger;
     }
 
     /// <summary>
@@ -115,7 +119,7 @@ public class FileAppService : ApplicationService, IFileAppService
             size = ((float)file.Length / 1024 / 1024).ToString("F2") + "MB";
         else size = file.Length.ToString() + "B";
 
-        string uploadsFolder = Path.Combine(Environment.CurrentDirectory, "wwwroot", "samples");
+        string uploadsFolder = Path.Combine(Environment.CurrentDirectory, "wwwroot", "attachment");
         if (!Directory.Exists(uploadsFolder))
         {
             Directory.CreateDirectory(uploadsFolder);
@@ -131,7 +135,7 @@ public class FileAppService : ApplicationService, IFileAppService
 
         //TODO：文件md5哈希校验
         var result = await _fileManager.Create(userId, teamId, missionId, note,fileIndex, name, uniqueFileName, fileExtension, "", size, filePath,
-            "/files/" + uniqueFileName, FileType.IMAGE);
+            "/attachment/" + uniqueFileName, FileType.IMAGE);
         return ObjectMapper.Map<FileInfo, FileInfoDto>(result);
     }
 
@@ -174,6 +178,19 @@ public class FileAppService : ApplicationService, IFileAppService
     /// <param name="id"> 附件Id </param>
     public async Task DeleteAttachment(Guid id)
     {
+        var attachment = await _repository.GetAsync(id);
+        // 刪除路徑中對應的照片
+        var path = Environment.CurrentDirectory + "/wwwroot" + attachment.Url;
+        _logger.LogError($"=============================== 照片路徑 {path}");
+        
+        if (File.Exists(path))
+        {
+            File.Delete(path);
+        }
+        else
+        {
+            throw new BusinessException("照片不存在");
+        }
         await _repository.DeleteAsync(id);
     }
 

@@ -528,7 +528,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         using var savingMemoryStream = new MemoryStream();
         workBook.SaveAs(savingMemoryStream);
         return new MyFileInfoDto
-            { FileContent = savingMemoryStream.ToArray(), FileName = $"{parent.MissionName}的匯出檔案.xlsx" };
+        { FileContent = savingMemoryStream.ToArray(), FileName = $"{parent.MissionName}的匯出檔案.xlsx" };
     }
 
     /// <summary>
@@ -670,7 +670,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
             workBook.SaveAs(savingMemoryStream);
 
             var fileDto = new MyFileInfoDto
-                { FileContent = savingMemoryStream.ToArray(), FileName = parentMissionName };
+            { FileContent = savingMemoryStream.ToArray(), FileName = parentMissionName };
 
             await SendEmail("每周任務報告", "這是你一周以來完成和過期的任務統計", email, fileDto);
         }
@@ -694,9 +694,9 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// <summary>
     /// 上傳任務附件
     /// </summary>
-    public async Task<MissionAttachmentDto> UploadFile(CreateMissionAttachmentDto input, IFormFile file)
+    public async Task<FileInfoDto> UploadFile(Guid? teamId, Guid missionId, string name, int fileIndex, string note, IFormFile file)
     {
-        throw new NotImplementedException();
+        return await _fileAppService.UploadAttachment(CurrentUser.Id, teamId, missionId, fileIndex, name, note, file);
     }
 
     /// <summary>
@@ -705,7 +705,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// <param name="id">附件 Id</param>
     public async Task DeleteFile(Guid id)
     {
-        throw new NotImplementedException();
+        await _fileAppService.DeleteAttachment(id);
     }
 
     /// <summary>
@@ -723,7 +723,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// <param name="id">附件 Id</param>
     public async Task UpdateAttachmentNote(Guid id, string note)
     {
-        _fileAppService.UpdateNote(id, note);
+       await _fileAppService.UpdateNote(id, note);
     }
 
     #endregion 附件上傳

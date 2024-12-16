@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Business.FileManagement.Dto;
 using Business.Models;
-using FileInfo = System.IO.FileInfo;
 
 namespace Business.FileManagement;
 

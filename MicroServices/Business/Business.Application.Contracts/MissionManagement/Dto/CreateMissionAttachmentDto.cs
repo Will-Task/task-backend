@@ -3,11 +3,15 @@ using Volo.Abp.Application.Dtos;
 
 namespace Business.MissionManagement.Dto;
 
-public class CreateMissionAttachmentDto: EntityDto<Guid?>
+public class CreateMissionAttachmentDto
 {
     public Guid MissionId { get; set; }
+
+    public Guid? TeamId { get; set; }
+
+    public string Name { get; set; }
  
     public int FileIndex { get; set; }
 
-    public string ANote { get; set; }
+    public string Note { get; set; }
 }
