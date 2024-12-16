@@ -58,4 +58,6 @@ public class MissionViewDto : EntityDto<Int64>
     /// 所屬哪個Team的任務
     /// </summary>
     public Guid? TeamId { get; set; }
+
+    public int AttachmentCount { get; set; }
 }

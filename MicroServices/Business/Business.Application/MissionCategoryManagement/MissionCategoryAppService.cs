@@ -55,8 +55,7 @@ public class MissionCategoryAppService : ApplicationService, IMissionCategoryApp
             // 1. 取出當前使用者Id
             var currentUserId = CurrentUser.Id;
             var query = await _repositorys.MissionCategoryView.GetQueryableAsync();
-            query = query.Where((new TeamCategorySpecification(teamId)
-                        .Or(new UserCategorySpecification(currentUserId)))
+            query = query.Where(new TeamOrUserCategorySpecification(teamId, currentUserId)
                     .And(new ParentCategorySpecification(parentId)).ToExpression())
                 .WhereIf(!name.IsNullOrEmpty(), x => x.MissionCategoryName.Contains(name));
 

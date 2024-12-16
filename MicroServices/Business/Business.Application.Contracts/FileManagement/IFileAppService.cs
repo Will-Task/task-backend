@@ -43,6 +43,12 @@ public interface IFileAppService : IApplicationService
     /// </summary>
     /// <param name="id"> 附件Id </param>
     Task DeleteAttachment(Guid id);
+
+    /// <summary>
+    /// 獲取某特定任務的附件數量
+    /// </summary>
+    /// <param name="id"> 任務id </param>
+    Task<int> GetAttachmentCount(Guid id);
     
     Task<PagedResultDto<FileInfoDto>> GetAll(GetFileInputDto input);
 

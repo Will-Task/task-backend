@@ -177,6 +177,15 @@ public class FileAppService : ApplicationService, IFileAppService
         await _repository.DeleteAsync(id);
     }
 
+    /// <summary>
+    /// 獲取某特定任務的附件數量
+    /// </summary>
+    /// <param name="id"> 任務id </param>
+    public async Task<int> GetAttachmentCount(Guid id)
+    {
+        return await _repository.CountAsync(x => x.MissionId == id);
+    }
+
     public async Task<PagedResultDto<FileInfoDto>> GetAll(GetFileInputDto input)
     {
         var query = (await _repository.GetQueryableAsync()).WhereIf(!string.IsNullOrWhiteSpace(input.Filter),

@@ -192,6 +192,10 @@ public class MissionAppService : ApplicationService, IMissionAppService
             : await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
         var dtos = ObjectMapper.Map<List<MissionView>, List<MissionViewDto>>(parents);
         dtos = allData ? dtos : dtos.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+        foreach (var dto in dtos)
+        {
+            dto.AttachmentCount = await _fileAppService.GetAttachmentCount(dto.MissionId);
+        }
         return new PagedResultDto<MissionViewDto>(count, dtos);
     }
 
