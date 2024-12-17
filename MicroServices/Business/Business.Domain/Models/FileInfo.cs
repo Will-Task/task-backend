@@ -11,7 +11,7 @@ public class FileInfo : AuditedAggregateRoot<Guid>, ISoftDelete
     
     public Guid? TeamId { get; set; }
     
-    public Guid MissionId { get; set; }
+    public Guid? MissionId { get; set; }
     
     /// <summary>
     /// 代表該任務的第幾個附件

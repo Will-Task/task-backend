@@ -36,6 +36,8 @@ namespace Business.EntityFrameworkCore
         
         public DbSet<FileInfo> FileInfo { get; set; }
 
+        public DbSet<AbpUserView> AbpUserView { get; set; }
+
         //Code generation...
         public BusinessDbContext(DbContextOptions<BusinessDbContext> options)
             : base(options)
