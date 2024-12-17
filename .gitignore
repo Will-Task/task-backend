@@ -5,6 +5,8 @@
 /MicroServices/Business/Business.Host/wwwroot/**/*.jpg
 /MicroServices/Business/Business.Host/wwwroot/**/*.jpeg
 /MicroServices/Business/Business.Host/wwwroot/**/*.png
+**/bin/
+**/obj/
 /.vs
 /AuthServer/AuthServer.Host/node_modules
 /AuthServer/AuthServer.Host/.vs/AuthServer.Host
@@ -209,4 +211,3 @@
 /MicroServices/FileStorage/FileStorage.Domain/bin/Debug/net8.0
 /MicroServices/FileStorage/FileStorage.EntityFrameworkCore/bin/Debug/net8.0
 /MicroServices/FileStorage/FileStorage.Host/bin/Debug/net8.0
-/MicroServices/Business/Business.Batch.Trigger/**/*
