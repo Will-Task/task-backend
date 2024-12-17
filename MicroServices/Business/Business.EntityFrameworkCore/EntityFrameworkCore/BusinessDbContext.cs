@@ -38,6 +38,8 @@ namespace Business.EntityFrameworkCore
 
         public DbSet<AbpUserView> AbpUserView { get; set; }
 
+        public DbSet<LocalizationText> LocalizationText { get; set; }
+
         //Code generation...
         public BusinessDbContext(DbContextOptions<BusinessDbContext> options)
             : base(options)
