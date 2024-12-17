@@ -49,8 +49,4 @@ public interface IFileAppService : IApplicationService
     /// </summary>
     /// <param name="id"> 任務id </param>
     Task<int> GetAttachmentCount(Guid id);
-    
-    Task<PagedResultDto<FileInfoDto>> GetAll(GetFileInputDto input);
-
-    Task UploadPrivate([Required] string name, [Required] IFormFile file);
 }
