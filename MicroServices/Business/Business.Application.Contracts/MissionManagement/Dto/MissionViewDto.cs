@@ -35,8 +35,6 @@ public class MissionViewDto : EntityDto<Int64>
     
     public Guid? UserId { get; set; }
     
-    public string Email { get; set; }
-    
     public Guid? ParentMissionId { get; set; }
     
     /// <summary>

@@ -38,7 +38,8 @@ public class MissionAppService : ApplicationService, IMissionAppService
         IRepository<MissionView> MissionView,
         IRepository<MissionCategory, Guid> MissionCategory,
         IRepository<MissionCategoryI18N, Guid> MissionCategoryI18N,
-        IRepository<MissionCategoryView> MissionCategoryView
+        IRepository<MissionCategoryView> MissionCategoryView,
+        IRepository<AbpUserView> AbpUserView
         ) _repositoys;
 
     private readonly IFileAppService _fileAppService;
@@ -63,13 +64,14 @@ public class MissionAppService : ApplicationService, IMissionAppService
         IRepository<MissionCategory, Guid> MissionCategory,
         IRepository<MissionCategoryI18N, Guid> MissionCategoryI18N,
         IRepository<MissionCategoryView> MissionCategoryView,
+        IRepository<AbpUserView> AbpUserView,
         IFileAppService fileAppService,
         IConfiguration Configuration,
         IDataFilter dataFilter,
         ILogger<MissionAppService> logger)
     {
         _repositoys = (Mission, MissionI18N, MissionView, MissionCategory, MissionCategoryI18N,
-            MissionCategoryView);
+            MissionCategoryView, AbpUserView);
         _fileAppService = fileAppService;
         _Configuration = Configuration;
         _dataFilter = dataFilter;
@@ -126,7 +128,6 @@ public class MissionAppService : ApplicationService, IMissionAppService
             input.Id = GuidGenerator.Create();
             var newMission = ObjectMapper.Map<CreateOrUpdateMissionDto, Mission>(input);
             newMission.UserId = CurrentUser.Id;
-            newMission.Email = CurrentUser.Email;
             newMission.TeamId = input.TeamId;
             newMission.AddMissionI18N(newI18N);
 
@@ -198,13 +199,18 @@ public class MissionAppService : ApplicationService, IMissionAppService
         // 指定語系 -> 中文 -> 任一語系 ， 符合規則的第一筆
         var defaultMission = queryMission.OrderBy(x => x.Lang == 1 ? 0 : x.Lang)
             .OrderBy(x => x.Lang).GroupBy(x => x.MissionId)
-            .ToDictionary(g => g.Key, x => x.First().MissionName);
+            .ToDictionary(g => g.Key, x => x.First());
             
         foreach (var dto in dtos)
         {
             if (dto.MissionName.IsNullOrEmpty())
             {
-                dto.MissionName = defaultMission[dto.MissionId];
+                dto.MissionName = defaultMission[dto.MissionId].MissionName;
+            }
+
+            if (dto.MissionDescription.IsNullOrEmpty())
+            {
+                dto.MissionDescription = defaultMission[dto.MissionId].MissionDescription;
             }
             dto.AttachmentCount = await _fileAppService.GetAttachmentCount(dto.MissionId);
         }
@@ -254,6 +260,8 @@ public class MissionAppService : ApplicationService, IMissionAppService
     public async Task MissionReminder()
     {
         var missions = await _repositoys.Mission.GetListAsync();
+        var queryUser = await _repositoys.AbpUserView.GetQueryableAsync();
+        var emailMap = queryUser.ToDictionary(x => x.Id, x => x.Email);
 
         foreach (var mission in missions.Where(x => x.MissionBeforeEnd.HasValue))
         {
@@ -269,7 +277,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
             // var user = await _userManager.FindByIdAsync(mission.UserId.ToString());
             // var query = await _UserRepository.GetQueryableAsync();
             // var email = await query.Select(u => u.Email).FirstAsync();
-            await SendEmail("任務提醒通知", "你的任務快到期了喔，趕緊完成!", mission.Email, null);
+            await SendEmail("任務提醒通知", "你的任務快到期了喔，趕緊完成!", emailMap[mission.UserId.Value], null);
         }
     }
 
@@ -477,7 +485,6 @@ public class MissionAppService : ApplicationService, IMissionAppService
         foreach (var dto in dtos)
         {
             var mission = ObjectMapper.Map<MissionImportDto, Mission>(dto);
-            mission.Email = CurrentUser.Email;
             mission.MissionI18Ns = new List<MissionI18N>();
             var i18NDto = new MissionI18NDto
             {
@@ -592,7 +599,9 @@ public class MissionAppService : ApplicationService, IMissionAppService
         var missionMap = query.Where(m =>
                 m.MissionEndTime <= now.AddHours(m.MissionBeforeEnd.Value) && m.MissionFinishTime == null)
             .GroupBy(g => g.MissionId).ToDictionary(g => g.Key, g => g.First());
-
+        var queryUser = await _repositoys.AbpUserView.GetQueryableAsync();
+        var emailMap = queryUser.ToDictionary(x => x.Id, x => x.Email);
+        
         foreach (var mission in missionMap)
         {
             var misssionName = mission.Value.MissionName;
@@ -604,7 +613,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
 
             // 寄發email(之後放入使用者email)
             await SendEmail($"{misssionName}任務在{mission.Value.MissionBeforeEnd}小時內即將到期", "任務快過期了喔，趕緊去完成",
-                mission.Value.Email);
+                emailMap[mission.Value.UserId.Value]);
         }
     }
 
@@ -637,11 +646,13 @@ public class MissionAppService : ApplicationService, IMissionAppService
         var submissions = query.Where(m => m.ParentMissionId != null && m.UserId != null)
             .GroupBy(m => m.UserId)
             .ToDictionary(m => m.Key, m => m.ToList());
-
+        
+        var queryUser = await _repositoys.AbpUserView.GetQueryableAsync();
+        var emailMap = queryUser.ToDictionary(x => x.Id, x => x.Email);
+        
         foreach (var key in submissions.Keys)
         {
             int i = ExcelBeginLine;
-            string email = "";
 
             foreach (var submission in submissions[key])
             {
@@ -672,8 +683,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
                     worksheet.Cell($"{nextChar}{i}").Value = $"{propertyInfo.GetValue(submission)}";
                     nextChar++;
                 }
-
-                email = submission.Email;
+                
                 i++;
             }
 
@@ -684,7 +694,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
             var fileDto = new MyFileInfoDto
             { FileContent = savingMemoryStream.ToArray(), FileName = parentMissionName };
 
-            await SendEmail("每周任務報告", "這是你一周以來完成和過期的任務統計", email, fileDto);
+            await SendEmail("每周任務報告", "這是你一周以來完成和過期的任務統計", emailMap[key.Value], fileDto);
         }
     }
 
@@ -772,7 +782,6 @@ public class MissionAppService : ApplicationService, IMissionAppService
                 mission.MissionStartTime = baseMission.MissionStartTime.AddDays(days);
                 mission.MissionEndTime = baseMission.MissionEndTime.AddDays(days);
                 mission.UserId = currentUserId;
-                mission.Email = CurrentUser.Email;
                 mission.MissionI18Ns = new List<MissionI18N>();
                 mission.MissionI18Ns.Add(missionI18N);
                 baseMission = mission;
