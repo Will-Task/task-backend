@@ -66,7 +66,19 @@ public class MissionCategoryAppService : ApplicationService, IMissionCategoryApp
                 : await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 
             var dtos = ObjectMapper.Map<List<MissionCategoryView>, List<MissionCategoryViewDto>>(categories);
-
+            var queryCategory = await _repositorys.MissionCategoryI18N.GetQueryableAsync();
+            // 指定語系 -> 中文 -> 任一語系 ， 符合規則的第一筆
+            var defaultCategory = queryCategory.OrderBy(x => x.Lang == 1 ? 0 : x.Lang).OrderBy(x => x.Lang)
+                .GroupBy(x => x.MissionCategoryId).ToDictionary(g => g.Key, x => x.First().MissionCategoryName);
+            
+            foreach (var dto in dtos)
+            {
+                if (dto.MissionCategoryName.IsNullOrEmpty())
+                {
+                    dto.MissionCategoryName = defaultCategory[dto.MissionCategoryId];
+                }
+            }
+            
             return new PagedResultDto<MissionCategoryViewDto>(count, dtos);
         }
         catch (Exception e)

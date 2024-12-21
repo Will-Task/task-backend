@@ -24,8 +24,7 @@ public class MissionView: Entity<Int64>
     
     public DateTime? MissionFinishTime { get; set; }
     
-    [Required] 
-    public string MissionName { get; set; }
+    public string? MissionName { get; set; }
 
     // 任務說明
     public string? MissionDescription { get; set; }
@@ -33,8 +32,7 @@ public class MissionView: Entity<Int64>
     // 對應語系
     public int Lang { get; set; }
     
-    [Required]
-    public string MissionCategoryName { get; set; }
+    public string? MissionCategoryName { get; set; }
     
     public Guid? UserId { get; set; }
     

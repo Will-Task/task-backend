@@ -192,8 +192,20 @@ public class MissionAppService : ApplicationService, IMissionAppService
             : await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
         var dtos = ObjectMapper.Map<List<MissionView>, List<MissionViewDto>>(parents);
         dtos = allData ? dtos : dtos.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+        var queryMission = await _repositoys.MissionI18N.GetQueryableAsync();
+        
+        // 指定語系 -> 中文 -> 任一語系 ， 符合規則的第一筆
+        var defaultMission = queryMission.OrderBy(x => x.Lang == 1 ? 0 : x.Lang)
+            .OrderBy(x => x.Lang).GroupBy(x => x.MissionId)
+            .ToDictionary(g => g.Key, x => x.First().MissionName);
+            
         foreach (var dto in dtos)
         {
+            if (dto.MissionName.IsNullOrEmpty())
+            {
+                dto.MissionName = defaultMission[dto.MissionId];
+            }
             dto.AttachmentCount = await _fileAppService.GetAttachmentCount(dto.MissionId);
         }
         return new PagedResultDto<MissionViewDto>(count, dtos);

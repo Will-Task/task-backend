@@ -8,4 +8,6 @@ public class Language : Entity<Int32>
     public string Code { get; set; }
     
     public string Name { get; set; }
+
+    public bool IsActivate { get; set; }
 }

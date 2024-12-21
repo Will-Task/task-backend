@@ -11,8 +11,7 @@ public class MissionCategoryViewDto: EntityDto<Int64>
     
     public Guid? UserId { get; set; }
     
-    [Required]
-    public string MissionCategoryName { get; set; }
+    public string? MissionCategoryName { get; set; }
     
     public int Lang { get; set; }
     
