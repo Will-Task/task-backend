@@ -11,29 +11,29 @@ namespace Business.EntityFrameworkCore
     {
         // 自定義model
         public DbSet<Language> Language { get; set; }
-        
+
         public DbSet<Mission> Mission { get; set; }
-        
+
         public DbSet<MissionI18N> MissionI18N { get; set; }
-        
+
         public DbSet<MissionCategory> MissionCategory { get; set; }
-        
+
         public DbSet<MissionCategoryI18N> MissionCategoryI18N { get; set; }
-        
+
         public DbSet<MissionTag> MissionTag { get; set; }
-        
+
         public DbSet<MissionTagI18N> MissionTagI18N { get; set; }
-        
+
         public DbSet<MyFileInfo> MyFileInfo { get; set; }
-        
+
         public DbSet<MissionAttachment> MissionAttachment { get; set; }
-        
+
         public DbSet<MissionView> MissionView { get; set; }
-        
+
         public DbSet<MissionCategoryView> MissionCategoryView { get; set; }
-        
+
         public DbSet<MissionOverAllView> MissionOverAllView { get; set; }
-        
+
         public DbSet<FileInfo> FileInfo { get; set; }
 
         public DbSet<AbpUserView> AbpUserView { get; set; }
@@ -66,6 +66,12 @@ namespace Business.EntityFrameworkCore
             {
                 // 只有IsActive為true才會被包含在查詢範圍中
                 b.HasAbpQueryFilter(e => e.IsActive);
+            });
+
+            // 設置 Composite Key
+            modelBuilder.Entity<LocalizationText>(x =>
+            {
+                x.HasKey(k => new { k.LanguageCode, k.Category, k.ItemKey });
             });
         }
     }
