@@ -37,6 +37,8 @@ public class MissionView: Entity<Int64>
     public Guid? UserId { get; set; }
     
     public Guid? ParentMissionId { get; set; }
+
+    public Guid ParentCategoryId { get; set; }
     
     public Guid MissionCategoryId { get; set; }
     
