@@ -40,6 +40,17 @@ namespace Business.EntityFrameworkCore
 
         public DbSet<LocalizationText> LocalizationText { get; set; }
 
+        public DbSet<Team> Team { get; set; }
+
+        public DbSet<TeamView> TeamView { get; set; }
+
+        public DbSet<TeamMission> TeamMission { get; set; }
+
+        public DbSet<TeamInvitation> TeamInvitation { get; set; }
+
+        public DbSet<TeamInvitationView> TeamInvitationView { get; set; }
+
+
         //Code generation...
         public BusinessDbContext(DbContextOptions<BusinessDbContext> options)
             : base(options)
@@ -73,6 +84,7 @@ namespace Business.EntityFrameworkCore
             {
                 x.HasKey(k => new { k.LanguageCode, k.Category, k.ItemKey });
             });
+            modelBuilder.Entity<TeamMission>().HasKey(c => new { c.TeamId, c.UserId });
         }
     }
 }
