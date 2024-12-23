@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
-using Business.CommonManagement.Dto;
 using Business.FileManagement.Dto;
 using Business.MissionManagement;
 using Business.MissionManagement.Dto;
-using Business.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Volo.Abp.Application.Dtos;
@@ -118,9 +115,9 @@ public class MissionController : AbpController
     /// <returns></returns>
     [HttpGet]
     [Route("sample")]
-    public async Task<IActionResult> DNSample(Guid parentId, int lang)
+    public async Task<IActionResult> DNSample(Guid parentId, string code)
     {
-        var blobDto = await _missionAppService.DNSample(parentId, lang);
+        var blobDto = await _missionAppService.DNSample(parentId, code);
         return File(blobDto.Content, "application/octet-stream",
             blobDto.Name);
     }
@@ -130,9 +127,9 @@ public class MissionController : AbpController
     /// </summary>
     [HttpPost]
     [Route("import-file-check")]
-    public async Task<List<MissionImportDto>> ImportFileCheck(Guid parentId, Guid? teamId, int lang, IFormFile file)
+    public async Task<List<MissionImportDto>> ImportFileCheck(Guid parentId, Guid? teamId, string code, IFormFile file)
     {
-        return await _missionAppService.ImportFileCheck(parentId, teamId, lang, file);
+        return await _missionAppService.ImportFileCheck(parentId, teamId, code, file);
     }
 
     /// <summary>
@@ -150,9 +147,9 @@ public class MissionController : AbpController
     /// </summary>
     [HttpPost]
     [Route("export")]
-    public async Task<IActionResult> ExportFile(Guid parentId, int lang)
+    public async Task<IActionResult> ExportFile(Guid parentId, string code)
     {
-        var fileDto = await _missionAppService.ExportFile(parentId, lang);
+        var fileDto = await _missionAppService.ExportFile(parentId, code);
         return File(fileDto.FileContent, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             fileDto.FileName);
     }
@@ -180,12 +177,12 @@ public class MissionController : AbpController
     /// <summary>
     /// 檢查到期的任務
     /// </summary>
-    [HttpGet]
-    [Route("check")]
-    public async Task CheckExpiredOrFinished()
-    {
-        await _missionAppService.CheckExpiredOrFinished();
-    }
+    //[HttpGet]
+    //[Route("check")]
+    //public async Task CheckExpiredOrFinished()
+    //{
+    //    await _missionAppService.CheckExpiredOrFinished();
+    //}
 
     /// <summary>
     /// 上傳任務附件

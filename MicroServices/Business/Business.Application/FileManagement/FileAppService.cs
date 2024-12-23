@@ -65,7 +65,7 @@ public class FileAppService : ApplicationService, IFileAppService
             size = ((float)file.Length / 1024 / 1024).ToString("F2") + "MB";
         else size = file.Length.ToString() + "B";
 
-        string uploadsFolder = Path.Combine(Environment.CurrentDirectory, "wwwroot", "samples");
+        string uploadsFolder = Path.Combine(Environment.CurrentDirectory, "wwwroot", "templates");
         if (!Directory.Exists(uploadsFolder))
         {
             Directory.CreateDirectory(uploadsFolder);
@@ -81,7 +81,7 @@ public class FileAppService : ApplicationService, IFileAppService
 
         //TODO：文件md5哈希校驗
         var result = await _fileManager.Create(name, uniqueFileName, fileExtension, "", size, filePath,
-            "/samples/" + uniqueFileName, FileType.IMAGE);
+            "/templates/" + uniqueFileName, FileType.IMAGE);
         return ObjectMapper.Map<FileInfo, FileInfoDto>(result);
     }
 

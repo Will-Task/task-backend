@@ -60,12 +60,12 @@ public interface IMissionAppService : IApplicationService
     /// <summary>
     /// 範本下載
     /// </summary>
-    Task<BlobDto> DNSample(Guid parentId, int lang);
+    Task<BlobDto> DNSample(Guid parentId, string code);
 
     /// <summary>
     /// 資料匯入檢查
     /// </summary>
-    Task<List<MissionImportDto>> ImportFileCheck(Guid parentId, Guid? teamId, int lang, IFormFile file);
+    Task<List<MissionImportDto>> ImportFileCheck(Guid parentId, Guid? teamId, string code, IFormFile file);
 
     /// <summary>
     /// 資料匯入
@@ -75,7 +75,7 @@ public interface IMissionAppService : IApplicationService
     /// <summary>
     /// 資料匯出(子任務)
     /// </summary>
-    Task<MyFileInfoDto> ExportFile(Guid parentId, int lang);
+    Task<MyFileInfoDto> ExportFile(Guid parentId, string code);
 
     /// <summary>
     /// 任務即將到期(24小時)通知

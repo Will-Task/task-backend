@@ -39,7 +39,9 @@ public class MissionAppService : ApplicationService, IMissionAppService
         IRepository<MissionCategory, Guid> MissionCategory,
         IRepository<MissionCategoryI18N, Guid> MissionCategoryI18N,
         IRepository<MissionCategoryView> MissionCategoryView,
-        IRepository<AbpUserView> AbpUserView
+        IRepository<AbpUserView> AbpUserView,
+        IRepository<LocalizationText> LocalizationText,
+        IRepository<Language> Language
         ) _repositoys;
 
     private readonly IFileAppService _fileAppService;
@@ -65,13 +67,15 @@ public class MissionAppService : ApplicationService, IMissionAppService
         IRepository<MissionCategoryI18N, Guid> MissionCategoryI18N,
         IRepository<MissionCategoryView> MissionCategoryView,
         IRepository<AbpUserView> AbpUserView,
+        IRepository<LocalizationText> LocalizationText,
+        IRepository<Language> Language,
         IFileAppService fileAppService,
         IConfiguration Configuration,
         IDataFilter dataFilter,
         ILogger<MissionAppService> logger)
     {
         _repositoys = (Mission, MissionI18N, MissionView, MissionCategory, MissionCategoryI18N,
-            MissionCategoryView, AbpUserView);
+            MissionCategoryView, AbpUserView, LocalizationText, Language);
         _fileAppService = fileAppService;
         _Configuration = Configuration;
         _dataFilter = dataFilter;
@@ -226,25 +230,41 @@ public class MissionAppService : ApplicationService, IMissionAppService
         var currentUserId = CurrentUser.Id;
         var dtos = new List<MissionOverviewDto>();
         var queryMission = await _repositoys.MissionView.GetQueryableAsync();
-        // (當前使用者or所屬team) 且當前的任務類別
+        /// 預設多國語系資料
+        var missionMap = queryMission.OrderBy(x => x.Lang == 1 ? 0 : x.Lang).OrderBy(x => x.Lang)
+            .GroupBy(x => x.MissionId).ToDictionary(g => g.Key, x => x.First().MissionName);
+        /// (當前使用者or所屬team) 且當前的任務類別
         queryMission = queryMission.Where(new TeamOrUserMissionSpecification(teamId, currentUserId)
             .And(new CategoryMissionSpecification(categoryId)).ToExpression()
         );
         var parents = await queryMission.Where(x => x.ParentMissionId == null).ToListAsync();
-        var subMap = queryMission.Where(x => x.ParentMissionId != null).GroupBy(x => x.ParentMissionId)
+        var subMap = queryMission.Where(x => x.ParentMissionId != null)
+            .GroupBy(x => x.ParentMissionId)
             .ToDictionary(x => x.Key);
 
         foreach (var parent in parents)
         {
             var dto = new MissionOverviewDto();
             ObjectMapper.Map(parent, dto);
-            // 父任務是否有子任務檢查
+            if (dto.MissionName.IsNullOrEmpty())
+            {
+                dto.MissionName = missionMap[dto.MissionId];
+            }
+            /// 父任務是否有子任務檢查
             if (subMap.ContainsKey(parent.MissionId))
             {
-                var subs = subMap[parent.MissionId].ToList();
-                dto.SubMissions = ObjectMapper.Map<List<MissionView>, List<SubMissionOverviewDto>>(subs);
+                var subs = subMap[parent.MissionId].Where(x => x.Lang == parent.Lang).ToList();
+                var subDtos = ObjectMapper.Map<List<MissionView>, List<SubMissionOverviewDto>>(subs);
+                subDtos.ForEach(sub =>
+                {
+                    if (sub.MissionName.IsNullOrEmpty())
+                    {
+                        sub.MissionName = missionMap[sub.MissionId];
+                    }
+                });
+                dto.SubMissions = subDtos;
             }
-
+            dto.Lang = parent.Lang;
             dtos.Add(dto);
         }
 
@@ -310,13 +330,15 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// <summary>
     /// 範本下載
     /// </summary>
-    public async Task<BlobDto> DNSample(Guid parentId, int lang)
+    public async Task<BlobDto> DNSample(Guid parentId, string code)
     {
-        var blobDto = await _fileAppService.DNFile("匯入子任務.xlsx");
+        var template = await _repositoys.LocalizationText.GetAsync(x => x.LanguageCode == code && x.Category == "Template" && x.ItemKey == "1");
+        var blobDto = await _fileAppService.DNFile(template.ItemValue);
         using var memoryStream = new MemoryStream(blobDto.Content);
         using var workbook = new XLWorkbook(memoryStream);
         var worksheet = workbook.Worksheet(1);
         worksheet.Name = blobDto.Name;
+        var language = await _repositoys.Language.GetAsync(x => x.Code == code);
 
         var missionColumn = 'A';
         var categoryColumn = 'C';
@@ -330,7 +352,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         // 父類別資訊取得
         var queryMission = await _repositoys.MissionView.GetQueryableAsync();
         var parentMission = await queryMission
-            .Where(x => x.MissionId == parentId && x.Lang == lang)
+            .Where(x => x.MissionId == parentId && x.Lang == language.Id)
             .FirstAsync();
         var parentMissionDto = ObjectMapper.Map<MissionView, MissionImportDto>(parentMission);
         var properties = typeof(MissionImportDto).GetProperties();
@@ -397,7 +419,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// <summary>
     /// 資料匯入檢查
     /// </summary>
-    public async Task<List<MissionImportDto>> ImportFileCheck(Guid parentId, Guid? teamId, int lang, IFormFile file)
+    public async Task<List<MissionImportDto>> ImportFileCheck(Guid parentId, Guid? teamId, string code, IFormFile file)
     {
         var currentUserId = CurrentUser.Id;
         var dtos = new List<MissionImportDto>();
@@ -407,6 +429,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         var worksheet = workbook.Worksheet(1);
         var missionColumn = 'A';
         var parentIdColumn = 'I';
+        var langugage = await _repositoys.Language.GetAsync(x => x.Code == code);
 
         // 從excel取出資料
         for (int i = ExcelBeginLine; i <= ExcelEndLine; i++)
@@ -426,7 +449,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
             dto.UserId = currentUserId;
             dto.TeamId = teamId;
             dto.ParentMissionId = parentId;
-            dto.Lang = lang;
+            dto.Lang = langugage.Id;
             var queryMission = await _repositoys.Mission.GetQueryableAsync();
             var categoryId = await queryMission.Where(x => x.Id == parentId)
                 .Select(x => x.MissionCategoryId).FirstAsync();
@@ -460,7 +483,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
                         DateTimeStyles.AllowWhiteSpaces, out DateTime dateTime);
                     property.SetValue(dto, dateTime);
                 }
-                else
+                else if(!value.IsNullOrEmpty())
                 {
                     property.SetValue(dto, value);
                 }
@@ -503,20 +526,22 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// <summary>
     /// 資料匯出(子任務)
     /// </summary>
-    public async Task<MyFileInfoDto> ExportFile(Guid parentId, int lang)
+    public async Task<MyFileInfoDto> ExportFile(Guid parentId, string code)
     {
         // 取得欲寫入的範本檔案
-        var blobDto = await _fileAppService.DNFile("匯出子任務.xlsx");
+        var file = await _repositoys.LocalizationText.GetAsync(x => x.LanguageCode == code && x.Category == "Template" && x.ItemKey == "2");
+        var blobDto = await _fileAppService.DNFile(file.ItemValue);
         using var memoryStream = new MemoryStream(blobDto.Content);
         using var workBook = new XLWorkbook(memoryStream);
+        var language = await _repositoys.Language.GetAsync(x => x.Code == code);
 
         // 取得父任務
         var parent = await _repositoys.MissionView.FirstAsync(x =>
-            x.MissionId == parentId && x.Lang == lang);
+            x.MissionId == parentId && x.Lang == language.Id);
         var parentExportDto = ObjectMapper.Map<MissionView, MissionExportDto>(parent);
         // 取得parentId的子任務
         var subs = await _repositoys.MissionView.GetListAsync(x =>
-            x.ParentMissionId == parentId && x.Lang == lang);
+            x.ParentMissionId == parentId && x.Lang == language.Id);
         var subExportDtos = ObjectMapper.Map<List<MissionView>, List<MissionExportDto>>(subs);
         int start = 3;
         var nextChar = 'A';

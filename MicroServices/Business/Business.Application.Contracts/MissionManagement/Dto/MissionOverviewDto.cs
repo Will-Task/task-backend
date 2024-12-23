@@ -23,6 +23,8 @@ public class MissionOverviewDto : EntityDto<Int64>
     
     public DateTime? MissionFinishTime { get; set; }
 
+    public int Lang { get; set; }
+
     /// <summary>
     /// 子任務資訊
     /// </summary>

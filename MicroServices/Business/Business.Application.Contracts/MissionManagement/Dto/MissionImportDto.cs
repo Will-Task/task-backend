@@ -33,8 +33,8 @@ public class MissionImportDto : EntityDto<Int64?>
     public int? MissionBeforeEnd { get; set; }
     
     public int MissionPriority { get; set; }
-    
-    public MissionState MissionState { get; set; } 
+
+    public MissionState MissionState { get; set; } = MissionState.TODO;
     
     public int Lang { get; set; }
 }
