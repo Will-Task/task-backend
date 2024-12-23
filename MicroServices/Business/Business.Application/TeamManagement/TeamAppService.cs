@@ -42,19 +42,19 @@ namespace Business.TeamManagement
         public async Task<TeamDto> DataPost(CreateOrUpdateTeamDto input)
         {
             Team result = null;
-            // For 修改
+            /// For 修改
             if (input.Id.HasValue)
             {
                 var team = await _repositorys.Team.GetAsync(input.Id.Value);
                 result = ObjectMapper.Map(input, team);
             }
-            // For 新增
+            /// For 新增
             else
             {
                 var team = ObjectMapper.Map<CreateOrUpdateTeamDto, Team>(input);
                 team.UserId = CurrentUser.Id.Value;
                 result = await _repositorys.Team.InsertAsync(team, autoSave: true);
-                // 把當前使用者加入團隊
+                /// 把當前使用者加入團隊
                 await _repositorys.TeamMember.InsertAsync(new TeamMember
                 {
                     UserId = CurrentUser.Id.Value,
@@ -72,7 +72,7 @@ namespace Business.TeamManagement
         {
             var userId = CurrentUser.Id;
             var teamMissionQuery = await _repositorys.TeamMember.GetQueryableAsync();
-            // 取得當前使用者所在的所有團隊的TeamId
+            /// 取得當前使用者所在的所有團隊的TeamId
             var teamIds = await teamMissionQuery.Where(new UserTeamMemberSpecification(userId.Value))
                 .Select(x => x.TeamId).ToListAsync();
             
@@ -92,7 +92,7 @@ namespace Business.TeamManagement
         {
             var query = await _repositorys.TeamMember.GetQueryableAsync();
             var count = await query.Where(x => x.TeamId == id).CountAsync();
-            // 代表除了建立者還有別人
+            /// 代表除了建立者還有別人
             if (count >= 2)
             {
                 throw new BusinessException("該團隊下面還有成員無法直接刪除");
@@ -110,15 +110,17 @@ namespace Business.TeamManagement
             var currentUserId = CurrentUser.Id;
             var queryUser = await _repositorys.AbpUserView.GetQueryableAsync();
             var userMap = queryUser.ToDictionary(x => x.Id, x => x.UserName);
+            var userIds = await queryUser.Where(x => x.UserName.Contains(name)).Select(x => x.Id).ToListAsync();
             var queryTeam = await _repositorys.Team.GetQueryableAsync();
             var teamMap = queryTeam.ToDictionary(x => x.Id, x => x.Name);
-            
+            var teamIds = await queryTeam.Where(x => x.Name.Contains(name)).Select(x => x.Id).ToListAsync();
+
             var queryInvitation = await _repositorys.TeamInvitation.GetQueryableAsync();
             var invitations = await queryInvitation
                 .Where(x => x.UserId == currentUserId || x.InvitedUserId == currentUserId)
                 .WhereIf(state.HasValue, x => x.State == (Invitation)state)
                 .WhereIf(!name.IsNullOrEmpty(),
-                    x => teamMap[x.TeamId].Contains(name) || userMap[x.UserId].Contains(name) || userMap[x.InvitedUserId].Contains(name))
+                    x => teamIds.Contains(x.TeamId) || userIds.Contains(x.UserId) || userIds.Contains(x.InvitedUserId))
                 .ToListAsync();
 
             var dtos = ObjectMapper.Map<List<TeamInvitation>, List<TeamInvitationDto>>(invitations);
