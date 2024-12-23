@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Business.CommonManagement.Dto;
 using Business.Models;
 using Business.TeamManagement.Dto;
 
@@ -8,13 +9,10 @@ namespace Business.TeamManagement
     {
         public TeamAutoMapperProfile()
         {
-            CreateMap<TeamView, TeamViewDto>();
-            CreateMap<CreateOrUpdateTeamDto, Team>();
             CreateMap<Team, TeamDto>();
-            //CreateMap<IdentityUser, MemberDto>();
-            CreateMap<CreateOrUpdateTeamInvitationDto, TeamInvitation>();
+            CreateMap<CreateOrUpdateTeamDto, Team>();
             CreateMap<TeamInvitation, TeamInvitationDto>();
-            CreateMap<TeamInvitationView, TeamInvitationViewDto>();
+            CreateMap<AbpUserView, AbpUserViewDto>();
         }
     }
 }

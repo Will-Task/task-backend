@@ -16,6 +16,9 @@ namespace Business.Models
         [Required]
         public int Year { get; set; }
 
+        /// <summary>
+        /// 建立團隊者資訊
+        /// </summary>
         public Guid UserId { get; set; }
 
         public bool IsDeleted { get; set; }

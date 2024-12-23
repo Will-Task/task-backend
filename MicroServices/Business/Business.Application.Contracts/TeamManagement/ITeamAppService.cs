@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Business.CommonManagement.Dto;
+using Business.Models;
 using Volo.Abp.Application.Services;
 
 namespace Business.TeamManagement
@@ -16,10 +18,10 @@ namespace Business.TeamManagement
         Task<List<TeamDto>> GetAll(string name, int? year);
 
         /// <summary>
-        /// 獲取某團隊成員資訊
+        /// 搜尋欲邀請成員名稱
         /// </summary>
         /// <param name="id">Team Id</param>
-        Task<List<MemberDto>> GetMembers(Guid? id, string name);
+        Task<List<AbpUserViewDto>> GetUsers(string name);
 
         /// <summary>
         /// 團隊建立或資訊修改
@@ -35,8 +37,6 @@ namespace Business.TeamManagement
         /// <summary>
         /// 發起邀請人進入團隊的請求
         /// </summary>
-        /// <param name="name">邀請人姓名</param>
-        /// <param name="id">要被邀請到的團隊 Id</param>
         Task<List<TeamInvitationDto>> Invite(List<CreateOrUpdateTeamInvitationDto> input);
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace Business.TeamManagement
         /// 1. 受邀人為當前使用者
         /// 2. 邀請人為當前使用者
         /// </summary>
-        Task<List<TeamInvitationViewDto>> GetInvitations(Guid? teamId, int? state, string name);
+        Task<List<TeamInvitationDto>> GetInvitations(Guid? teamId, int? state, string name);
 
         /// <summary>
         /// 取消團隊邀請請求

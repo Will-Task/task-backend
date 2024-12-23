@@ -20,8 +20,8 @@ namespace Business.Models
         [Required]
         public Guid InvitedUserId { get; set; }
 
-        [Required]
-        public Invitation State { get; set; }
+        [Required] 
+        public Invitation State { get; set; } = Invitation.Pending;
 
         public DateTime? ResponseTime { get; set; }
 

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Business.CommonManagement.Dto;
 using Volo.Abp.AspNetCore.Mvc;
 
 namespace Business.Controllers
@@ -30,14 +31,13 @@ namespace Business.Controllers
         }
 
         /// <summary>
-        /// 獲取某團隊成員資訊
+        /// 搜尋欲邀請成員名稱
         /// </summary>
-        /// <param name="id">Team Id</param>
         [HttpGet]
-        [Route("members")]
-        public async Task<List<MemberDto>> GetMembers(Guid? id, string name)
+        [Route("users")]
+        public async Task<List<AbpUserViewDto>> GetUsers(string name)
         {
-            return await _teamAppService.GetMembers(id, name);
+            return await _teamAppService.GetUsers(name);
         }
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace Business.Controllers
         /// <param name="ids">Team id 的集合</param>
         [HttpPost]
         [Route("delete")]
-        public async Task Delete(List<Guid> ids)
+        public async Task Delete([FromBody] List<Guid> ids)
         {
             foreach (var id in ids)
             {
@@ -67,8 +67,6 @@ namespace Business.Controllers
         /// <summary>
         /// 發起邀請人進入團隊的請求
         /// </summary>
-        /// <param name="name">邀請人姓名</param>
-        /// <param name="id">要被邀請到的團隊 Id</param>
         [HttpPost]
         [Route("invite")]
         public async Task<List<TeamInvitationDto>> Invite([FromBody] List<CreateOrUpdateTeamInvitationDto> inputs)
@@ -83,7 +81,7 @@ namespace Business.Controllers
         /// </summary>
         [HttpGet]
         [Route("invites")]
-        public async Task<List<TeamInvitationViewDto>> GetInvitations(Guid? teamId, int? state, string name)
+        public async Task<List<TeamInvitationDto>> GetInvitations(Guid? teamId, int? state, string name)
         {
             return await _teamAppService.GetInvitations(teamId, state, name);
         }
