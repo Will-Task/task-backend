@@ -736,7 +736,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         missions.ForEach(m => m.IsActive = false);
     }
 
-    #region 附件上傳
+    #region 任務附件
 
     /// <summary>
     /// 上傳任務附件
@@ -773,7 +773,18 @@ public class MissionAppService : ApplicationService, IMissionAppService
        await _fileAppService.UpdateNote(id, note);
     }
 
-    #endregion 附件上傳
+    /// <summary>
+    /// 下載附件
+    /// </summary>
+    /// <param name="id">附件 Id</param>
+    public Task<MyFileInfoDto> DownloadFile(Guid id)
+    {
+        throw new NotImplementedException();
+        //return new MyFileInfoDto
+        //{ FileContent = savingMemoryStream.ToArray(), FileName = $"{parent.MissionName}的匯出檔案.xlsx" };
+    }
+
+    #endregion 任務附件
 
     /// <summary>
     /// 設定自己的定時任務

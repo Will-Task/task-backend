@@ -6,13 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
-using System.Linq;
-using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
 using Business.Models;
-using Microsoft.AspNetCore.Mvc;
 using Volo.Abp;
-using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 using FileInfo = Business.Models.FileInfo;
@@ -147,6 +143,16 @@ public class FileAppService : ApplicationService, IFileAppService
         var result = await _fileManager.Create(CurrentUser.Id, teamId, missionId, note, fileIndex, name, uniqueFileName, fileExtension, "", size, filePath,
             "/attachment/" + uniqueFileName, FileType.IMAGE);
         return ObjectMapper.Map<FileInfo, FileInfoDto>(result);
+    }
+
+    /// <summary>
+    /// 獲取單一附件
+    /// </summary>
+    /// <param name="id"> 附件Id </param>
+    public async Task<FileInfoDto> GetFile(Guid id)
+    {
+        var file = await _repository.GetAsync(id);
+        return ObjectMapper.Map<FileInfo, FileInfoDto>(file);
     }
 
     /// <summary>

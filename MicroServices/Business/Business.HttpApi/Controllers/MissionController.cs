@@ -184,11 +184,14 @@ public class MissionController : AbpController
     //    await _missionAppService.CheckExpiredOrFinished();
     //}
 
+    #region 任務附件
+
     /// <summary>
     /// 上傳任務附件
     /// </summary>
     [HttpPost]
     [Route("upload-file")]
+    //[Route("file")]
     public Task<FileInfoDto> UploadFile(Guid? teamId, Guid missionId, string name, int fileIndex, string note, IFormFile file)
     {
         return _missionAppService.UploadFile(teamId, missionId, name, fileIndex, note, file);
@@ -200,6 +203,8 @@ public class MissionController : AbpController
     /// <param name="id">附件 Id</param>
     [HttpPost]
     [Route("delete-file")]
+    //[HttpDelete]
+    //[Route("file")]
     public async Task DeleteFile(Guid id)
     {
         await _missionAppService.DeleteFile(id);
@@ -211,6 +216,7 @@ public class MissionController : AbpController
     /// <param name="id">任務 Id</param>
     [HttpGet]
     [Route("{id}/files")]
+    //[Route("files/{id}")]
     public Task<List<FileInfoDto>> GetAllFiles(Guid id)
     {
         return _missionAppService.GetAllFiles(id);
@@ -222,8 +228,25 @@ public class MissionController : AbpController
     /// <param name="id">附件 Id</param>
     [HttpPost]
     [Route("update-note")]
+    //[Route("file/{id}/note")]
     public Task UpdateAttachmentNote(Guid id, string note)
     {
         return _missionAppService.UpdateAttachmentNote(id, note);
     }
+
+    /// <summary>
+    /// 下載附件
+    /// </summary>
+    /// <param name="id">附件 Id</param>
+    [HttpPost]
+    [Route("update-note")]
+    //[Route("file/{id}")]
+    public async Task<IActionResult> DownloadFile(Guid id)
+    {
+        var fileDto = await _missionAppService.DownloadFile(id);
+        return File(fileDto.FileContent, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            fileDto.FileName);
+    }
+
+    #endregion 任務附件
 }

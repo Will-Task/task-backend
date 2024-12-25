@@ -117,10 +117,10 @@ namespace Business.TeamManagement
 
             var queryInvitation = await _repositorys.TeamInvitation.GetQueryableAsync();
             var invitations = await queryInvitation
-                .Where(x => x.UserId == currentUserId || x.InvitedUserId == currentUserId)
+                .Where(x => x.TeamId == teamId)
                 .WhereIf(state.HasValue, x => x.State == (Invitation)state)
                 .WhereIf(!name.IsNullOrEmpty(),
-                    x => teamIds.Contains(x.TeamId) || userIds.Contains(x.UserId) || userIds.Contains(x.InvitedUserId))
+                    x => userIds.Contains(x.UserId) || userIds.Contains(x.InvitedUserId))
                 .ToListAsync();
 
             var dtos = ObjectMapper.Map<List<TeamInvitation>, List<TeamInvitationDto>>(invitations);

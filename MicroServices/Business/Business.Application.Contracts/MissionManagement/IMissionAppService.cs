@@ -92,6 +92,8 @@ public interface IMissionAppService : IApplicationService
     /// </summary>
     Task CheckExpiredOrFinished();
 
+    #region 任務附件
+
     /// <summary>
     /// 上傳任務附件
     /// </summary>
@@ -114,4 +116,13 @@ public interface IMissionAppService : IApplicationService
     /// </summary>
     /// <param name="id">附件 Id</param>
     Task UpdateAttachmentNote(Guid id, string note);
+
+
+    /// <summary>
+    /// 下載附件
+    /// </summary>
+    /// <param name="id">附件 Id</param>
+    Task<MyFileInfoDto> DownloadFile(Guid id);
+
+    #endregion 任務附件
 }
