@@ -11,6 +11,14 @@ using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp;
 using Microsoft.EntityFrameworkCore;
+using Business.FileManagement.Dto;
+using Business.FileManagement;
+using ClosedXML.Excel;
+using System.IO;
+using DocumentFormat.OpenXml.Wordprocessing;
+using XCZ.Extensions;
+using Castle.Core.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace Business.TeamManagement
 {
@@ -21,17 +29,27 @@ namespace Business.TeamManagement
             IRepository<Team, Guid> Team,
             IRepository<TeamMember> TeamMember,
             IRepository<TeamInvitation, Guid> TeamInvitation,
-            IRepository<AbpUserView, Guid> AbpUserView
+            IRepository<AbpUserView, Guid> AbpUserView,
+            IRepository<LocalizationText> LocalizationText
             ) _repositorys;
+
+        private readonly IFileAppService _fileAppService;
+
+        private readonly ILogger<TeamAppService> _logger;
 
         public TeamAppService(
             IRepository<Team, Guid> Team,
             IRepository<TeamMember> TeamMember,
             IRepository<TeamInvitation, Guid> TeamInvitation,
-            IRepository<AbpUserView, Guid> AbpUserView
+            IRepository<AbpUserView, Guid> AbpUserView,
+            IRepository<LocalizationText> LocalizationText,
+            IFileAppService fileAppService,
+            ILogger<TeamAppService> logger
             )
         {
-            _repositorys = (Team, TeamMember, TeamInvitation, AbpUserView);
+            _repositorys = (Team, TeamMember, TeamInvitation, AbpUserView, LocalizationText);
+            _fileAppService = fileAppService;
+            _logger = logger;
         }
 
         #region CRUD方法
@@ -75,15 +93,15 @@ namespace Business.TeamManagement
             /// 取得當前使用者所在的所有團隊的TeamId
             var teamIds = await teamMissionQuery.Where(new UserTeamMemberSpecification(userId.Value))
                 .Select(x => x.TeamId).ToListAsync();
-            
+
             var teamQuery = await _repositorys.Team.GetQueryableAsync();
             var teams = await teamQuery.Where(x => teamIds.Contains(x.Id))
                 .WhereIf(year.HasValue, x => x.Year == year)
                 .WhereIf(!name.IsNullOrEmpty(), x => x.Name.Contains(name)).ToListAsync();
-            
+
             return ObjectMapper.Map<List<Team>, List<TeamDto>>(teams);
         }
-        
+
         /// <summary>
         /// 團隊刪除
         /// </summary>
@@ -99,7 +117,7 @@ namespace Business.TeamManagement
             }
             await _repositorys.Team.DeleteAsync(id);
         }
-        
+
         /// <summary>
         /// 獲取邀請的條件
         /// 1. 受邀人為當前使用者
@@ -107,29 +125,10 @@ namespace Business.TeamManagement
         /// </summary>
         public async Task<List<TeamInvitationDto>> GetInvitations(Guid? teamId, int? state, string name)
         {
-            var currentUserId = CurrentUser.Id;
-            var queryUser = await _repositorys.AbpUserView.GetQueryableAsync();
-            var userMap = queryUser.ToDictionary(x => x.Id, x => x.UserName);
-            var userIds = await queryUser.Where(x => x.UserName.Contains(name)).Select(x => x.Id).ToListAsync();
-            var queryTeam = await _repositorys.Team.GetQueryableAsync();
-            var teamMap = queryTeam.ToDictionary(x => x.Id, x => x.Name);
-            var teamIds = await queryTeam.Where(x => x.Name.Contains(name)).Select(x => x.Id).ToListAsync();
-
-            var queryInvitation = await _repositorys.TeamInvitation.GetQueryableAsync();
-            var invitations = await queryInvitation
-                .Where(x => x.TeamId == teamId)
-                .WhereIf(state.HasValue, x => x.State == (Invitation)state)
-                .WhereIf(!name.IsNullOrEmpty(),
-                    x => userIds.Contains(x.UserId) || userIds.Contains(x.InvitedUserId))
-                .ToListAsync();
-
-            var dtos = ObjectMapper.Map<List<TeamInvitation>, List<TeamInvitationDto>>(invitations);
+            var dtos = await SearchInvitations(teamId, state, name);
             dtos.ForEach(x =>
             {
-                x.IsShow = x.ResponseTime.HasValue ? 3 : x.UserId == currentUserId ? 2 : 1;
-                x.TeamName = teamMap[x.TeamId];
-                x.UserName = userMap[x.UserId];
-                x.InvitedUserName = userMap[x.InvitedUserId];
+                x.IsShow = x.ResponseTime.HasValue ? 3 : x.UserId == CurrentUser.Id ? 2 : 1;
             });
             return dtos;
         }
@@ -143,7 +142,7 @@ namespace Business.TeamManagement
             var users = await _repositorys.AbpUserView.GetListAsync(x => x.Id != CurrentUser.Id);
             return ObjectMapper.Map<List<AbpUserView>, List<AbpUserViewDto>>(users);
         }
-        
+
         #endregion CRUD方法
 
         /// <summary>
@@ -217,9 +216,75 @@ namespace Business.TeamManagement
         /// <summary>
         /// 邀請記錄匯出
         /// </summary>
-        public async Task Export(int? state, string name, string code)
+        public async Task<BlobDto> Export(Guid? teamId, int? state, string name, string code)
         {
-            throw new NotImplementedException();
+            var file = await _repositorys.LocalizationText.GetAsync(x => x.LanguageCode == code
+                                        && x.Category == "Template" && x.ItemKey == "21");
+
+            var blobDto = await _fileAppService.DNFile(file.ItemValue);
+
+            using var memoryStream = new MemoryStream(blobDto.Content);
+            using var workBook = new XLWorkbook(memoryStream);
+            var workSheet = workBook.Worksheet(1);
+
+            var dtos = await SearchInvitations(teamId, state, name);
+            var exportDtos = ObjectMapper.Map<List<TeamInvitationDto>, List<ExportTeamInvitationDto>>(dtos);
+
+            var nextChar = 'A';
+            int row = 2;
+            foreach (var dto in exportDtos)
+            {
+                var props = dto.GetType().GetProperties();
+                foreach (var prop in props)
+                {
+                    if (prop.GetValue(dto).IsNullOrEmpty())
+                    {
+                        continue;
+                    }
+                    workSheet.Cell($"{nextChar++}{row}").Value = prop.GetValue(dto).ToString();
+                }
+                row++;
+                nextChar = 'A';
+            }
+
+            using var savingMemoryStream = new MemoryStream();
+            workBook.SaveAs(savingMemoryStream);
+            /// 更新檔案內容
+            blobDto.Content = savingMemoryStream.ToArray();
+
+            return blobDto;
+        }
+
+        private async Task<List<TeamInvitationDto>> SearchInvitations(Guid? teamId, int? state, string name)
+        {
+            var currentUserId = CurrentUser.Id;
+            var queryUser = await _repositorys.AbpUserView.GetQueryableAsync();
+            var userIds = await queryUser.Where(x => x.UserName.Contains(name)).Select(x => x.Id).ToListAsync();
+            var userMap = queryUser.ToDictionary(x => x.Id, x => x.UserName);
+            var queryTeam = await _repositorys.Team.GetQueryableAsync();
+            var teamIds = await queryTeam.Where(x => x.Name.Contains(name)).Select(x => x.Id).ToListAsync();
+            var teamMap = queryTeam.ToDictionary(x => x.Id, x => x.Name);
+
+            var queryInvitation = await _repositorys.TeamInvitation.GetQueryableAsync();
+            var invitations = await queryInvitation
+                .Where(x => x.TeamId == teamId)
+                .WhereIf(state.HasValue, x => x.State == (Invitation)state)
+                .WhereIf(!name.IsNullOrEmpty(),
+                    x => userIds.Contains(x.UserId) || userIds.Contains(x.InvitedUserId))
+                .ToListAsync();
+
+            var dtos = ObjectMapper.Map<List<TeamInvitation>, List<TeamInvitationDto>>(invitations);
+
+            dtos.ForEach(x =>
+            {
+                x.TeamName = teamMap[x.TeamId];
+                x.UserName = userMap[x.UserId];
+                x.InvitedUserName = userMap[x.InvitedUserId];
+            });
+
+            
+
+            return dtos;
         }
     }
 }

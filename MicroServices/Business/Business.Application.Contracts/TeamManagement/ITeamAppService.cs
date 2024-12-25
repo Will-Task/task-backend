@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Business.CommonManagement.Dto;
 using Business.Models;
 using Volo.Abp.Application.Services;
+using Business.FileManagement.Dto;
 
 namespace Business.TeamManagement
 {
@@ -72,6 +73,6 @@ namespace Business.TeamManagement
         /// <summary>
         /// 邀請記錄匯出
         /// </summary>
-        Task Export(int? state, string name, string code);
+        Task<BlobDto> Export(Guid? teamId, int? state, string name, string code);
     }
 }

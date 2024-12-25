@@ -135,10 +135,11 @@ namespace Business.Controllers
         /// </summary>
         [HttpPost]
         [Route("export")]
-        public Task<IActionResult> Export(int? state, string name, string code)
+        public async Task<IActionResult> Export(Guid? teamId, int? state, string name, string code)
         {
-            _teamAppService.Export(state, name, code);
-            return null;
+            var blobDto = await _teamAppService.Export(teamId, state, name, code);
+            return File(blobDto.Content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                blobDto.Name);
         }
     }
 }
