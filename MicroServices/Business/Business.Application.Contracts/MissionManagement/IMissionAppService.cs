@@ -122,7 +122,7 @@ public interface IMissionAppService : IApplicationService
     /// 下載附件
     /// </summary>
     /// <param name="id">附件 Id</param>
-    Task<MyFileInfoDto> DownloadFile(Guid id);
+    Task<BlobDto> DownloadFile(Guid id);
 
     #endregion 任務附件
 }

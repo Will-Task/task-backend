@@ -777,11 +777,10 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// 下載附件
     /// </summary>
     /// <param name="id">附件 Id</param>
-    public Task<MyFileInfoDto> DownloadFile(Guid id)
+    public async Task<BlobDto> DownloadFile(Guid id)
     {
-        throw new NotImplementedException();
-        //return new MyFileInfoDto
-        //{ FileContent = savingMemoryStream.ToArray(), FileName = $"{parent.MissionName}的匯出檔案.xlsx" };
+        var file = await _fileAppService.GetFile(id);
+        return file;
     }
 
     #endregion 任務附件

@@ -20,7 +20,7 @@ public interface IFileAppService : IApplicationService
     /// 獲取單一附件
     /// </summary>
     /// <param name="id"> 附件Id </param>
-    Task<FileInfoDto> GetFile(Guid id);
+    Task<BlobDto> GetFile(Guid id);
 
     /// <summary>
     /// 獲取某任務下所有附件

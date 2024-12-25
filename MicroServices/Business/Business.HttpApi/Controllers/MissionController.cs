@@ -238,14 +238,14 @@ public class MissionController : AbpController
     /// 下載附件
     /// </summary>
     /// <param name="id">附件 Id</param>
-    [HttpPost]
-    [Route("update-note")]
+    [HttpGet]
+    [Route("download-file")]
     //[Route("file/{id}")]
     public async Task<IActionResult> DownloadFile(Guid id)
     {
         var fileDto = await _missionAppService.DownloadFile(id);
-        return File(fileDto.FileContent, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            fileDto.FileName);
+        return File(fileDto.Content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            fileDto.Name);
     }
 
     #endregion 任務附件

@@ -149,10 +149,11 @@ public class FileAppService : ApplicationService, IFileAppService
     /// 獲取單一附件
     /// </summary>
     /// <param name="id"> 附件Id </param>
-    public async Task<FileInfoDto> GetFile(Guid id)
+    public async Task<BlobDto> GetFile(Guid id)
     {
         var file = await _repository.GetAsync(id);
-        return ObjectMapper.Map<FileInfo, FileInfoDto>(file);
+        var content = await File.ReadAllBytesAsync(file.Path);
+        return new BlobDto { Content = content, Name = file.RealName };
     }
 
     /// <summary>
