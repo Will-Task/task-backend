@@ -1,7 +1,6 @@
 using Business.Localization;
 using Volo.Abp.Authorization.Permissions;
 using Volo.Abp.Localization;
-using Volo.Abp.MultiTenancy;
 
 namespace Business.Permissions
 {
@@ -40,9 +39,14 @@ namespace Business.Permissions
             Dashboard.AddChild(BusinessPermissions.TaskDashboard.Create, L("Create"));
             
             var Report = Business.AddPermission(BusinessPermissions.TaskReport.Default, L("TaskReport"));
-            Dashboard.AddChild(BusinessPermissions.TaskReport.Update, L("Edit"));
-            Dashboard.AddChild(BusinessPermissions.TaskReport.Delete, L("Delete"));
-            Dashboard.AddChild(BusinessPermissions.TaskReport.Create, L("Create"));
+            Report.AddChild(BusinessPermissions.TaskReport.Update, L("Edit"));
+            Report.AddChild(BusinessPermissions.TaskReport.Delete, L("Delete"));
+            Report.AddChild(BusinessPermissions.TaskReport.Create, L("Create"));
+            
+            var Team = Business.AddPermission(BusinessPermissions.TaskTeam.Default, L("TaskTeam"));
+            Team.AddChild(BusinessPermissions.TaskTeam.Update, L("Edit"));
+            Team.AddChild(BusinessPermissions.TaskTeam.Delete, L("Delete"));
+            Team.AddChild(BusinessPermissions.TaskTeam.Create, L("Create"));
             
             var organization = Business.AddPermission(BusinessPermissions.TaskOrganization.Default, L("TaskOrganization"));
             organization.AddChild(BusinessPermissions.TaskOrganization.Update, L("Edit"));

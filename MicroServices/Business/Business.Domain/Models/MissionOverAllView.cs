@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.InteropServices.JavaScript;
 using Volo.Abp.Domain.Entities;
 
 namespace Business.Models;

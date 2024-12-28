@@ -1,7 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using Business.Enums;
-using Volo.Abp.Application.Dtos;
 
 namespace Business.MissionManagement.Dto;
 

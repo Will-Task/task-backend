@@ -1,27 +1,28 @@
-﻿using Business.Core.Enums;
-using Business.Models;
-using Business.TeamManagement.Dto;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Business.CommonManagement.Dto;
+using Business.Core.Enums;
+using Business.FileManagement;
+using Business.FileManagement.Dto;
+using Business.Models;
+using Business.Permissions;
 using Business.Specifications.TeamMember;
+using Business.TeamManagement.Dto;
+using ClosedXML.Excel;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
-using Volo.Abp;
-using Microsoft.EntityFrameworkCore;
-using Business.FileManagement.Dto;
-using Business.FileManagement;
-using ClosedXML.Excel;
-using System.IO;
-using DocumentFormat.OpenXml.Wordprocessing;
 using XCZ.Extensions;
-using Castle.Core.Logging;
-using Microsoft.Extensions.Logging;
 
 namespace Business.TeamManagement
 {
+    [Authorize(BusinessPermissions.TaskTeam.Default)]
     [RemoteService(false)]
     public class TeamAppService : ApplicationService, ITeamAppService
     {

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using Volo.Abp.Domain.Entities.Auditing;
-using Volo.Abp;
 using Business.Core.Enums;
+using Volo.Abp;
+using Volo.Abp.Domain.Entities.Auditing;
 
 namespace Business.Models
 {

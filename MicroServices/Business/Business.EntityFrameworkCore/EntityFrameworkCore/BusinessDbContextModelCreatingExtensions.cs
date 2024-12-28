@@ -1,7 +1,6 @@
 using Business.Models;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp;
-using Volo.Abp.EntityFrameworkCore.Modeling;
 
 namespace Business.EntityFrameworkCore
 {

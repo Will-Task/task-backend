@@ -1,6 +1,6 @@
-﻿using Business.Core.Enums;
-using System;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
+using Business.Core.Enums;
 using Volo.Abp.Application.Dtos;
 
 namespace Business.TeamManagement.Dto;

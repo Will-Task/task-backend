@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Business.MissionManagement.Dto;
 using Business.Models;
+
 namespace Business.MissionManagement;
 
 public class MissionAutoMapperProfile: Profile

@@ -1,7 +1,4 @@
-﻿using System;
-using Volo.Abp.Application.Dtos;
-
-namespace Business.FileManagement.Dto;
+﻿namespace Business.FileManagement.Dto;
 
 public class MyFileInfoDto
 {

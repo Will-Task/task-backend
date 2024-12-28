@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
 using Business.Enums;
 using Volo.Abp.Application.Dtos;
 

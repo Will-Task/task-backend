@@ -1,11 +1,5 @@
-﻿using Business.Core.Enums;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Volo.Abp.Application.Dtos;
+﻿using System;
+using Business.Core.Enums;
 
 namespace Business.TeamManagement.Dto
 {

@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace Business.Permissions
 {
     public static class BusinessPermissions
@@ -51,6 +47,14 @@ namespace Business.Permissions
         public static class TaskReport
         {
             public const string Default = Business + ".TaskReport";
+            public const string Delete = Default + ".Delete";
+            public const string Update = Default + ".Update";
+            public const string Create = Default + ".Create";
+        }
+        
+        public static class TaskTeam
+        {
+            public const string Default = Business + ".TaskTeam";
             public const string Delete = Default + ".Delete";
             public const string Update = Default + ".Update";
             public const string Create = Default + ".Create";

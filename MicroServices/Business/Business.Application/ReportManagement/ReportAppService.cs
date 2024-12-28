@@ -2,18 +2,17 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
 using Business.FileManagement.Dto;
 using Business.MissionCategoryManagement.Dto;
 using Business.MissionManagement;
-using Business.MissionManagement.Dto;
 using Business.Models;
 using Business.Permissions;
 using Business.ReportManagement.Dto;
 using ClosedXML.Excel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
+using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 using XCZ.Extensions;
@@ -21,6 +20,7 @@ using XCZ.Extensions;
 namespace Business.ReportManagement;
 
 [Authorize(BusinessPermissions.TaskReport.Default)]
+[RemoteService(false)]
 public class ReportAppService : ApplicationService, IReportAppService
 {
     private readonly (
