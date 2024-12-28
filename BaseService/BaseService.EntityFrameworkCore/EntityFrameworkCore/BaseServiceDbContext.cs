@@ -46,6 +46,7 @@ namespace BaseService.EntityFrameworkCore
             //    b.Property(x => x.Enable).HasDefaultValue(true);
 
             //}); 
+            builder.ConfigureBaseService();
         }
     }
 }
