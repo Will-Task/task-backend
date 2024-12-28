@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 using Business.FileManagement.Dto;
 using Business.MissionCategoryManagement.Dto;
 using Business.MissionManagement;
+using Business.MissionManagement.Dto;
 using Business.Models;
 using Business.Permissions;
+using Business.ReportManagement.Dto;
 using ClosedXML.Excel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
@@ -27,7 +29,9 @@ public class ReportAppService : ApplicationService, IReportAppService
         IRepository<MissionCategoryView> MissionCategoryView,
         IRepository<MissionView> MissionView,
         IRepository<Language> Language,
-        IRepository<LocalizationText> LocalizationText
+        IRepository<LocalizationText> LocalizationText,
+        IRepository<MissionI18N> MissionI18N,
+        IRepository<MissionCategoryI18N> MissionCategoryI18N
         ) _repositorys;
 
     private readonly ILogger<MissionAppService> _logger;
@@ -39,9 +43,11 @@ public class ReportAppService : ApplicationService, IReportAppService
         IRepository<MissionView> MissionView,
         IRepository<Language> Language,
         IRepository<LocalizationText> LocalizationText,
+        IRepository<MissionI18N> MissionI18N,
+        IRepository<MissionCategoryI18N> MissionCategoryI18N,
         ILogger<MissionAppService> logger)
     {
-        _repositorys = (Langugage, MissionOverAllView, MissionCategoryView, MissionView, Language, LocalizationText);
+        _repositorys = (Langugage, MissionOverAllView, MissionCategoryView, MissionView, Language, LocalizationText, MissionI18N, MissionCategoryI18N);
         _logger = logger;
     }
 
@@ -59,10 +65,44 @@ public class ReportAppService : ApplicationService, IReportAppService
         var isFinishMap = queryLocalization.Where(x => x.LanguageCode == code && x.Category == "MissionState")
             .ToDictionary(x => x.ItemKey, x => x.ItemValue);
         var language = await _repositorys.Langugage.GetAsync(x => x.Code == code);
+        
+        /// 多國語系資料
+        var queryMissionI18N = await _repositorys.MissionI18N.GetQueryableAsync();
+        var defaultMissionMap = queryMissionI18N.OrderBy(x => x.Lang == language.Id ? 0 : x.Lang)
+            .OrderBy(x => x.Lang).GroupBy(x => x.MissionId)
+            .ToDictionary(g => g.Key, x => x.First().MissionName );
+    
+        var queryCategoryI18N = await _repositorys.MissionCategoryI18N.GetQueryableAsync();
+        var defaultCategoryMap = queryCategoryI18N.OrderBy(x => x.Lang == language.Id ? 0 : x.Lang)
+            .OrderBy(x => x.Lang).GroupBy(x => x.MissionCategoryId)
+            .ToDictionary(g => g.Key, x => x.First().MissionCategoryName );
 
         /// 獲取任務overAllView
         var missions = await _repositorys.MissionOverAllView
             .GetListAsync(x => x.TeamId == teamId && x.Lang == language.Id && ids.Contains(x.SubCategoryId));
+        var dtos = ObjectMapper.Map<List<MissionOverAllView>, List<MissionOverAllViewDto>>(missions);
+        
+        foreach (var dto in dtos)
+        {
+            if (dto.MissionName.IsNullOrEmpty())
+            {
+                dto.MissionName = defaultMissionMap[dto.MissionId];
+            }
+            if (dto.SubMissionName.IsNullOrEmpty())
+            {
+                dto.SubMissionName = defaultMissionMap[dto.MissionId];
+            }
+            if (dto.CategoryName.IsNullOrEmpty())
+            {
+                dto.CategoryName = defaultCategoryMap[dto.CategoryId];
+            }
+            if (dto.SubCategoryName.IsNullOrEmpty())
+            {
+                dto.SubCategoryName = defaultCategoryMap[dto.CategoryId];
+            }
+        }
+        
+        var exportDtos = ObjectMapper.Map<List<MissionOverAllViewDto>, List<ExportMissionOverAllViewDto>>(dtos);
 
         var startColumn = 1;
         var startRow = 1;
@@ -103,13 +143,12 @@ public class ReportAppService : ApplicationService, IReportAppService
             .GroupBy(x => x.ParentMissionId).ToDictionary(g => g.Key, x => x.All(y => y.MissionFinishTime != null));
 
         var startDataColumn = startColumn;
-        for (int i = 0; i < missions.Count; i++)
+        foreach (var exportDto in exportDtos)
         {
-            var properties = missions[i].GetType().GetProperties();
+            var properties = exportDto.GetType().GetProperties();
             foreach (var property in properties)
             {
-                if (property.PropertyType == typeof(Guid) || property.PropertyType == typeof(int) ||
-                    property.PropertyType == typeof(Int64))
+                if (property.PropertyType == typeof(Guid))
                 {
                     continue;
                 }
@@ -118,18 +157,17 @@ public class ReportAppService : ApplicationService, IReportAppService
                 {
                     /// 0 -> 否 , 1 -> 是
                     string isFinish = property.Name == "MissionFinishTime" 
-                        ? isMissionFinishMap[missions[i].MissionId] ? isFinishMap["1"] : isFinishMap["0"]
-                        : property.GetValue(missions[i]).IsNullOrEmpty() ? isFinishMap["0"] : isFinishMap["1"];
+                        ? isMissionFinishMap[exportDto.MissionId] ? isFinishMap["1"] : isFinishMap["0"]
+                        : property.GetValue(exportDto).IsNullOrEmpty() ? isFinishMap["0"] : isFinishMap["1"];
                     if(property.Name == "MissionFinishTime")
                     {
-                        var b = isMissionFinishMap[missions[i].MissionId] ? isFinishMap["1"] : isFinishMap["0"];
-                        _logger.LogError($"==================={b}");
+                        var b = isMissionFinishMap[exportDto.MissionId] ? isFinishMap["1"] : isFinishMap["0"];
                     }
                     worksheet.Cell(startRow, startDataColumn++).Value = $"{isFinish}";
                 }
                 else
                 {
-                    worksheet.Cell(startRow, startDataColumn++).Value = $"{property.GetValue(missions[i])}";
+                    worksheet.Cell(startRow, startDataColumn++).Value = $"{property.GetValue(exportDto)}";
                 }
             }
 
