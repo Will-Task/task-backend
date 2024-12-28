@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using BaseService.BaseData;
+﻿using BaseService.BaseData;
 using BaseService.Systems;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.Data;
 using Volo.Abp.EntityFrameworkCore;
-using Volo.Abp.Identity;
 
 namespace BaseService.EntityFrameworkCore
 {
@@ -27,16 +24,6 @@ namespace BaseService.EntityFrameworkCore
         public DbSet<Menu> Menus { get; set; }
 
         public DbSet<RoleMenu> RoleMenus { get; set; }
-        
-        public DbSet<Team> Team { get; set; }
-        
-        public DbSet<TeamView> TeamView { get; set; }
-        
-        public DbSet<TeamMission> TeamMission { get; set; }
-        
-        public DbSet<TeamInvitation> TeamInvitation { get; set; }
-        
-        public DbSet<TeamInvitationView> TeamInvitationView { get; set; }
 
         public BaseServiceDbContext(DbContextOptions<BaseServiceDbContext> options)
             : base(options)
@@ -59,10 +46,6 @@ namespace BaseService.EntityFrameworkCore
             //    b.Property(x => x.Enable).HasDefaultValue(true);
 
             //}); 
-            
-            // 要設定，不然TeamMission會報錯
-            builder.Entity<TeamMission>().HasKey(c => new { c.TeamId, c.UserId });
-            builder.ConfigureBaseService();
         }
     }
 }

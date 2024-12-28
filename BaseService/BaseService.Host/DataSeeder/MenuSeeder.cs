@@ -1,6 +1,6 @@
-﻿using BaseService.Systems;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using BaseService.Systems;
 
 namespace BaseService.DataSeeder
 {

@@ -1,9 +1,9 @@
-﻿using BaseService.Controllers;
+﻿using System;
+using System.Threading.Tasks;
+using BaseService.Controllers;
 using BaseService.Systems.UserManagement;
 using BaseService.Systems.UserManagement.Dto;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Identity;
 

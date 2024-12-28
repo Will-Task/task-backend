@@ -1,10 +1,9 @@
-﻿using BaseService.BaseData;
-using BaseService.Systems;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using BaseService.BaseData;
+using BaseService.Systems;
+using Microsoft.EntityFrameworkCore;
 using Volo.Abp.Data;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Domain.Repositories;

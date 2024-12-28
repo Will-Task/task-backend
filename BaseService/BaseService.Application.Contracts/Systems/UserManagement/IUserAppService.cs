@@ -1,6 +1,6 @@
-﻿using BaseService.Systems.UserManagement.Dto;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using BaseService.Systems.UserManagement.Dto;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Identity;

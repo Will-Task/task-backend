@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace BaseService.Permissions
+﻿namespace BaseService.Permissions
 {
     public static class BaseServicePermissions
     {

@@ -1,8 +1,7 @@
-﻿using BaseService.BaseData.JobManagement.Dto;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
+using BaseService.BaseData.JobManagement.Dto;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 

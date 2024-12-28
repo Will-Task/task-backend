@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace BaseService.BaseData.JobManagement.Dto
+﻿namespace BaseService.BaseData.JobManagement.Dto
 {
     public class CreateOrUpdateJobDto
     {

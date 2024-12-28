@@ -1,10 +1,10 @@
-﻿using BaseService.BaseData.OrganizationManagement;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using BaseService.BaseData.OrganizationManagement;
 using BaseService.BaseData.OrganizationManagement.Dto;
 using BaseService.Controllers;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Volo.Abp.Application.Dtos;
 
 namespace BaseService.BaseData

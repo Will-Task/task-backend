@@ -1,8 +1,4 @@
-﻿using System;
-using Volo.Abp.Domain.Entities.Auditing;
-using Volo.Abp.Users;
-
-namespace BaseService.Users
+﻿namespace BaseService.Users
 {
     //public class AppUser : FullAuditedAggregateRoot<Guid>, IUser
     //{
