@@ -10,6 +10,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Business.Application.Contracts", "Business.Application.Contracts\Business.Application.Contracts.csproj", "{990F21A5-2493-4558-89D1-85CCB752EFC6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Business.Application", "Business.Application\Business.Application.csproj", "{F06160BF-9B1E-42CC-8576-99367956EFBF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B0E9236E-F636-4051-AB4A-D5CF5FFBCBF2} = {B0E9236E-F636-4051-AB4A-D5CF5FFBCBF2}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Business.EntityFrameworkCore", "Business.EntityFrameworkCore\Business.EntityFrameworkCore.csproj", "{2BB91982-0335-4C9F-AF9D-13ED2BF5493F}"
 EndProject
@@ -19,7 +22,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Business.HttpApi.Client", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Business.Core", "Business.Core\Business.Core.csproj", "{183A14B9-5316-4D18-95E8-AE17D1302AF0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Business.Batch.Trigger", "Business.Batch.Trigger\Business.Batch.Trigger.csproj", "{EFB781D4-8507-4FC4-8881-1553A2849EBE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Business.Batch.Trigger", "Business.Batch.Trigger\Business.Batch.Trigger.csproj", "{EFB781D4-8507-4FC4-8881-1553A2849EBE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

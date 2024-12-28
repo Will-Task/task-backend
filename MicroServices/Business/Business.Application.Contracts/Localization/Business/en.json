@@ -3,6 +3,12 @@
   "texts": {
     "Menu:Home": "Home",
     "Welcome": "Welcome",
-    "LongWelcomeMessage": "Welcome to the application. This is a startup project based on the ABP framework. For more information, visit abp.io."
+    "LongWelcomeMessage": "Welcome to the application. This is a startup project based on the ABP framework. For more information, visit abp.io.",
+    "FinishReport:Column:Category": "Category",
+    "FinishReport:Column:SubCategory": "Subcategory",
+    "FinishReport:Column:Mission": "Parent Task",
+    "FinishReport:Column:isFinish": "Is Completed",
+    "FinishReport:Column:SubMission": "Subtask",
+    "FinishReport:Column:MissionFinishRate": "Parent Task Completion Status (%)"
   }
 }

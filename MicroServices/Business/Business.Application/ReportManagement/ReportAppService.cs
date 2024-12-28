@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Business.FileManagement.Dto;
+using Business.Localization;
 using Business.MissionCategoryManagement.Dto;
 using Business.MissionManagement;
 using Business.Models;
@@ -11,11 +13,13 @@ using Business.Permissions;
 using Business.ReportManagement.Dto;
 using ClosedXML.Excel;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 using XCZ.Extensions;
+using Business.Common;
 
 namespace Business.ReportManagement;
 
@@ -35,6 +39,7 @@ public class ReportAppService : ApplicationService, IReportAppService
         ) _repositorys;
 
     private readonly ILogger<MissionAppService> _logger;
+    private readonly IStringLocalizer<BusinessResource> _localizer;
 
     public ReportAppService(
         IRepository<Language> Langugage,
@@ -45,10 +50,12 @@ public class ReportAppService : ApplicationService, IReportAppService
         IRepository<LocalizationText> LocalizationText,
         IRepository<MissionI18N> MissionI18N,
         IRepository<MissionCategoryI18N> MissionCategoryI18N,
-        ILogger<MissionAppService> logger)
+        ILogger<MissionAppService> logger,
+        IStringLocalizer<BusinessResource> localizer)
     {
         _repositorys = (Langugage, MissionOverAllView, MissionCategoryView, MissionView, Language, LocalizationText, MissionI18N, MissionCategoryI18N);
         _logger = logger;
+        _localizer = localizer;
     }
 
     /// <summary>
@@ -65,7 +72,12 @@ public class ReportAppService : ApplicationService, IReportAppService
         var isFinishMap = queryLocalization.Where(x => x.LanguageCode == code && x.Category == "MissionState")
             .ToDictionary(x => x.ItemKey, x => x.ItemValue);
         var language = await _repositorys.Langugage.GetAsync(x => x.Code == code);
-        
+
+        /// 為Localization設定當前語系，CurrentCulture & CurrentUICulture都要設定
+        var culture = Utils.GetCulture(language.Id);
+        CultureInfo.CurrentCulture = new CultureInfo("zh-Hant");
+        CultureInfo.CurrentUICulture = new CultureInfo("zh-Hant");
+
         /// 多國語系資料
         var queryMissionI18N = await _repositorys.MissionI18N.GetQueryableAsync();
         var defaultMissionMap = queryMissionI18N.OrderBy(x => x.Lang == language.Id ? 0 : x.Lang)
@@ -127,7 +139,9 @@ public class ReportAppService : ApplicationService, IReportAppService
 
         /// 寫入Title
         int titleStartColumn = startColumn;
-        var titles = new List<string> { "類別", "子類別", "父任務", "是否完成", "子任務", "是否完成", "父任務完成狀態(%)" };
+        var titles = new List<string> { $"{_localizer["FinishReport:Column:Category"]}", $"{_localizer["FinishReport:Column:SubCategory"]}", $"{_localizer["FinishReport:Column:Mission"]}",
+                                          $"{_localizer["FinishReport:Column:isFinish"]}", $"{_localizer["FinishReport:Column:SubMission"]}", $"{_localizer["FinishReport:Column:isFinish"]}"
+                                          , $"{_localizer["FinishReport:Column:MissionFinishRate"]}" };
         /// 設背景顏色
         worksheet.Range(startRow, ++startColumn, startRow, endColumn).Style.Fill.BackgroundColor = XLColor.BallBlue;
         foreach (var title in titles)
