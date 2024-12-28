@@ -31,6 +31,16 @@ public class MissionController : AbpController
     {
         return _missionAppService.DataPost(input);
     }
+    
+    /// <summary>
+    /// 任期更新(日曆上拖拉時)
+    /// </summary>
+    [HttpPost]
+    [Route("{id}/date")]
+    public async Task UpdateDate(Guid id, int change)
+    {
+        await _missionAppService.UpdateDate(id, change);
+    }
 
     /// <summary>
     /// 刪除任務(單 or 多筆)

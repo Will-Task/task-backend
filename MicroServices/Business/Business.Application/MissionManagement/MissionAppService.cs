@@ -149,6 +149,16 @@ public class MissionAppService : ApplicationService, IMissionAppService
     }
 
     /// <summary>
+    /// 任期更新(日曆上拖拉時)
+    /// </summary>
+    public async Task UpdateDate(Guid id, int change)
+    {
+        var mission = await _repositoys.Mission.GetAsync(id);
+        mission.MissionStartTime = mission.MissionStartTime.AddDays(change);
+        mission.MissionEndTime = mission.MissionEndTime.AddDays(change);
+    }
+
+    /// <summary>
     /// 刪除任務(單 or 多筆)
     /// </summary>
     public async Task Delete(Guid id, int lang)

@@ -17,6 +17,11 @@ public interface IMissionAppService : IApplicationService
     Task<MissionI18NDto> DataPost(CreateOrUpdateMissionDto input);
 
     /// <summary>
+    /// 任期更新(日曆上拖拉時)
+    /// </summary>
+    Task UpdateDate(Guid id, int change);
+
+    /// <summary>
     /// 刪除任務(單 or 多筆)
     /// </summary>
     Task Delete(Guid id, int lang);
