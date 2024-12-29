@@ -35,8 +35,8 @@ public class ReportController : AbpController
     /// </summary>
     [Route("reportData")]
     [HttpGet]
-    public async Task<List<MissionCategoryViewDto>> GetReportData(Guid? teamId, string code)
+    public async Task<List<MissionCategoryViewDto>> GetReportData(Guid? teamId)
     {
-        return await _reportAppService.GetReportData(teamId, code);
+        return await _reportAppService.GetReportData(teamId);
     }
 }

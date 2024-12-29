@@ -17,6 +17,4 @@ public class ExportMissionOverAllViewDto
     public string SubMissionName { get; set; }
     
     public DateTime? SubMissionFinishTime { get; set; } 
-    
-    public int Lang { get; set; }
 }

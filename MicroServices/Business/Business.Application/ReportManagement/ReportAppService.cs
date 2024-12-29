@@ -200,15 +200,27 @@ public class ReportAppService : ApplicationService, IReportAppService
     /// <summary>
     /// 獲取可匯出任務完成度報告的類別
     /// </summary>
-    public async Task<List<MissionCategoryViewDto>> GetReportData(Guid? teamId, string code)
+    public async Task<List<MissionCategoryViewDto>> GetReportData(Guid? teamId)
     {
-        var lang = 1;
-        var lauguage = await _repositorys.Langugage.FindAsync(x => x.Code == code);
-        lang = !lauguage.IsNullOrEmpty() ? lauguage.Id : lang;
-        // 取得父任務和子任務同筆的數據
+        /// 調整多國語系資料
+        var query = await _repositorys.MissionCategoryI18N.GetQueryableAsync();
+        var defaultCategoryMap = query.OrderBy(x => x.Lang == 1 ? 0 : x.Lang)
+            .OrderBy(x => x.Lang).GroupBy(x => x.MissionCategoryId)
+            .ToDictionary(g => g.Key, x => x.First().MissionCategoryName);
+        
+        /// 取得父任務和子任務同筆的數據
         var categories = await _repositorys.MissionCategoryView
-            .GetListAsync(x => x.TeamId == teamId && x.Lang == lang && x.ParentId != null);
+            .GetListAsync(x => x.TeamId == teamId && x.ParentId != null);
+        var dtos = ObjectMapper.Map<List<MissionCategoryView>, List<MissionCategoryViewDto>>(categories);
+        
+        foreach (var dto in dtos)
+        {
+            if (dto.MissionCategoryName.IsNullOrEmpty())
+            {
+                dto.MissionCategoryName = defaultCategoryMap[dto.MissionCategoryId];
+            }
+        }
 
-        return ObjectMapper.Map<List<MissionCategoryView>, List<MissionCategoryViewDto>>(categories);
+        return dtos;
     }
 }

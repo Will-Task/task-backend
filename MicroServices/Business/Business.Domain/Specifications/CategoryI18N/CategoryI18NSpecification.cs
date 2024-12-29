@@ -9,7 +9,7 @@ public class CategoryI18NSpecification : Specification<MissionCategoryI18N>
 {
     private Guid _categoryId;
 
-    private int? _lang;
+    private int _lang;
 
     public CategoryI18NSpecification(Guid categoryId)
     {
@@ -24,6 +24,6 @@ public class CategoryI18NSpecification : Specification<MissionCategoryI18N>
 
     public override Expression<Func<MissionCategoryI18N, bool>> ToExpression()
     {
-        return x => x.MissionCategoryId == _categoryId && (!_lang.HasValue || x.Lang == _lang);
+        return x => x.MissionCategoryId == _categoryId && x.Lang == _lang;
     }
 }

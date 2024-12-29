@@ -140,7 +140,7 @@ namespace Business.TeamManagement
         /// <param name="id">Team Id</param>
         public async Task<List<AbpUserViewDto>> GetUsers(string name)
         {
-            var users = await _repositorys.AbpUserView.GetListAsync(x => x.Id != CurrentUser.Id);
+            var users = await _repositorys.AbpUserView.GetListAsync(x => x.Id != CurrentUser.Id && x.UserName.Contains(name));
             return ObjectMapper.Map<List<AbpUserView>, List<AbpUserViewDto>>(users);
         }
 
