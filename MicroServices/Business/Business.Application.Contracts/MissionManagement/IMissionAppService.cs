@@ -128,4 +128,9 @@ public interface IMissionAppService : IApplicationService
     Task<BlobDto> DownloadFile(Guid id);
 
     #endregion 任務附件
+
+    /// <summary>
+    /// 把任務同步到 Google Calendar
+    /// </summary>
+    Task MissionSyncToGoogle();
 }

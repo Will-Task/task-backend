@@ -259,4 +259,14 @@ public class MissionController : AbpController
     }
 
     #endregion 任務附件
+
+    /// <summary>
+    /// 把任務同步到 Google Calendar
+    /// </summar>
+    [HttpGet]
+    [Route("sync")]
+    public async Task MissionSyncToGoogle()
+    {
+        await _missionAppService.MissionSyncToGoogle();
+    }
 }

@@ -794,6 +794,15 @@ public class MissionAppService : ApplicationService, IMissionAppService
     }
 
     #endregion 任務附件
+    
+    /// <summary>
+    /// 把任務同步到 Google Calendar
+    /// </summary>
+    [AllowAnonymous]
+    public async Task MissionSyncToGoogle()
+    {
+        _logger.LogError("========================================任務同步到 google 授權已通過");
+    }
 
     /// <summary>
     /// 設定自己的定時任務
