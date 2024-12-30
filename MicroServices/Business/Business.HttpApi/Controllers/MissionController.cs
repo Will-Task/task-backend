@@ -264,6 +264,16 @@ public class MissionController : AbpController
     #endregion 任務附件
 
     /// <summary>
+    /// 取得任務同步到 Google 的 URL
+    /// </summary>
+    [HttpGet]
+    [Route("sync/url")]
+    public string GetMissionSyncUrl()
+    {
+        return _missionAppService.GetMissionSyncUrl();
+    }
+
+    /// <summary>
     /// 把任務同步到 Google Calendar
     /// </summar>
     [HttpGet]

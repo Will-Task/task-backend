@@ -24,7 +24,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Primitives;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -51,7 +50,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         ) _repositoys;
 
     private readonly IFileAppService _fileAppService;
-    private readonly IConfiguration _Configuration;
+    private readonly IConfiguration _configuration;
     private readonly ILogger<MissionAppService> _logger;
     private readonly IDataFilter _dataFilter;
     private readonly int ExcelBeginLine = 5;
@@ -76,14 +75,14 @@ public class MissionAppService : ApplicationService, IMissionAppService
         IRepository<LocalizationText> LocalizationText,
         IRepository<Language> Language,
         IFileAppService fileAppService,
-        IConfiguration Configuration,
+        IConfiguration configuration,
         IDataFilter dataFilter,
         ILogger<MissionAppService> logger)
     {
         _repositoys = (Mission, MissionI18N, MissionView, MissionCategory, MissionCategoryI18N,
             MissionCategoryView, AbpUserView, LocalizationText, Language);
         _fileAppService = fileAppService;
-        _Configuration = Configuration;
+        _configuration = configuration;
         _dataFilter = dataFilter;
         _logger = logger;
     }
@@ -602,7 +601,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         {
             Subject = subject,
             Body = body,
-            From = new MailAddress(_Configuration["Email:UserName"]),
+            From = new MailAddress(_configuration["Email:UserName"]),
             To = { email },
         };
 
@@ -622,7 +621,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         client.UseDefaultCredentials = false;
         // 密碼是應用程式密碼
         client.Credentials =
-            new NetworkCredential(_Configuration["Email:UserName"], _Configuration["Email:Password"]);
+            new NetworkCredential(_configuration["Email:UserName"], _configuration["Email:Password"]);
         client.EnableSsl = true;
         await client.SendMailAsync(mailMessage);
         client.Dispose();
@@ -800,6 +799,18 @@ public class MissionAppService : ApplicationService, IMissionAppService
     }
 
     #endregion 任務附件
+
+    /// <summary>
+    /// 取得任務同步到 Google 的 URL
+    /// </summary>
+    public string GetMissionSyncUrl()
+    {
+        var baseUrl = _configuration["AsncToGoogle:BaseUrl"];
+        var clientId = _configuration["web:client_id"];
+        var param = _configuration["AsncToGoogle:params"];
+
+        return baseUrl + clientId + param;
+    }
 
     /// <summary>
     /// 把任務同步到 Google Calendar

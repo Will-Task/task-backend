@@ -131,6 +131,11 @@ public interface IMissionAppService : IApplicationService
     #endregion 任務附件
 
     /// <summary>
+    /// 取得任務同步到 Google 的 URL
+    /// </summary>
+    string GetMissionSyncUrl();
+
+    /// <summary>
     /// 把任務同步到 Google Calendar
     /// </summary>
     Task MissionSyncToGoogle(string code, Guid? teamId);
