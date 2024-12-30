@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
+using Business.Common;
 using Business.Enums;
 using Business.FileManagement;
 using Business.FileManagement.Dto;
@@ -14,11 +15,16 @@ using Business.Models;
 using Business.Permissions;
 using Business.Specifications;
 using ClosedXML.Excel;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Calendar.v3;
+using Google.Apis.Calendar.v3.Data;
+using Google.Apis.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -209,12 +215,12 @@ public class MissionAppService : ApplicationService, IMissionAppService
         dtos = allData ? dtos : dtos.Skip((page - 1) * pageSize).Take(pageSize).ToList();
 
         var queryMission = await _repositoys.MissionI18N.GetQueryableAsync();
-        
+
         // 指定語系 -> 中文 -> 任一語系 ， 符合規則的第一筆
         var defaultMission = queryMission.OrderBy(x => x.Lang == 1 ? 0 : x.Lang)
             .OrderBy(x => x.Lang).GroupBy(x => x.MissionId)
             .ToDictionary(g => g.Key, x => x.First());
-            
+
         foreach (var dto in dtos)
         {
             if (dto.MissionName.IsNullOrEmpty())
@@ -493,7 +499,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
                         DateTimeStyles.AllowWhiteSpaces, out DateTime dateTime);
                     property.SetValue(dto, dateTime);
                 }
-                else if(!value.IsNullOrEmpty())
+                else if (!value.IsNullOrEmpty())
                 {
                     property.SetValue(dto, value);
                 }
@@ -636,7 +642,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
             .GroupBy(g => g.MissionId).ToDictionary(g => g.Key, g => g.First());
         var queryUser = await _repositoys.AbpUserView.GetQueryableAsync();
         var emailMap = queryUser.ToDictionary(x => x.Id, x => x.Email);
-        
+
         foreach (var mission in missionMap)
         {
             var misssionName = mission.Value.MissionName;
@@ -681,10 +687,10 @@ public class MissionAppService : ApplicationService, IMissionAppService
         var submissions = query.Where(m => m.ParentMissionId != null && m.UserId != null)
             .GroupBy(m => m.UserId)
             .ToDictionary(m => m.Key, m => m.ToList());
-        
+
         var queryUser = await _repositoys.AbpUserView.GetQueryableAsync();
         var emailMap = queryUser.ToDictionary(x => x.Id, x => x.Email);
-        
+
         foreach (var key in submissions.Keys)
         {
             int i = ExcelBeginLine;
@@ -718,7 +724,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
                     worksheet.Cell($"{nextChar}{i}").Value = $"{propertyInfo.GetValue(submission)}";
                     nextChar++;
                 }
-                
+
                 i++;
             }
 
@@ -780,7 +786,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// <param name="id">附件 Id</param>
     public async Task UpdateAttachmentNote(Guid id, string note)
     {
-       await _fileAppService.UpdateNote(id, note);
+        await _fileAppService.UpdateNote(id, note);
     }
 
     /// <summary>
@@ -794,14 +800,49 @@ public class MissionAppService : ApplicationService, IMissionAppService
     }
 
     #endregion 任務附件
-    
+
     /// <summary>
     /// 把任務同步到 Google Calendar
     /// </summary>
     [AllowAnonymous]
-    public async Task MissionSyncToGoogle()
+    public async Task MissionSyncToGoogle(string code, Guid? teamId)
     {
+
+        var token = await SyncToGoogleUtils.getToken(code);
+
+        _logger.LogError($"{teamId}");
         _logger.LogError("========================================任務同步到 google 授權已通過");
+        var keyPath = Path.Combine(Environment.CurrentDirectory, "googleSync", "client_secrets.json");
+
+
+        var calendarService = new CalendarService(new BaseClientService.Initializer
+        {
+            HttpClientInitializer = GoogleCredential.FromAccessToken(token),
+            ApplicationName = "Task Management"
+        });
+
+        var missions = await _repositoys.MissionView.GetListAsync(x => x.Lang == 1);
+
+        missions.ForEach(async mission =>
+        {
+            var newEvent = new Event
+            {
+                Summary = mission.MissionName,
+                Description = mission.MissionDescription,
+                Start = new EventDateTime
+                {
+                    DateTime = mission.MissionStartTime,
+                    TimeZone = "UTC"
+                },
+                End = new EventDateTime
+                {
+                    DateTime = mission.MissionEndTime,
+                    TimeZone = "UTC"
+                }
+            };
+
+            await calendarService.Events.Insert(newEvent, "primary").ExecuteAsync();
+        });
     }
 
     /// <summary>
