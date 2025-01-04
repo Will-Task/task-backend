@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Dynamic.Core.Tokenizer;
 using System.Threading.Tasks;
 using Business.FileManagement.Dto;
 using Business.MissionManagement;
 using Business.MissionManagement.Dto;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Primitives;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.AspNetCore.Mvc;
 
@@ -277,7 +274,7 @@ public class MissionController : AbpController
     /// 把任務同步到 Google Calendar
     /// </summar>
     [HttpGet]
-    [Route("sync")]
+    [Route("sync/authorization-code-callback")]
     public async Task MissionSyncToGoogle(string code, Guid? teamId)
     {
         await _missionAppService.MissionSyncToGoogle(code, teamId);

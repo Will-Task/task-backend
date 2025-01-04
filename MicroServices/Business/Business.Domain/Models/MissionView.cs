@@ -52,4 +52,9 @@ public class MissionView: Entity<Int64>
     /// 所屬哪個Team的任務
     /// </summary>
     public Guid? TeamId { get; set; }
+    
+    /// <summary>
+    /// Google Calendar 的任務Id
+    /// </summary>
+    public string EventId { get; set; }
 }

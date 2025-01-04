@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
-using System.Threading;
 using System.Threading.Tasks;
 using Business.Common;
 using Business.Enums;
@@ -20,12 +19,12 @@ using Google.Apis.Auth.OAuth2;
 using Google.Apis.Calendar.v3;
 using Google.Apis.Calendar.v3.Data;
 using Google.Apis.Services;
-using Google.Apis.Util.Store;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using NUglify.Helpers;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -822,39 +821,38 @@ public class MissionAppService : ApplicationService, IMissionAppService
     public async Task MissionSyncToGoogle(string code, Guid? teamId)
     {
         var token = await SyncToGoogleUtils.getToken(code);
-
-        _logger.LogError($"{teamId}");
-        _logger.LogError("========================================任務同步到 google 授權已通過");
-        var keyPath = Path.Combine(Environment.CurrentDirectory, "googleSync", "client_secrets.json");
-
-        UserCredential credential;
-        using (var stream = new FileStream(keyPath, FileMode.Open, FileAccess.Read))
-        {
-            credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
-                GoogleClientSecrets.Load(stream).Secrets,
-                new[] { CalendarService.Scope.Calendar },
-                "user", CancellationToken.None, new FileDataStore("Credentials", true));
-        }
+        
+        // var keyPath = Path.Combine(Environment.CurrentDirectory, "googleSync", "client_secrets.json");
+        // UserCredential credential;
+        // using (var stream = new FileStream(keyPath, FileMode.Open, FileAccess.Read))
+        // {
+        //     credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+        //         GoogleClientSecrets.Load(stream).Secrets,
+        //         new[] { CalendarService.Scope.Calendar },
+        //         "user", CancellationToken.None, new FileDataStore("Credentials", true));
+        // }
 
         // Create the service.
         var calendarService = new CalendarService(new BaseClientService.Initializer()
         {
-            HttpClientInitializer = credential,
+            HttpClientInitializer = GoogleCredential.FromAccessToken(token),
             ApplicationName = "Task Management",
         });
-
-        //var calendarService = new CalendarService(new BaseClientService.Initializer
-        //{
-        //    HttpClientInitializer = GoogleCredential.FromAccessToken(token),
-        //    ApplicationName = "Task Management"
-        //});
-
+        
         var missions = await _repositoys.MissionView.GetListAsync(x => x.Lang == 1);
-
+        /// 刪除舊任務(透過EventId)
+        missions.Where(x => x.EventId != null).ForEach(async mission =>
+        {
+            await calendarService.Events.Delete("primary", mission.EventId).ExecuteAsync();
+        });
+        
+        /// 同步任務(也要更新任務EventId)
         missions.ForEach(async mission =>
         {
+            mission.EventId = GuidGenerator.Create().ToString().Replace("-",string.Empty);
             var newEvent = new Event
             {
+                Id = mission.EventId,
                 Summary = mission.MissionName,
                 Description = mission.MissionDescription,
                 Start = new EventDateTime
@@ -868,7 +866,6 @@ public class MissionAppService : ApplicationService, IMissionAppService
                     TimeZone = "UTC"
                 }
             };
-
             await calendarService.Events.Insert(newEvent, "primary").ExecuteAsync();
         });
     }

@@ -62,6 +62,11 @@ public class Mission: AuditedAggregateRoot<Guid> , ISoftDelete,IIsActive
     /// 所屬哪個Team的任務
     /// </summary>
     public Guid? TeamId { get; set; }
+    
+    /// <summary>
+    /// Google Calendar 的任務Id
+    /// </summary>
+    public string EventId { get; set; }
 
     public bool IsDeleted { get; set; }
     public bool IsActive { get; set; } = true;

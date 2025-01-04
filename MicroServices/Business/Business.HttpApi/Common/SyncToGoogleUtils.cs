@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Json;
-using System.Runtime.InteropServices.JavaScript;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+
 namespace Business.Common
 {
     public class SyncToGoogleUtils
