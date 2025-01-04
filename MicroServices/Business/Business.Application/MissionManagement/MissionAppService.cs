@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
+using System.Threading;
 using System.Threading.Tasks;
 using Business.Common;
 using Business.Enums;
@@ -19,6 +20,7 @@ using Google.Apis.Auth.OAuth2;
 using Google.Apis.Calendar.v3;
 using Google.Apis.Calendar.v3.Data;
 using Google.Apis.Services;
+using Google.Apis.Util.Store;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -53,8 +55,6 @@ public class MissionAppService : ApplicationService, IMissionAppService
     private readonly IConfiguration _configuration;
     private readonly ILogger<MissionAppService> _logger;
     private readonly IDataFilter _dataFilter;
-    private readonly int ExcelBeginLine = 5;
-    private readonly int ExcelEndLine = 14;
 
     // 設定定時任務最大數量
     private readonly int maxScheduleCount = 10;
@@ -231,8 +231,10 @@ public class MissionAppService : ApplicationService, IMissionAppService
             {
                 dto.MissionDescription = defaultMission[dto.MissionId].MissionDescription;
             }
+
             dto.AttachmentCount = await _fileAppService.GetAttachmentCount(dto.MissionId);
         }
+
         return new PagedResultDto<MissionViewDto>(count, dtos);
     }
 
@@ -265,6 +267,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
             {
                 dto.MissionName = missionMap[dto.MissionId];
             }
+
             /// 父任務是否有子任務檢查
             if (subMap.ContainsKey(parent.MissionId))
             {
@@ -279,6 +282,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
                 });
                 dto.SubMissions = subDtos;
             }
+
             dto.Lang = parent.Lang;
             dtos.Add(dto);
         }
@@ -347,7 +351,8 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// </summary>
     public async Task<BlobDto> DNSample(Guid parentId, string code)
     {
-        var template = await _repositoys.LocalizationText.GetAsync(x => x.LanguageCode == code && x.Category == "Template" && x.ItemKey == "1");
+        var template = await _repositoys.LocalizationText.GetAsync(x =>
+            x.LanguageCode == code && x.Category == "Template" && x.ItemKey == "1");
         var blobDto = await _fileAppService.DNFile(template.ItemValue);
         using var memoryStream = new MemoryStream(blobDto.Content);
         using var workbook = new XLWorkbook(memoryStream);
@@ -376,47 +381,43 @@ public class MissionAppService : ApplicationService, IMissionAppService
         var nextChar = 'A';
         foreach (var property in properties.Where(x => !ImportNotIncluded.Contains(x.Name)))
         {
-            worksheet.Cell($"{nextChar++}{ExcelBeginLine - 2}").Value = $"{property.GetValue(parentMissionDto)}";
+            worksheet.Cell($"{nextChar++}{WorkBook.ExcelBeginLine - 2}").Value = $"{property.GetValue(parentMissionDto)}";
         }
 
         // 類別設定
-        var categoryRange = worksheet.Range($"{categoryColumn}{ExcelBeginLine}:{categoryColumn}{ExcelEndLine}");
+        var categoryRange = worksheet.Range($"{categoryColumn}{WorkBook.ExcelBeginLine}:{categoryColumn}{WorkBook.ExcelEndLine}");
         foreach (var cell in categoryRange.Cells())
         {
             cell.Value = $"{parentMission.MissionCategoryName}";
         }
 
         // 日期格式設定
-        var rangeDate = worksheet.Range($"{startTimeColumn}{ExcelBeginLine}:{endTimeColumn}{ExcelEndLine}");
+        var rangeDate = worksheet.Range($"{startTimeColumn}{WorkBook.ExcelBeginLine}:{endTimeColumn}{WorkBook.ExcelEndLine}");
         foreach (var cell in rangeDate.Cells())
         {
             cell.Style.NumberFormat.Format = "yyyy/m/d h:mm:ss";
         }
 
-        // TODO
         // 任務提醒時間下拉選單設定
         var remindTime = new List<string> { "", "24", "16", "6", "3", "1" };
-        SetExcelFormattion(ref worksheet, remindTime, remindTimeColumn);
+        WorkBookUtils.SetCellDropDown(worksheet, remindTime, remindTimeColumn);
 
         // 任務優先度下拉選單設定(1~5)
         var priority = new List<string> { "1", "2", "3", "4", "5" };
-        SetExcelFormattion(ref worksheet, priority, priorityColumn);
+        WorkBookUtils.SetCellDropDown(worksheet, priority, priorityColumn);
 
         // 任務狀態下拉選單設定
         var state = new List<string> { "TODO", "IN_PROCESS", "COMPLETED" };
-        SetExcelFormattion(ref worksheet, state, stateColumn);
+        WorkBookUtils.SetCellDropDown(worksheet, state, stateColumn);
 
         // 設置固定區塊為唯讀
-        // 全鎖
-        worksheet.Protect();
-        // 指定區塊解鎖
-        worksheet.Range($"{missionColumn}{ExcelBeginLine}:B{ExcelEndLine}").Style.Protection
-            .SetLocked(false);
-        worksheet.Range($"{startTimeColumn}{ExcelBeginLine}:{stateColumn}{ExcelEndLine}").Style.Protection
-            .SetLocked(false);
+        WorkBookUtils.SetCellLock(worksheet, $"{missionColumn}{WorkBook.ExcelBeginLine}:{--categoryColumn}{WorkBook.ExcelEndLine}");
+        categoryColumn++;
+        WorkBookUtils.SetCellLock(worksheet, $"{++categoryColumn}{WorkBook.ExcelBeginLine}:{stateColumn}{WorkBook.ExcelEndLine}");
+        categoryColumn--;
 
         // 寫入父任務missionId
-        var range = worksheet.Range($"{parentIdColumn}{ExcelBeginLine}:{parentIdColumn}{ExcelEndLine}");
+        var range = worksheet.Range($"{parentIdColumn}{WorkBook.ExcelBeginLine}:{parentIdColumn}{WorkBook.ExcelEndLine}");
         foreach (var cell in range.Cells())
         {
             cell.Value = $"{parentId.ToString()}";
@@ -447,7 +448,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         var langugage = await _repositoys.Language.GetAsync(x => x.Code == code);
 
         // 從excel取出資料
-        for (int i = ExcelBeginLine; i <= ExcelEndLine; i++)
+        for (int i = WorkBook.ExcelBeginLine; i <= WorkBook.ExcelEndLine; i++)
         {
             if (Guid.TryParse(worksheet.Cell($"{parentIdColumn}{i}").GetString(), out var pId) && pId != parentId)
             {
@@ -544,7 +545,8 @@ public class MissionAppService : ApplicationService, IMissionAppService
     public async Task<MyFileInfoDto> ExportFile(Guid parentId, string code)
     {
         // 取得欲寫入的範本檔案
-        var file = await _repositoys.LocalizationText.GetAsync(x => x.LanguageCode == code && x.Category == "Template" && x.ItemKey == "2");
+        var file = await _repositoys.LocalizationText.GetAsync(x =>
+            x.LanguageCode == code && x.Category == "Template" && x.ItemKey == "2");
         var blobDto = await _fileAppService.DNFile(file.ItemValue);
         using var memoryStream = new MemoryStream(blobDto.Content);
         using var workBook = new XLWorkbook(memoryStream);
@@ -587,7 +589,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         using var savingMemoryStream = new MemoryStream();
         workBook.SaveAs(savingMemoryStream);
         return new MyFileInfoDto
-        { FileContent = savingMemoryStream.ToArray(), FileName = $"{parent.MissionName}的匯出檔案.xlsx" };
+            { FileContent = savingMemoryStream.ToArray(), FileName = $"{parent.MissionName}的匯出檔案.xlsx" };
     }
 
     /// <summary>
@@ -692,7 +694,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
 
         foreach (var key in submissions.Keys)
         {
-            int i = ExcelBeginLine;
+            int i = WorkBook.ExcelBeginLine;
 
             foreach (var submission in submissions[key])
             {
@@ -732,7 +734,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
             workBook.SaveAs(savingMemoryStream);
 
             var fileDto = new MyFileInfoDto
-            { FileContent = savingMemoryStream.ToArray(), FileName = parentMissionName };
+                { FileContent = savingMemoryStream.ToArray(), FileName = parentMissionName };
 
             await SendEmail("每周任務報告", "這是你一周以來完成和過期的任務統計", emailMap[key.Value], fileDto);
         }
@@ -756,7 +758,8 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// <summary>
     /// 上傳任務附件
     /// </summary>
-    public async Task<FileInfoDto> UploadFile(Guid? teamId, Guid missionId, string name, int fileIndex, string note, IFormFile file)
+    public async Task<FileInfoDto> UploadFile(Guid? teamId, Guid missionId, string name, int fileIndex, string note,
+        IFormFile file)
     {
         return await _fileAppService.UploadAttachment(teamId, missionId, fileIndex, name, note, file);
     }
@@ -818,19 +821,33 @@ public class MissionAppService : ApplicationService, IMissionAppService
     [AllowAnonymous]
     public async Task MissionSyncToGoogle(string code, Guid? teamId)
     {
-
         var token = await SyncToGoogleUtils.getToken(code);
 
         _logger.LogError($"{teamId}");
         _logger.LogError("========================================任務同步到 google 授權已通過");
         var keyPath = Path.Combine(Environment.CurrentDirectory, "googleSync", "client_secrets.json");
 
-
-        var calendarService = new CalendarService(new BaseClientService.Initializer
+        UserCredential credential;
+        using (var stream = new FileStream(keyPath, FileMode.Open, FileAccess.Read))
         {
-            HttpClientInitializer = GoogleCredential.FromAccessToken(token),
-            ApplicationName = "Task Management"
+            credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+                GoogleClientSecrets.Load(stream).Secrets,
+                new[] { CalendarService.Scope.Calendar },
+                "user", CancellationToken.None, new FileDataStore("Credentials", true));
+        }
+
+        // Create the service.
+        var calendarService = new CalendarService(new BaseClientService.Initializer()
+        {
+            HttpClientInitializer = credential,
+            ApplicationName = "Task Management",
         });
+
+        //var calendarService = new CalendarService(new BaseClientService.Initializer
+        //{
+        //    HttpClientInitializer = GoogleCredential.FromAccessToken(token),
+        //    ApplicationName = "Task Management"
+        //});
 
         var missions = await _repositoys.MissionView.GetListAsync(x => x.Lang == 1);
 
@@ -894,17 +911,6 @@ public class MissionAppService : ApplicationService, IMissionAppService
                 await _repositoys.Mission.InsertAsync(mission, autoSave: true);
             }
         }
-    }
-
-    /// <summary>
-    /// 設定excel下拉選單選項
-    /// </summary>
-    private void SetExcelFormattion(ref IXLWorksheet worksheet, List<string> options, char column)
-    {
-        var dropListRange = worksheet.Range($"{column}{ExcelBeginLine}:{column}{ExcelEndLine}");
-        var dropValidation = dropListRange.SetDataValidation();
-        var optionString = $"\"{String.Join(",", options)}\"";
-        dropValidation.List(optionString, true);
     }
 
     private async Task DeleteData(Guid id, int lang)
