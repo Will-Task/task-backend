@@ -9,6 +9,7 @@
       "FinishReport:Column:Mission": "父任務",
       "FinishReport:Column:isFinish": "是否完成",
       "FinishReport:Column:SubMission": "子任務",
-      "FinishReport:Column:MissionFinishRate": "父任務完成狀態(%)"
+      "FinishReport:Column:MissionFinishRate": "父任務完成狀態(%)",
+      "FinishReport:Team:Name": "我的"
     }
   }

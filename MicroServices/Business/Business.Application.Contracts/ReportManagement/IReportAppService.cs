@@ -12,7 +12,7 @@ public interface IReportAppService : IApplicationService
     /// <summary>
     /// 匯出任務完成度報告
     /// </summary>
-    Task<MyFileInfoDto> GetFinishRateReport(List<Guid> ids ,Guid? teamId, string name, string code);
+    Task<MyFileInfoDto> GetFinishRateReport(List<Guid> ids ,Guid? teamId, string code);
     
     /// <summary>
     /// 獲取可匯出任務完成度報告的類別

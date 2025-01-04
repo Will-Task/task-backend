@@ -9,6 +9,7 @@
     "FinishReport:Column:Mission": "Parent Task",
     "FinishReport:Column:isFinish": "Is Completed",
     "FinishReport:Column:SubMission": "Subtask",
-    "FinishReport:Column:MissionFinishRate": "Parent Task Completion Status (%)"
+    "FinishReport:Column:MissionFinishRate": "Parent Task Completion Status (%)",
+    "FinishReport:Team:Name": "My"
   }
 }

@@ -61,7 +61,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
     // 根據MissionImportDto除去匯入不需要的欄位
     private readonly List<string> ImportNotIncluded = new List<string>
     {
-        "Id", "MissionFinishTime", "UserId", "TeamId", "ParentMissionId", "MissionCategoryId", "Lang"
+        "Id", "MissionFinishTime", "TeamId", "ParentMissionId", "MissionCategoryId", "Lang"
     };
 
     public MissionAppService(IRepository<Mission, Guid> Mission,
@@ -339,12 +339,6 @@ public class MissionAppService : ApplicationService, IMissionAppService
         mission.MissionFinishTime = (MissionState)formData.state == MissionState.IN_PROCESS ? null : Clock.Now;
     }
 
-    private List<string> ExcelKeys = new List<string>
-    {
-        "MissionName", "MissionCategoryName", "MissionPriority",
-        "MissionState", "MissionStartTime", "MissionEndTime"
-    };
-
     /// <summary>
     /// 範本下載
     /// </summary>
@@ -352,7 +346,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
     {
         var template = await _repositoys.LocalizationText.GetAsync(x =>
             x.LanguageCode == code && x.Category == "Template" && x.ItemKey == "1");
-        var blobDto = await _fileAppService.DNFile(template.ItemValue);
+        var blobDto = await _fileAppService.GetTemplate(template.ItemValue);
         using var memoryStream = new MemoryStream(blobDto.Content);
         using var workbook = new XLWorkbook(memoryStream);
         var worksheet = workbook.Worksheet(1);
@@ -369,13 +363,9 @@ public class MissionAppService : ApplicationService, IMissionAppService
         var parentIdColumn = 'I';
 
         // 父類別資訊取得
-        var queryMission = await _repositoys.MissionView.GetQueryableAsync();
-        var parentMission = await queryMission
-            .Where(x => x.MissionId == parentId && x.Lang == language.Id)
-            .FirstAsync();
+        var parentMission = await _repositoys.MissionView.GetAsync(x => x.MissionId == parentId && x.Lang == language.Id);
         var parentMissionDto = ObjectMapper.Map<MissionView, MissionImportDto>(parentMission);
         var properties = typeof(MissionImportDto).GetProperties();
-
         // 父類別資訊設定
         var nextChar = 'A';
         foreach (var property in properties.Where(x => !ImportNotIncluded.Contains(x.Name)))
@@ -436,7 +426,6 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// </summary>
     public async Task<List<MissionImportDto>> ImportFileCheck(Guid parentId, Guid? teamId, string code, IFormFile file)
     {
-        var currentUserId = CurrentUser.Id;
         var dtos = new List<MissionImportDto>();
         using var memoryStream = new MemoryStream();
         await file.CopyToAsync(memoryStream);
@@ -461,7 +450,6 @@ public class MissionAppService : ApplicationService, IMissionAppService
             }
 
             var dto = new MissionImportDto();
-            dto.UserId = currentUserId;
             dto.TeamId = teamId;
             dto.ParentMissionId = parentId;
             dto.Lang = langugage.Id;
@@ -523,6 +511,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         foreach (var dto in dtos)
         {
             var mission = ObjectMapper.Map<MissionImportDto, Mission>(dto);
+            mission.UserId = CurrentUser.Id;
             mission.MissionI18Ns = new List<MissionI18N>();
             var i18NDto = new MissionI18NDto
             {
@@ -546,7 +535,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         // 取得欲寫入的範本檔案
         var file = await _repositoys.LocalizationText.GetAsync(x =>
             x.LanguageCode == code && x.Category == "Template" && x.ItemKey == "2");
-        var blobDto = await _fileAppService.DNFile(file.ItemValue);
+        var blobDto = await _fileAppService.GetTemplate(file.ItemValue);
         using var memoryStream = new MemoryStream(blobDto.Content);
         using var workBook = new XLWorkbook(memoryStream);
         var language = await _repositoys.Language.GetAsync(x => x.Code == code);
@@ -676,7 +665,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
 
         // 過期 -> 期限內未完成 ， 輸出報告也需顯示
         // 拿到輸入的報告範本
-        var blobDto = await _fileAppService.DNFile("每周輸出報告.xlsx");
+        var blobDto = await _fileAppService.GetTemplate("每周輸出報告.xlsx");
         using var memoryStream = new MemoryStream(blobDto.Content);
         using var workBook = new XLWorkbook(memoryStream);
         var worksheet = workBook.Worksheet(1);
@@ -839,7 +828,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
             ApplicationName = "Task Management",
         });
         
-        var missions = await _repositoys.MissionView.GetListAsync(x => x.Lang == 1);
+        var missions = await _repositoys.MissionView.GetListAsync(x => x.Lang == 1 && x.UserId == CurrentUser.Id);
         /// 刪除舊任務(透過EventId)
         missions.Where(x => x.EventId != null).ForEach(async mission =>
         {

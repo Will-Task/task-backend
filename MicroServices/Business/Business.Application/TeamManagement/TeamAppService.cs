@@ -222,7 +222,7 @@ namespace Business.TeamManagement
             var file = await _repositorys.LocalizationText.GetAsync(x => x.LanguageCode == code
                                         && x.Category == "Template" && x.ItemKey == "21");
 
-            var blobDto = await _fileAppService.DNFile(file.ItemValue);
+            var blobDto = await _fileAppService.GetTemplate(file.ItemValue);
 
             using var memoryStream = new MemoryStream(blobDto.Content);
             using var workBook = new XLWorkbook(memoryStream);

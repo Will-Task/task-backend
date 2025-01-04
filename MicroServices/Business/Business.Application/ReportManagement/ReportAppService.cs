@@ -35,7 +35,8 @@ public class ReportAppService : ApplicationService, IReportAppService
         IRepository<Language> Language,
         IRepository<LocalizationText> LocalizationText,
         IRepository<MissionI18N> MissionI18N,
-        IRepository<MissionCategoryI18N> MissionCategoryI18N
+        IRepository<MissionCategoryI18N> MissionCategoryI18N,
+        IRepository<Team, Guid> Team
         ) _repositorys;
 
     private readonly ILogger<MissionAppService> _logger;
@@ -50,11 +51,12 @@ public class ReportAppService : ApplicationService, IReportAppService
         IRepository<LocalizationText> LocalizationText,
         IRepository<MissionI18N> MissionI18N,
         IRepository<MissionCategoryI18N> MissionCategoryI18N,
+        IRepository<Team, Guid> Team,
         ILogger<MissionAppService> logger,
         IStringLocalizer<BusinessResource> localizer)
     {
         _repositorys = (Langugage, MissionOverAllView, MissionCategoryView, MissionView, Language, LocalizationText,
-            MissionI18N, MissionCategoryI18N);
+            MissionI18N, MissionCategoryI18N, Team);
         _logger = logger;
         _localizer = localizer;
     }
@@ -62,23 +64,29 @@ public class ReportAppService : ApplicationService, IReportAppService
     /// <summary>
     /// 匯出任務完成度報告
     /// </summary>
-    public async Task<MyFileInfoDto> GetFinishRateReport(List<Guid> ids, Guid? teamId, string name, string code)
+    public async Task<MyFileInfoDto> GetFinishRateReport(List<Guid> ids, Guid? teamId,string code)
     {
+        /// 為Localization設定當前語系，CurrentCulture & CurrentUICulture都要設定
+        var language = await _repositorys.Langugage.GetAsync(x => x.Code == code);
+        var culture = Utils.GetCulture(language.Id);
+        CultureInfo.CurrentCulture = new CultureInfo(culture);
+        CultureInfo.CurrentUICulture = new CultureInfo(culture);
+
+        var team = await _repositorys.Team.FindAsync(x => x.Id == teamId);
+        string teamName = _localizer["FinishReport:Team:Name"];
+        if (team != null)
+        {
+            teamName = team.Name;
+        }
         var workbook = new XLWorkbook();
         var sheetName = (await _repositorys.LocalizationText.GetAsync(x => x.LanguageCode == code &&
                                                                            x.Category == "SheetName" &&
                                                                            x.ItemKey == "11")).ItemValue;
-        var worksheet = workbook.AddWorksheet($"{name}${sheetName}");
+        var worksheet = workbook.AddWorksheet($"{teamName}${sheetName}");
 
         var queryLocalization = await _repositorys.LocalizationText.GetQueryableAsync();
         var isFinishMap = queryLocalization.Where(x => x.LanguageCode == code && x.Category == "MissionState")
             .ToDictionary(x => x.ItemKey, x => x.ItemValue);
-        var language = await _repositorys.Langugage.GetAsync(x => x.Code == code);
-
-        /// 為Localization設定當前語系，CurrentCulture & CurrentUICulture都要設定
-        var culture = Utils.GetCulture(language.Id);
-        CultureInfo.CurrentCulture = new CultureInfo("zh-Hant");
-        CultureInfo.CurrentUICulture = new CultureInfo("zh-Hant");
 
         /// 多國語系資料
         var queryMissionI18N = await _repositorys.MissionI18N.GetQueryableAsync();
@@ -132,7 +140,7 @@ public class ReportAppService : ApplicationService, IReportAppService
         worksheet.Cell(startRow, startColumn).Style.Fill.BackgroundColor = XLColor.Yellow;
         /// 水平對齊
         worksheet.Cell(startRow, startColumn).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-        worksheet.Cell(startRow++, startColumn).Value = $"{name}";
+        worksheet.Cell(startRow++, startColumn).Value = $"{teamName}";
 
         /// 設定標頭團隊名稱
         worksheet.Range(startRow, startColumn, startRow + missions.Count, startColumn + 1).Merge();
@@ -140,7 +148,7 @@ public class ReportAppService : ApplicationService, IReportAppService
         worksheet.Cell(startRow, startColumn).Style.Fill.BackgroundColor = XLColor.Red;
         /// 水平對齊
         worksheet.Cell(startRow, startColumn).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-        worksheet.Cell(startRow, startColumn++).Value = $"{name}";
+        worksheet.Cell(startRow, startColumn++).Value = $"{teamName}";
 
         /// 寫入Title
         int titleStartColumn = startColumn;
@@ -216,7 +224,7 @@ public class ReportAppService : ApplicationService, IReportAppService
         var fileNmae = (await _repositorys.LocalizationText.GetAsync(x => x.LanguageCode == code &&
                                                                           x.Category == "Export" && x.ItemKey == "11"))
             .ItemValue;
-        return new MyFileInfoDto { FileContent = memoryStream.ToArray(), FileName = $"{name}{fileNmae}" };
+        return new MyFileInfoDto { FileContent = memoryStream.ToArray(), FileName = $"{teamName}{fileNmae}" };
     }
 
     /// <summary>

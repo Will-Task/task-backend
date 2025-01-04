@@ -83,7 +83,7 @@ public class FileAppService : ApplicationService, IFileAppService
     /// <summary>
     /// 取得範本檔案
     /// </summary>
-    public async Task<BlobDto> DNFile(string fileName)
+    public async Task<BlobDto> GetTemplate(string fileName)
     {
         // 透過名稱撈檔案路徑
         var filePath = Path.Combine(Environment.CurrentDirectory, "wwwroot", "templates", fileName);

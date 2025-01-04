@@ -5,12 +5,10 @@ using Volo.Abp.Application.Dtos;
 namespace Business.MissionManagement.Dto;
 
 /// <summary>
-/// 只匯入子任務
+/// For 下載範本 、 匯入 、 匯入檢查
 /// </summary>
 public class MissionImportDto : EntityDto<Int64?>
 {
-    public Guid? UserId { get; set; }
-    
     public Guid? TeamId { get; set; }
     
     public Guid? ParentMissionId { get; set; }
@@ -33,7 +31,7 @@ public class MissionImportDto : EntityDto<Int64?>
     
     public int MissionPriority { get; set; }
 
-    public MissionState MissionState { get; set; } = MissionState.TODO;
+    public MissionState MissionState { get; set; }
     
     public int Lang { get; set; }
 }

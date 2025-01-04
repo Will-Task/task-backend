@@ -13,7 +13,7 @@ public interface IFileAppService : IApplicationService
     /// <summary>
     /// 下載檔案
     /// </summary>
-    Task<BlobDto> DNFile(string fileName);
+    Task<BlobDto> GetTemplate(string fileName);
 
     /// <summary>
     /// 獲取單一附件
