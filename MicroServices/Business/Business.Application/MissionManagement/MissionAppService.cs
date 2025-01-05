@@ -54,6 +54,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
     private readonly IConfiguration _configuration;
     private readonly ILogger<MissionAppService> _logger;
     private readonly IDataFilter _dataFilter;
+    private readonly EmailUtils _emailUtils;
 
     // 設定定時任務最大數量
     private readonly int maxScheduleCount = 10;
@@ -76,7 +77,8 @@ public class MissionAppService : ApplicationService, IMissionAppService
         IFileAppService fileAppService,
         IConfiguration configuration,
         IDataFilter dataFilter,
-        ILogger<MissionAppService> logger)
+        ILogger<MissionAppService> logger,
+        EmailUtils emailUtils)
     {
         _repositoys = (Mission, MissionI18N, MissionView, MissionCategory, MissionCategoryI18N,
             MissionCategoryView, AbpUserView, LocalizationText, Language);
@@ -84,6 +86,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         _configuration = configuration;
         _dataFilter = dataFilter;
         _logger = logger;
+        _emailUtils = emailUtils;
     }
 
     #region CRUD方法
@@ -311,11 +314,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
                 continue;
             }
 
-            // var user = await _UserAppService.Get(mission.UserId.Value);
-            // var user = await _userManager.FindByIdAsync(mission.UserId.ToString());
-            // var query = await _UserRepository.GetQueryableAsync();
-            // var email = await query.Select(u => u.Email).FirstAsync();
-            await SendEmail("任務提醒通知", "你的任務快到期了喔，趕緊完成!", emailMap[mission.UserId.Value], null);
+            _emailUtils.SendAsync("任務提醒通知", "你的任務快到期了喔，趕緊完成!", emailMap[mission.UserId.Value]);
         }
     }
 
