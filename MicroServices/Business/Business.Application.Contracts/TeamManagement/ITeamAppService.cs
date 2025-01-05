@@ -47,7 +47,7 @@ namespace Business.TeamManagement
         /// 1. 受邀人為當前使用者
         /// 2. 邀請人為當前使用者
         /// </summary>
-        Task<List<TeamInvitationDto>> GetInvitations(Guid? teamId, int? state, string name);
+        Task<List<TeamInvitationDto>> GetInvitations(int? state, string name);
 
         /// <summary>
         /// 取消團隊邀請請求
@@ -70,6 +70,6 @@ namespace Business.TeamManagement
         /// <summary>
         /// 邀請記錄匯出
         /// </summary>
-        Task<BlobDto> Export(Guid? teamId, int? state, string name, string code);
+        Task<BlobDto> Export(int? state, string name, string code);
     }
 }

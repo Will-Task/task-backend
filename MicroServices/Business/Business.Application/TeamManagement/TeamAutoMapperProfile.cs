@@ -13,6 +13,7 @@ namespace Business.TeamManagement
             CreateMap<CreateOrUpdateTeamDto, Team>();
             CreateMap<TeamInvitationDto, ExportTeamInvitationDto>();
             CreateMap<TeamInvitation, TeamInvitationDto>();
+            CreateMap<CreateOrUpdateTeamInvitationDto, TeamInvitation>();
             CreateMap<AbpUserView, AbpUserViewDto>();
         }
     }

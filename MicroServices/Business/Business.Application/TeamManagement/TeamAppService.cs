@@ -124,9 +124,9 @@ namespace Business.TeamManagement
         /// 1. 受邀人為當前使用者
         /// 2. 邀請人為當前使用者
         /// </summary>
-        public async Task<List<TeamInvitationDto>> GetInvitations(Guid? teamId, int? state, string name)
+        public async Task<List<TeamInvitationDto>> GetInvitations(int? state, string name)
         {
-            var dtos = await SearchInvitations(teamId, state, name);
+            var dtos = await SearchInvitations(state, name);
             dtos.ForEach(x =>
             {
                 x.IsShow = x.ResponseTime.HasValue ? 3 : x.UserId == CurrentUser.Id ? 2 : 1;
@@ -217,7 +217,7 @@ namespace Business.TeamManagement
         /// <summary>
         /// 邀請記錄匯出
         /// </summary>
-        public async Task<BlobDto> Export(Guid? teamId, int? state, string name, string code)
+        public async Task<BlobDto> Export(int? state, string name, string code)
         {
             var file = await _repositorys.LocalizationText.GetAsync(x => x.LanguageCode == code
                                         && x.Category == "Template" && x.ItemKey == "21");
@@ -228,7 +228,7 @@ namespace Business.TeamManagement
             using var workBook = new XLWorkbook(memoryStream);
             var workSheet = workBook.Worksheet(1);
 
-            var dtos = await SearchInvitations(teamId, state, name);
+            var dtos = await SearchInvitations(state, name);
             var exportDtos = ObjectMapper.Map<List<TeamInvitationDto>, List<ExportTeamInvitationDto>>(dtos);
 
             var nextChar = 'A';
@@ -256,20 +256,19 @@ namespace Business.TeamManagement
             return blobDto;
         }
 
-        private async Task<List<TeamInvitationDto>> SearchInvitations(Guid? teamId, int? state, string name)
+        private async Task<List<TeamInvitationDto>> SearchInvitations(int? state, string name)
         {
             var currentUserId = CurrentUser.Id;
             var queryUser = await _repositorys.AbpUserView.GetQueryableAsync();
             var userIds = await queryUser.Where(x => x.UserName.Contains(name)).Select(x => x.Id).ToListAsync();
             var userMap = queryUser.ToDictionary(x => x.Id, x => x.UserName);
             var queryTeam = await _repositorys.Team.GetQueryableAsync();
-            var teamIds = await queryTeam.Where(x => x.Name.Contains(name)).Select(x => x.Id).ToListAsync();
             var teamMap = queryTeam.ToDictionary(x => x.Id, x => x.Name);
 
             var queryInvitation = await _repositorys.TeamInvitation.GetQueryableAsync();
             var invitations = await queryInvitation
-                .Where(x => x.TeamId == teamId)
                 .WhereIf(state.HasValue, x => x.State == (Invitation)state)
+                .Where(x => x.InvitedUserId == currentUserId || x.UserId == currentUserId)
                 .WhereIf(!name.IsNullOrEmpty(),
                     x => userIds.Contains(x.UserId) || userIds.Contains(x.InvitedUserId))
                 .ToListAsync();
@@ -282,8 +281,6 @@ namespace Business.TeamManagement
                 x.UserName = userMap[x.UserId];
                 x.InvitedUserName = userMap[x.InvitedUserId];
             });
-
-            
 
             return dtos;
         }

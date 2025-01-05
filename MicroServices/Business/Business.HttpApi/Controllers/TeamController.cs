@@ -81,9 +81,9 @@ namespace Business.Controllers
         /// </summary>
         [HttpGet]
         [Route("invites")]
-        public async Task<List<TeamInvitationDto>> GetInvitations(Guid? teamId, int? state, string name)
+        public async Task<List<TeamInvitationDto>> GetInvitations(int? state, string name)
         {
-            return await _teamAppService.GetInvitations(teamId, state, name);
+            return await _teamAppService.GetInvitations(state, name);
         }
 
         /// <summary>
@@ -135,9 +135,9 @@ namespace Business.Controllers
         /// </summary>
         [HttpPost]
         [Route("export")]
-        public async Task<IActionResult> Export(Guid? teamId, int? state, string name, string code)
+        public async Task<IActionResult> Export(int? state, string name, string code)
         {
-            var blobDto = await _teamAppService.Export(teamId, state, name, code);
+            var blobDto = await _teamAppService.Export(state, name, code);
             return File(blobDto.Content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                                 blobDto.Name);
         }
