@@ -5,7 +5,7 @@ namespace Business.Models;
 
 public class MissionOverAllView : Entity<Int64>
 {
-    public Guid TeamId { get; set; }
+    public Guid? TeamId { get; set; }
     
     public Guid UserId { get; set; }
     

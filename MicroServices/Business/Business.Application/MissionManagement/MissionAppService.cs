@@ -124,6 +124,11 @@ public class MissionAppService : ApplicationService, IMissionAppService
                 missionI18N.MissionName = input.MissionName;
                 missionI18N.MissionDescription = input.MissionDescription;
                 ObjectMapper.Map(input, mission);
+
+                if ((int)input.MissionState == 3)
+                {
+                    mission.MissionFinishTime = Clock.Now;
+                }
             }
             // 不存在 => 增加現有任務的語系
             else

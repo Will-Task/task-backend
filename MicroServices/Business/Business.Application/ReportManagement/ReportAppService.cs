@@ -67,165 +67,176 @@ public class ReportAppService : ApplicationService, IReportAppService
     /// </summary>
     public async Task<MyFileInfoDto> GetFinishRateReport(List<Guid> ids, Guid? teamId,string code)
     {
-        /// 為Localization設定當前語系，CurrentCulture & CurrentUICulture都要設定
-        var language = await _repositorys.Langugage.GetAsync(x => x.Code == code);
-        var culture = Utils.GetCulture(language.Id);
-        CultureInfo.CurrentCulture = new CultureInfo(culture);
-        CultureInfo.CurrentUICulture = new CultureInfo(culture);
-
-        var team = await _repositorys.Team.FindAsync(x => x.Id == teamId);
-        string teamName = _localizer["FinishReport:Team:Name"];
-        if (team != null)
+        try
         {
-            teamName = team.Name;
-        }
-        var workbook = new XLWorkbook();
-        var sheetName = (await _repositorys.LocalizationText.GetAsync(x => x.LanguageCode == code &&
-                                                                           x.Category == "SheetName" &&
-                                                                           x.ItemKey == "11")).ItemValue;
-        var worksheet = workbook.AddWorksheet($"{teamName}${sheetName}");
-
-        var queryLocalization = await _repositorys.LocalizationText.GetQueryableAsync();
-        var isFinishMap = queryLocalization.Where(x => x.LanguageCode == code && x.Category == "MissionState")
-            .ToDictionary(x => x.ItemKey, x => x.ItemValue);
-
-        /// 多國語系資料
-        var queryMissionI18N = await _repositorys.MissionI18N.GetQueryableAsync();
-        var defaultMissionMap = queryMissionI18N.OrderBy(x => x.Lang == language.Id ? 0 : x.Lang)
-            .OrderBy(x => x.Lang).GroupBy(x => x.MissionId)
-            .ToDictionary(g => g.Key, x => x.First().MissionName);
-
-        var queryCategoryI18N = await _repositorys.MissionCategoryI18N.GetQueryableAsync();
-        var defaultCategoryMap = queryCategoryI18N.OrderBy(x => x.Lang == language.Id ? 0 : x.Lang)
-            .OrderBy(x => x.Lang).GroupBy(x => x.MissionCategoryId)
-            .ToDictionary(g => g.Key, x => x.First().MissionCategoryName);
-
-        /// 獲取任務overAllView
-        var missions = await _repositorys.MissionOverAllView
-            .GetListAsync(x => x.TeamId == teamId && x.Lang == language.Id && ids.Contains(x.SubCategoryId));
-        var dtos = ObjectMapper.Map<List<MissionOverAllView>, List<MissionOverAllViewDto>>(missions);
-
-        foreach (var dto in dtos)
-        {
-            if (dto.MissionName.IsNullOrEmpty())
+            /// 為Localization設定當前語系，CurrentCulture & CurrentUICulture都要設定
+            var language = await _repositorys.Langugage.GetAsync(x => x.Code == code);
+            var culture = Utils.GetCulture(language.Id);
+            CultureInfo.CurrentCulture = new CultureInfo(culture);
+            CultureInfo.CurrentUICulture = new CultureInfo(culture);
+            
+            string teamName = _localizer["FinishReport:Team:Name"];
+            if (teamId.HasValue)
             {
-                dto.MissionName = defaultMissionMap[dto.MissionId];
+                var team = await _repositorys.Team.GetAsync(teamId.Value);
+                teamName = team.Name;
             }
 
-            if (dto.SubMissionName.IsNullOrEmpty())
+            using var workbook = new XLWorkbook();
+            var sheetName = (await _repositorys.LocalizationText.GetAsync(x => x.LanguageCode == code &&
+                                                                               x.Category == "SheetName" &&
+                                                                               x.ItemKey == "11")).ItemValue;
+            var worksheet = workbook.AddWorksheet($"{teamName}${sheetName}");
+
+            var queryLocalization = await _repositorys.LocalizationText.GetQueryableAsync();
+            var isFinishMap = queryLocalization.Where(x => x.LanguageCode == code && x.Category == "MissionState")
+                .ToDictionary(x => x.ItemKey, x => x.ItemValue);
+
+            /// 多國語系資料
+            var queryMissionI18N = await _repositorys.MissionI18N.GetQueryableAsync();
+            var defaultMissionMap = queryMissionI18N.OrderBy(x => x.Lang == language.Id ? 0 : x.Lang)
+                .OrderBy(x => x.Lang).GroupBy(x => x.MissionId)
+                .ToDictionary(g => g.Key, x => x.First().MissionName);
+
+            var queryCategoryI18N = await _repositorys.MissionCategoryI18N.GetQueryableAsync();
+            var defaultCategoryMap = queryCategoryI18N.OrderBy(x => x.Lang == language.Id ? 0 : x.Lang)
+                .OrderBy(x => x.Lang).GroupBy(x => x.MissionCategoryId)
+                .ToDictionary(g => g.Key, x => x.First().MissionCategoryName);
+
+            /// 獲取任務overAllView
+            var missions = await _repositorys.MissionOverAllView
+                .GetListAsync(x => x.TeamId == teamId && x.Lang == language.Id && ids.Contains(x.SubCategoryId));
+            var dtos = ObjectMapper.Map<List<MissionOverAllView>, List<MissionOverAllViewDto>>(missions);
+
+            foreach (var dto in dtos)
             {
-                dto.SubMissionName = defaultMissionMap[dto.MissionId];
-            }
-
-            if (dto.CategoryName.IsNullOrEmpty())
-            {
-                dto.CategoryName = defaultCategoryMap[dto.CategoryId];
-            }
-
-            if (dto.SubCategoryName.IsNullOrEmpty())
-            {
-                dto.SubCategoryName = defaultCategoryMap[dto.CategoryId];
-            }
-        }
-
-        var exportDtos = ObjectMapper.Map<List<MissionOverAllViewDto>, List<ExportMissionOverAllViewDto>>(dtos);
-
-        var startColumn = 1;
-        var startRow = 1;
-        var endRow = 1;
-        var endColumn = 9;
-
-        /// 設定標頭團隊名稱
-        worksheet.Range(startRow, startColumn, startRow, endColumn).Merge();
-        /// 設背景顏色
-        worksheet.Cell(startRow, startColumn).Style.Fill.BackgroundColor = XLColor.Yellow;
-        /// 水平對齊
-        worksheet.Cell(startRow, startColumn).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-        worksheet.Cell(startRow++, startColumn).Value = $"{teamName}";
-
-        /// 設定標頭團隊名稱
-        worksheet.Range(startRow, startColumn, startRow + missions.Count, startColumn + 1).Merge();
-        /// 設背景顏色
-        worksheet.Cell(startRow, startColumn).Style.Fill.BackgroundColor = XLColor.Red;
-        /// 水平對齊
-        worksheet.Cell(startRow, startColumn).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-        worksheet.Cell(startRow, startColumn++).Value = $"{teamName}";
-
-        /// 寫入Title
-        int titleStartColumn = startColumn;
-        var titles = new List<string>
-        {
-            $"{_localizer["FinishReport:Column:Category"]}", $"{_localizer["FinishReport:Column:SubCategory"]}",
-            $"{_localizer["FinishReport:Column:Mission"]}",
-            $"{_localizer["FinishReport:Column:isFinish"]}", $"{_localizer["FinishReport:Column:SubMission"]}",
-            $"{_localizer["FinishReport:Column:isFinish"]}", $"{_localizer["FinishReport:Column:MissionFinishRate"]}"
-        };
-        /// 設背景顏色
-        worksheet.Range(startRow, ++startColumn, startRow, endColumn).Style.Fill.BackgroundColor = XLColor.BallBlue;
-        foreach (var title in titles)
-        {
-            worksheet.Cell(startRow, ++titleStartColumn).Value = title;
-        }
-
-        startRow++;
-
-        /// 計算子任務數量來計算出父任務是否完成(是 -> 下面子任務全完成)
-        var queryMission = await _repositorys.MissionView.GetQueryableAsync();
-        var isMissionFinishMap = queryMission.Where(x =>
-                ids.Contains(x.MissionCategoryId) && x.ParentMissionId != null && !string.IsNullOrEmpty(x.MissionName))
-            .GroupBy(x => x.ParentMissionId).ToDictionary(g => g.Key, x => x.All(y => y.MissionFinishTime != null));
-
-        var subMissionFinishMap = queryMission.Where(x =>
-                ids.Contains(x.MissionCategoryId) && x.ParentMissionId != null && !string.IsNullOrEmpty(x.MissionName))
-            .GroupBy(x => x.ParentMissionId).ToDictionary(g => g.Key);
-
-        var startDataColumn = startColumn;
-        foreach (var exportDto in exportDtos)
-        {
-            var properties = exportDto.GetType().GetProperties();
-            foreach (var property in properties)
-            {
-                if (property.PropertyType == typeof(Guid))
+                if (dto.MissionName.IsNullOrEmpty())
                 {
-                    continue;
+                    dto.MissionName = defaultMissionMap[dto.MissionId];
                 }
 
-                if (property.PropertyType == typeof(DateTime?))
+                if (dto.SubMissionName.IsNullOrEmpty())
                 {
-                    /// 0 -> 否 , 1 -> 是
-                    string isFinish = property.Name == "MissionFinishTime"
-                        ? isMissionFinishMap[exportDto.MissionId] ? isFinishMap["1"] : isFinishMap["0"]
-                        : property.GetValue(exportDto).IsNullOrEmpty()
-                            ? isFinishMap["0"]
-                            : isFinishMap["1"];
-                    if (property.Name == "MissionFinishTime")
+                    dto.SubMissionName = defaultMissionMap[dto.MissionId];
+                }
+
+                if (dto.CategoryName.IsNullOrEmpty())
+                {
+                    dto.CategoryName = defaultCategoryMap[dto.CategoryId];
+                }
+
+                if (dto.SubCategoryName.IsNullOrEmpty())
+                {
+                    dto.SubCategoryName = defaultCategoryMap[dto.CategoryId];
+                }
+            }
+
+            var exportDtos = ObjectMapper.Map<List<MissionOverAllViewDto>, List<ExportMissionOverAllViewDto>>(dtos);
+
+            var startColumn = 1;
+            var startRow = 1;
+            var endRow = 1;
+            var endColumn = 9;
+
+            /// 設定標頭團隊名稱
+            worksheet.Range(startRow, startColumn, startRow, endColumn).Merge();
+            /// 設背景顏色
+            worksheet.Cell(startRow, startColumn).Style.Fill.BackgroundColor = XLColor.Yellow;
+            /// 水平對齊
+            worksheet.Cell(startRow, startColumn).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            worksheet.Cell(startRow++, startColumn).Value = $"{teamName}";
+
+            /// 設定標頭團隊名稱
+            worksheet.Range(startRow, startColumn, startRow + missions.Count, startColumn + 1).Merge();
+            /// 設背景顏色
+            worksheet.Cell(startRow, startColumn).Style.Fill.BackgroundColor = XLColor.Red;
+            /// 水平對齊
+            worksheet.Cell(startRow, startColumn).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+            worksheet.Cell(startRow, startColumn++).Value = $"{teamName}";
+
+            /// 寫入Title
+            int titleStartColumn = startColumn;
+            var titles = new List<string>
+            {
+                $"{_localizer["FinishReport:Column:Category"]}", $"{_localizer["FinishReport:Column:SubCategory"]}",
+                $"{_localizer["FinishReport:Column:Mission"]}",
+                $"{_localizer["FinishReport:Column:isFinish"]}", $"{_localizer["FinishReport:Column:SubMission"]}",
+                $"{_localizer["FinishReport:Column:isFinish"]}",
+                $"{_localizer["FinishReport:Column:MissionFinishRate"]}"
+            };
+            /// 設背景顏色
+            worksheet.Range(startRow, ++startColumn, startRow, endColumn).Style.Fill.BackgroundColor = XLColor.BallBlue;
+            foreach (var title in titles)
+            {
+                worksheet.Cell(startRow, ++titleStartColumn).Value = title;
+            }
+
+            startRow++;
+
+            /// 計算子任務數量來計算出父任務是否完成(是 -> 下面子任務全完成)
+            var queryMission = await _repositorys.MissionView.GetQueryableAsync();
+            var isMissionFinishMap = queryMission.Where(x =>
+                    ids.Contains(x.MissionCategoryId) && x.ParentMissionId != null &&
+                    !string.IsNullOrEmpty(x.MissionName))
+                .GroupBy(x => x.ParentMissionId).ToDictionary(g => g.Key, x => x.All(y => y.MissionFinishTime != null));
+
+            var subMissionFinishMap = queryMission.Where(x =>
+                    ids.Contains(x.MissionCategoryId) && x.ParentMissionId != null &&
+                    !string.IsNullOrEmpty(x.MissionName))
+                .GroupBy(x => x.ParentMissionId).ToDictionary(g => g.Key);
+
+            var startDataColumn = startColumn;
+            foreach (var exportDto in exportDtos)
+            {
+                var properties = exportDto.GetType().GetProperties();
+                foreach (var property in properties)
+                {
+                    if (property.PropertyType == typeof(Guid))
                     {
-                        var b = isMissionFinishMap[exportDto.MissionId] ? isFinishMap["1"] : isFinishMap["0"];
+                        continue;
                     }
 
-                    worksheet.Cell(startRow, startDataColumn++).Value = $"{isFinish}";
+                    if (property.PropertyType == typeof(DateTime?))
+                    {
+                        /// 0 -> 否 , 1 -> 是
+                        string isFinish = property.Name == "MissionFinishTime"
+                            ? isMissionFinishMap[exportDto.MissionId] ? isFinishMap["1"] : isFinishMap["0"]
+                            : property.GetValue(exportDto).IsNullOrEmpty()
+                                ? isFinishMap["0"]
+                                : isFinishMap["1"];
+                        if (property.Name == "MissionFinishTime")
+                        {
+                            var b = isMissionFinishMap[exportDto.MissionId] ? isFinishMap["1"] : isFinishMap["0"];
+                        }
+
+                        worksheet.Cell(startRow, startDataColumn++).Value = $"{isFinish}";
+                    }
+                    else
+                    {
+                        worksheet.Cell(startRow, startDataColumn++).Value = $"{property.GetValue(exportDto)}";
+                    }
                 }
-                else
-                {
-                    worksheet.Cell(startRow, startDataColumn++).Value = $"{property.GetValue(exportDto)}";
-                }
+
+                int total = subMissionFinishMap[exportDto.MissionId].Count();
+                int finish = subMissionFinishMap[exportDto.MissionId].Count(x => x.MissionFinishTime != null);
+                decimal rate = (decimal)(finish * 100) / total;
+                worksheet.Cell(startRow, startDataColumn++).Value = $"{Math.Round(rate, 3)}%";
+                startRow++;
+                startDataColumn = startColumn;
             }
 
-            int total = subMissionFinishMap[exportDto.MissionId].Count();
-            int finish = subMissionFinishMap[exportDto.MissionId].Count(x => x.MissionFinishTime != null);
-            decimal rate = (decimal)(finish * 100) / total;
-            worksheet.Cell(startRow, startDataColumn++).Value = $"{Math.Round(rate, 3)}%";
-            startRow++;
-            startDataColumn = startColumn;
+            using var memoryStream = new MemoryStream();
+            workbook.SaveAs(memoryStream);
+
+            var fileNmae = (await _repositorys.LocalizationText.GetAsync(x => x.LanguageCode == code &&
+                                                                              x.Category == "Export" &&
+                                                                              x.ItemKey == "11")).ItemValue;
+            return new MyFileInfoDto { FileContent = memoryStream.ToArray(), FileName = $"{teamName}{fileNmae}" };
         }
-
-        using var memoryStream = new MemoryStream();
-        workbook.SaveAs(memoryStream);
-
-        var fileNmae = (await _repositorys.LocalizationText.GetAsync(x => x.LanguageCode == code &&
-                                                                          x.Category == "Export" && x.ItemKey == "11"))
-            .ItemValue;
-        return new MyFileInfoDto { FileContent = memoryStream.ToArray(), FileName = $"{teamName}{fileNmae}" };
+        catch (Exception e)
+        {
+            throw new BusinessException("完成度報告匯出失敗");
+        }
     }
 
     /// <summary>
