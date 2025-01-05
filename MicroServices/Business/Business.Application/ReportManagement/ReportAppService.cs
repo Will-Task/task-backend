@@ -12,6 +12,7 @@ using Business.MissionManagement;
 using Business.Models;
 using Business.Permissions;
 using Business.ReportManagement.Dto;
+using Business.Specifications.CategoryView;
 using ClosedXML.Excel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Localization;
@@ -240,7 +241,8 @@ public class ReportAppService : ApplicationService, IReportAppService
 
         /// 取得父任務和子任務同筆的數據
         var categories = await _repositorys.MissionCategoryView
-            .GetListAsync(x => x.TeamId == teamId && x.ParentId != null);
+            .GetListAsync(new TeamOrUserCategorySpecification(teamId, CurrentUser.Id));
+        categories = categories.Where(x => x.ParentId != null).ToList();
         var dtos = ObjectMapper.Map<List<MissionCategoryView>, List<MissionCategoryViewDto>>(categories);
 
         foreach (var dto in dtos)
