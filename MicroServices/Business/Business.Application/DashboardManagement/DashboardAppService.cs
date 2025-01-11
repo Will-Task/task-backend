@@ -5,8 +5,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Business.DashboardManagement;
 using Business.DashboardManagement.Dto;
+using Business.Enums;
 using Business.Models;
 using Business.Permissions;
+using Business.Specifications;
 using Microsoft.AspNetCore.Authorization;
 using NUglify.Helpers;
 using Volo.Abp;
@@ -25,11 +27,19 @@ public class DashboardAppService : ApplicationService , IDashboardAppService
         IRepository<Mission> Mission
     ) _repositorys;
 
+    private readonly MissionManager _missionManager;
+    private readonly CategoryManager _categoryManager;
+
     public DashboardAppService(
         IRepository<MissionView> MissionView,
-        IRepository<Mission> Mission)
+        IRepository<Mission> Mission,
+        MissionManager missionManager,
+        CategoryManager categoryManager
+        )
     {
         _repositorys = (MissionView, Mission);
+        _missionManager = missionManager;
+        _categoryManager = categoryManager;
     }
     
     /// <summary>
@@ -87,40 +97,41 @@ public class DashboardAppService : ApplicationService , IDashboardAppService
     /// </summary>
     public async Task<List<MissionProgressDto>> GetMissionFinishPercentage()
     {
-         var currentUserId = CurrentUser.Id;
-         // 計算每個父任務底下子任務完成度
-         var query = await _repositorys.MissionView.GetQueryableAsync();
-         query = query.Where(m => m.UserId == currentUserId);
-         var parentMissionMap = query.Where(m => m.ParentMissionId == null)
-                                                           .ToDictionary(m => m.MissionId , m => m.MissionName );
-         var submissionMap = query.Where(m => m.ParentMissionId != null)
-                   .GroupBy(m => new {m.ParentMissionId.Value , m.Lang}).ToDictionary(m => m.Key 
-                   , m => m.Select(x => x.MissionFinishTime).ToList());
-
-         var dtos = new List<MissionProgressDto>();
-         foreach (var subMissions in submissionMap)
-         {
-             var parentMissionName = parentMissionMap[subMissions.Key.Value];
-             int totalCount = subMissions.Value.Count();
-             int finishCount = 0;
-             // 計算任務完成比數
-             foreach (var missionFinishTime in subMissions.Value)
-             {
-                 if (!missionFinishTime.IsNullOrEmpty())
-                 {
-                     finishCount++;
-                 }
-             }
-
-             var missionProgressDto = new MissionProgressDto();
-             missionProgressDto.Percentage = finishCount * 100 / totalCount;
-             missionProgressDto.Id = subMissions.Key.Value;
-             missionProgressDto.ParentMissionName = parentMissionName;
-             missionProgressDto.Lang = subMissions.Key.Lang;
-             dtos.Add(missionProgressDto);
-         }
-
-         return dtos;
+         // var currentUserId = CurrentUser.Id;
+         // // 計算每個父任務底下子任務完成度
+         // var query = await _repositorys.MissionView.GetQueryableAsync();
+         // query = query.Where(m => m.UserId == currentUserId);
+         // var parentMissionMap = query.Where(m => m.ParentMissionId == null)
+         //                                                   .ToDictionary(m => m.MissionId , m => m.MissionName );
+         // var submissionMap = query.Where(m => m.ParentMissionId != null)
+         //           .GroupBy(m => new {m.ParentMissionId.Value , m.Lang}).ToDictionary(m => m.Key 
+         //           , m => m.Select(x => x.MissionFinishTime).ToList());
+         //
+         // var dtos = new List<MissionProgressDto>();
+         // foreach (var subMissions in submissionMap)
+         // {
+         //     var parentMissionName = parentMissionMap[subMissions.Key.Value];
+         //     int totalCount = subMissions.Value.Count();
+         //     int finishCount = 0;
+         //     // 計算任務完成比數
+         //     foreach (var missionFinishTime in subMissions.Value)
+         //     {
+         //         if (!missionFinishTime.IsNullOrEmpty())
+         //         {
+         //             finishCount++;
+         //         }
+         //     }
+         //
+         //     var missionProgressDto = new MissionProgressDto();
+         //     missionProgressDto.Percentage = finishCount * 100 / totalCount;
+         //     missionProgressDto.Id = subMissions.Key.Value;
+         //     missionProgressDto.ParentMissionName = parentMissionName;
+         //     missionProgressDto.Lang = subMissions.Key.Lang;
+         //     dtos.Add(missionProgressDto);
+         // }
+         //
+         // return dtos;
+         throw new NotImplementedException();
     }
 
     /// <summary>
@@ -238,29 +249,100 @@ public class DashboardAppService : ApplicationService , IDashboardAppService
     /// <summary>
     /// 獲取任務進度來呈現甘特圖（Gantt Chart）資料
     /// </summary>
-    public async Task<List<MissionKanbanDto>> GetKanbanChart()
+    // public async Task<List<MissionKanbanDto>> GetKanbanChart()
+    // {
+    //     var currentUser = CurrentUser.Id;
+    //     var dtos = new List<MissionKanbanDto>();
+    //     var query = await _repositorys.MissionView.GetQueryableAsync();
+    //     var maps = query.Where(m => m.UserId == currentUser).GroupBy(m => m.MissionState).ToDictionary(m => m.Key , 
+    //                         m => m.OrderBy(m => m.MissionEndTime).OrderBy(m => m.MissionPriority));
+    //
+    //     foreach (var map in maps)
+    //     {
+    //         var dto = new MissionKanbanDto();
+    //         dto.Name = map.Key.ToString();
+    //         map.Value.ForEach(m =>
+    //         {
+    //             dto.Tasks.Add(new MissionKanbanChartDataDto
+    //             {
+    //                 Id = m.MissionId,
+    //                 Title = m.MissionName
+    //             });
+    //         });
+    //         dtos.Add(dto);
+    //     }
+    //
+    //     return dtos;
+    // }
+
+    /// <summary>
+    /// 根據任務狀態陳列任務
+    /// </summary>
+    public async Task<Dictionary<int, List<MissionKanbanDto>>> GetKanbanData(Guid? teamId)
     {
-        var currentUser = CurrentUser.Id;
-        var dtos = new List<MissionKanbanDto>();
-        var query = await _repositorys.MissionView.GetQueryableAsync();
-        var maps = query.Where(m => m.UserId == currentUser).GroupBy(m => m.MissionState).ToDictionary(m => m.Key , 
-                            m => m.OrderBy(m => m.MissionEndTime).OrderBy(m => m.MissionPriority));
-
-        foreach (var map in maps)
-        {
-            var dto = new MissionKanbanDto();
-            dto.Name = map.Key.ToString();
-            map.Value.ForEach(m =>
-            {
-                dto.Tasks.Add(new MissionKanbanChartDataDto
+        var queryMission = await _repositorys.MissionView.GetQueryableAsync();
+        var defaultMissionMap = await _missionManager.GetDefaultLangData();
+        var defaultCategoryMap = await _categoryManager.GetDefaultLangData();
+        
+        var missionMap = queryMission.Where(new TeamOrUserMissionSpecification(teamId, CurrentUser.Id))
+            .GroupBy(x => x.MissionState).ToDictionary(g => (int)g.Key,
+                x => x.Select(c => new MissionKanbanDto
                 {
-                    Id = m.MissionId,
-                    Title = m.MissionName
-                });
-            });
-            dtos.Add(dto);
-        }
+                    MissionId = c.MissionId,
+                    MissionName = c.MissionName.IsNullOrEmpty() ? defaultMissionMap[c.MissionId].MissionName : c.MissionName,
+                    CategoryId = c.MissionCategoryId,
+                    CategoryName = c.MissionCategoryName.IsNullOrEmpty() ? defaultCategoryMap[c.MissionCategoryId] : c.MissionCategoryName,
+                    Month = c.MissionStartTime.Month,
+                    Day = c.MissionStartTime.Day,
+                    Lang = c.Lang
+                }).ToList()
+            );
+        
+        return missionMap;
+    }
 
+    /// <summary>
+    /// 各類別統計完成
+    /// </summary>
+    public async Task<List<MissionProgressDto>> GetMissionProgress(Guid? teamId)
+    {
+        var queryMission = await _repositorys.MissionView.GetQueryableAsync();
+        var defaultCategoryMap = await _categoryManager.GetDefaultLangData();
+
+        var dtos = queryMission.Where(new TeamOrUserMissionSpecification(teamId, CurrentUser.Id))
+            .GroupBy(x => new {x.MissionCategoryId, x.Lang})
+            .Select(g => new MissionProgressDto
+            {
+                Id = g.Key.MissionCategoryId,
+                CategoryName = defaultCategoryMap[g.Key.MissionCategoryId],
+                Total = g.Count(),
+                Finish = g.Count(m => m.MissionState == MissionState.COMPLETED),
+                Lang = g.Key.Lang
+            }).ToList();
+
+        return dtos;
+    }
+
+    /// <summary>
+    /// 最近任務獲取(當天)
+    /// </summary>
+    public async Task<List<MissionRecentDto>> GetMissionRecent(Guid? teamId)
+    {
+        var queryMission = await _repositorys.MissionView.GetQueryableAsync();
+        var defaultMissionMap = await _missionManager.GetDefaultLangData();
+
+        var dtos = queryMission.Where(new TeamOrUserMissionSpecification(teamId, CurrentUser.Id))
+            .GroupBy(x => new {x.MissionId, x.Lang})
+            .Select(g => new MissionRecentDto()
+            {
+                Id = g.Key.MissionId,
+                MissionName = defaultMissionMap[g.Key.MissionId].MissionName,
+                Priority = g.First().MissionPriority,
+                StartTime = $"{g.First().MissionStartTime.Hour}:{g.First().MissionStartTime.Minute}",
+                EndTime = $"{g.First().MissionEndTime.Hour}:{g.First().MissionEndTime.Minute}",
+                Lang = g.Key.Lang
+            }).ToList();
+        
         return dtos;
     }
 }

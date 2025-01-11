@@ -5,9 +5,17 @@ namespace Business.DashboardManagement.Dto;
 
 public class MissionProgressDto : EntityDto<Guid?>
 {
-    public decimal Percentage { get; set; }
+    public string CategoryName { get; set; }
     
-    public string ParentMissionName { get; set; }
+    /// <summary>
+    /// 該類別下所有任務數量
+    /// </summary>
+    public int Total { get; set; }
+    
+    /// <summary>
+    /// 該類別下完成任務數量
+    /// </summary>
+    public int Finish { get; set; }
     
     public int Lang { get; set; }
 }

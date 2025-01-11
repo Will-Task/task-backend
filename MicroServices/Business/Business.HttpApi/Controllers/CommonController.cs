@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Business.CommonManagement;
 using Business.MissionCategoryManagement.Dto;
+using Business.MissionManagement.Dto;
 using Microsoft.AspNetCore.Mvc;
 using Volo.Abp.AspNetCore.Mvc;
 
@@ -26,6 +27,26 @@ namespace Business.Controllers
         public async Task<Dictionary<string, List<MissionCategoryViewDto>>> GetCategoryMapping(Guid? teamId)
         {
             return await commonAppService.GetCategoryMapping(teamId);
+        }
+
+        /// <summary>
+        /// 處理多國語系資料對應
+        /// </summary>
+        [HttpGet]
+        [Route("mission")]
+        public async Task<List<MissionViewDto>> GetMissionLangData(Guid? teamId)
+        {
+            return await commonAppService.GetMissionLangData(teamId);
+        }
+        
+        /// <summary>
+        /// 處理多國語系資料對應
+        /// </summary>
+        [HttpGet]
+        [Route("category")]
+        public async Task<List<MissionCategoryViewDto>> GetCategoryLangData(Guid? teamId)
+        {
+            return await commonAppService.GetCategoryLangData(teamId);
         }
     }
 }

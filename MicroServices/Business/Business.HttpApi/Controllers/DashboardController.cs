@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Business.DashboardManagement;
 using Business.DashboardManagement.Dto;
@@ -11,10 +12,10 @@ namespace Business.Controllers;
 [Route("/api/business/dashboard")]
 public class DashboardController : AbpController
 {
-    private readonly IDashboardAppService dashboardAppService;
-    public DashboardController(IDashboardAppService _dashboardAppService)
+    private readonly IDashboardAppService _dashboardAppService;
+    public DashboardController(IDashboardAppService dashboardAppService)
     {
-        dashboardAppService = _dashboardAppService;
+        _dashboardAppService = dashboardAppService;
     }
 
     /// <summary>
@@ -24,7 +25,7 @@ public class DashboardController : AbpController
     [Route("todo")]
     public Task<List<ToDoMissionViewDto>> GetToDoList(int page , int pageSize , bool allData)
     {
-        return dashboardAppService.GetToDoList(page , pageSize , allData);
+        return _dashboardAppService.GetToDoList(page , pageSize , allData);
     }
     
     /// <summary>
@@ -34,7 +35,7 @@ public class DashboardController : AbpController
     [Route("delay")]
     public Task<List<MissionDelayDto>> GetMissionDelays()
     {
-        return dashboardAppService.GetMissionDelays();
+        return _dashboardAppService.GetMissionDelays();
     }
     
     /// <summary>
@@ -44,36 +45,66 @@ public class DashboardController : AbpController
     [Route("percentage")]
     public Task<List<MissionProgressDto>> GetMissionFinishPercentage()
     {
-        return dashboardAppService.GetMissionFinishPercentage();
+        return _dashboardAppService.GetMissionFinishPercentage();
     }
 
     /// <summary>
     /// 獲取過去7天的任務進度
     /// </summary>
+    // [HttpGet]
+    // [Route("progress")]
+    // public Task<List<MissionProgressDetailDto>> GetMissionProgress()
+    // {
+    //     return _dashboardAppService.GetMissionProgress();
+    // }
+    
+    /// <summary>
+    /// 獲取任務進度來呈現甘特圖（Gantt Chart）資料
+    /// </summary>
+    // [HttpGet]
+    // [Route("gantt/chart")]
+    // public Task<MissionGanttDto> GetGanttChart()
+    // {
+    //     return dashboardAppService.GetGanttChart();
+    // }
+    
+    /// <summary>
+    /// 獲取任務進度來呈現甘特圖（Gantt Chart）資料
+    /// </summary>
+    // [HttpGet]
+    // [Route("kanban/chart")]
+    // public Task<List<MissionKanbanDto>> GetKanbanChart()
+    // {
+    //     return dashboardAppService.GetKanbanChart();
+    // }
+
+    /// <summary>
+    /// 根據任務狀態陳列任務
+    /// </summary>
+    [HttpGet]
+    [Route("kanbanData")]
+    public async Task<Dictionary<int, List<MissionKanbanDto>>>　GetKanbanData(Guid? teamId)
+    {
+        return await _dashboardAppService.GetKanbanData(teamId);
+    }
+
+    /// <summary>
+    /// 各類別統計完成
+    /// </summary>
     [HttpGet]
     [Route("progress")]
-    public Task<List<MissionProgressDetailDto>> GetMissionProgress()
+    public async Task<List<MissionProgressDto>> GetMissionProgress(Guid? teamId)
     {
-        return dashboardAppService.GetMissionProgress();
+        return await _dashboardAppService.GetMissionProgress(teamId);
     }
     
     /// <summary>
-    /// 獲取任務進度來呈現甘特圖（Gantt Chart）資料
+    /// 最近任務獲取(當天)
     /// </summary>
     [HttpGet]
-    [Route("gantt/chart")]
-    public Task<MissionGanttDto> GetGanttChart()
+    [Route("recent/mission")]
+    public async Task<List<MissionRecentDto>> GetMissionRecent(Guid? teamId)
     {
-        return dashboardAppService.GetGanttChart();
-    }
-    
-    /// <summary>
-    /// 獲取任務進度來呈現甘特圖（Gantt Chart）資料
-    /// </summary>
-    [HttpGet]
-    [Route("kanban/chart")]
-    public Task<List<MissionKanbanDto>> GetKanbanChart()
-    {
-        return dashboardAppService.GetKanbanChart();
+        return await _dashboardAppService.GetMissionRecent(teamId);
     }
 }
