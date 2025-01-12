@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
 using Business.DashboardManagement;
 using Business.DashboardManagement.Dto;
@@ -9,6 +10,7 @@ using Business.Enums;
 using Business.Models;
 using Business.Permissions;
 using Business.Specifications;
+using DocumentFormat.OpenXml.Bibliography;
 using Microsoft.AspNetCore.Authorization;
 using NUglify.Helpers;
 using Volo.Abp;
@@ -297,12 +299,22 @@ public class DashboardAppService : ApplicationService , IDashboardAppService
                     Lang = c.Lang
                 }).ToList()
             );
+
+        for (int i = (int)MissionState.TODO; i <= (int)MissionState.COMPLETED; i++)
+        {
+            if (!missionMap.ContainsKey(i))
+            {
+                missionMap.Add(i, new List<MissionKanbanDto>());
+            }
+        }
+
+        missionMap = missionMap.OrderBy(x => x.Key).ToDictionary();
         
         return missionMap;
     }
 
     /// <summary>
-    /// 各類別統計完成
+    /// 各類別完成度統計
     /// </summary>
     public async Task<List<MissionProgressDto>> GetMissionProgress(Guid? teamId)
     {
@@ -341,6 +353,78 @@ public class DashboardAppService : ApplicationService , IDashboardAppService
                 StartTime = $"{g.First().MissionStartTime.Hour}:{g.First().MissionStartTime.Minute}",
                 EndTime = $"{g.First().MissionEndTime.Hour}:{g.First().MissionEndTime.Minute}",
                 Lang = g.Key.Lang
+            }).ToList();
+        
+        return dtos;
+    }
+
+    /// <summary>
+    /// 每個類別所花的時間佔比
+    /// </summary>
+    public async Task<List<CategoryPercentageDto>> GetCategoryPercentage(Guid? teamId)
+    {
+        var queryMission = await _repositorys.MissionView.GetQueryableAsync();
+        var defaultCategoryMap = await _categoryManager.GetDefaultLangData();
+
+        /// 每個月所花費的時間總和
+        var totalMap = queryMission.Where(new TeamOrUserMissionSpecification(teamId, CurrentUser.Id))
+            .Where(x => x.Lang == 1)
+            .GroupBy(g => g.MissionEndTime.Month)
+            .AsEnumerable()
+            .Select(x => new
+            {
+                Total = x.Sum(c => c.MissionEndTime.Subtract(c.MissionStartTime).TotalMinutes),
+                Month = x.Key
+            })
+            .ToList();
+        
+        var fullTotalMap = Enumerable.Range(1, 12)
+            .Select(month => new
+            {
+                Month = month,
+                TotalMinutes = totalMap.FirstOrDefault(x => x.Month == month)?.Total ?? 0
+            })
+            .ToList();
+
+        var dtos = queryMission.Where(new TeamOrUserMissionSpecification(teamId, CurrentUser.Id))
+            .GroupBy(x => new {x.MissionCategoryId, x.Lang})
+            .AsEnumerable()
+            .Select(g => new CategoryPercentageDto
+            {
+                CategoryName = defaultCategoryMap[g.Key.MissionCategoryId],
+                Rates = g.GroupBy(g1 => g1.MissionEndTime.Month)
+                         .Select(g1 =>(int)(100 * g1.Sum(c => 
+                         c.MissionEndTime.Subtract(c.MissionStartTime).TotalMinutes) / fullTotalMap[g1.Key - 1].TotalMinutes)).ToList(),
+                Lang = g.Key.Lang
+            }).ToList();
+
+        return dtos;
+    }
+
+    /// <summary>
+    /// 每月任務完成數
+    /// </summary>
+    public async Task<List<MissionOfEveryMonthDto>> GetMissionOfEveryMonth(Guid? teamId)
+    { 
+        var queryMission = await _repositorys.MissionView.GetQueryableAsync();
+        var defaultCategoryMap = await _categoryManager.GetDefaultLangData();
+        
+        var dtos = queryMission.Where(new TeamOrUserMissionSpecification(teamId, CurrentUser.Id))
+            .Where(x => x.MissionFinishTime != null)
+            .GroupBy(x => new {x.MissionCategoryId, x.Lang})
+            .AsEnumerable()
+            .Select(g =>
+            {
+                var months = new int[12];
+                g.GroupBy(g1 => g1.MissionFinishTime.Value.Month).ToList()
+                    .ForEach(x => months[x.Key - 1] = x.Count());  
+                
+                return new MissionOfEveryMonthDto
+                {
+                    CategoryName = defaultCategoryMap[g.Key.MissionCategoryId],
+                    FinishAmount = months.ToList(),
+                    Lang = g.Key.Lang
+                };
             }).ToList();
         
         return dtos;

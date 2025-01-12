@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Business.DashboardManagement;
 using Business.DashboardManagement.Dto;
+using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using Microsoft.AspNetCore.Mvc;
 using Volo.Abp.AspNetCore.Mvc;
 
@@ -89,7 +90,7 @@ public class DashboardController : AbpController
     }
 
     /// <summary>
-    /// 各類別統計完成
+    /// 各類別完成度統計
     /// </summary>
     [HttpGet]
     [Route("progress")]
@@ -106,5 +107,25 @@ public class DashboardController : AbpController
     public async Task<List<MissionRecentDto>> GetMissionRecent(Guid? teamId)
     {
         return await _dashboardAppService.GetMissionRecent(teamId);
+    }
+
+    /// <summary>
+    /// 每個類別所花的時間佔比
+    /// </summary>
+    [HttpGet]
+    [Route("category/percentage")]
+    public async Task<List<CategoryPercentageDto>> GetCategoryPercentage(Guid? teamId)
+    {
+        return await _dashboardAppService.GetCategoryPercentage(teamId);
+    }
+    
+    /// <summary>
+    /// 每月任務完成數
+    /// </summary>
+    [HttpGet]
+    [Route("month/mission")]
+    public async Task<List<MissionOfEveryMonthDto>> GetMissionOfEveryMonth(Guid? teamId)
+    {
+        return await _dashboardAppService.GetMissionOfEveryMonth(teamId);
     }
 }
