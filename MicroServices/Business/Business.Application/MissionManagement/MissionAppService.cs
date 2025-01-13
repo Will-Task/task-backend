@@ -119,6 +119,11 @@ public class MissionAppService : ApplicationService, IMissionAppService
                     await CreateTaskSchedule(input);
                     input.Id = nowId;
                 }
+                /// 新增時，任務狀態極為完成順便給完成時間
+                if (input.MissionState == MissionState.COMPLETED)
+                {
+                    input.MissionFinishTime = Clock.Now;
+                }
 
                 // 更新資料
                 missionI18N.MissionName = input.MissionName;
@@ -152,6 +157,11 @@ public class MissionAppService : ApplicationService, IMissionAppService
             {
                 input.ScheduleMissionId = newMission.Id;
                 await CreateTaskSchedule(input);
+            }
+            /// 新增時，任務狀態極為完成順便給完成時間
+            if (input.MissionState == MissionState.COMPLETED)
+            {
+                newMission.MissionFinishTime = Clock.Now;
             }
 
             await _repositoys.Mission.InsertAsync(newMission);

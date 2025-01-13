@@ -20,66 +20,6 @@ public class DashboardController : AbpController
     }
 
     /// <summary>
-    /// 取得最近要做任務清單
-    /// </summary>
-    [HttpGet]
-    [Route("todo")]
-    public Task<List<ToDoMissionViewDto>> GetToDoList(int page , int pageSize , bool allData)
-    {
-        return _dashboardAppService.GetToDoList(page , pageSize , allData);
-    }
-    
-    /// <summary>
-    /// 計算每個月的任務延遲狀況
-    /// </summary>
-    [HttpGet]
-    [Route("delay")]
-    public Task<List<MissionDelayDto>> GetMissionDelays()
-    {
-        return _dashboardAppService.GetMissionDelays();
-    }
-    
-    /// <summary>
-    /// 取得每個父任務底下的子任務完成度(完成任務 / 總子任務數)
-    /// </summary>
-    [HttpGet]
-    [Route("percentage")]
-    public Task<List<MissionProgressDto>> GetMissionFinishPercentage()
-    {
-        return _dashboardAppService.GetMissionFinishPercentage();
-    }
-
-    /// <summary>
-    /// 獲取過去7天的任務進度
-    /// </summary>
-    // [HttpGet]
-    // [Route("progress")]
-    // public Task<List<MissionProgressDetailDto>> GetMissionProgress()
-    // {
-    //     return _dashboardAppService.GetMissionProgress();
-    // }
-    
-    /// <summary>
-    /// 獲取任務進度來呈現甘特圖（Gantt Chart）資料
-    /// </summary>
-    // [HttpGet]
-    // [Route("gantt/chart")]
-    // public Task<MissionGanttDto> GetGanttChart()
-    // {
-    //     return dashboardAppService.GetGanttChart();
-    // }
-    
-    /// <summary>
-    /// 獲取任務進度來呈現甘特圖（Gantt Chart）資料
-    /// </summary>
-    // [HttpGet]
-    // [Route("kanban/chart")]
-    // public Task<List<MissionKanbanDto>> GetKanbanChart()
-    // {
-    //     return dashboardAppService.GetKanbanChart();
-    // }
-
-    /// <summary>
     /// 根據任務狀態陳列任務
     /// </summary>
     [HttpGet]
