@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Business.DashboardManagement;
 using Business.DashboardManagement.Dto;
-using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using Microsoft.AspNetCore.Mvc;
 using Volo.Abp.AspNetCore.Mvc;
 
@@ -67,5 +66,25 @@ public class DashboardController : AbpController
     public async Task<List<MissionOfEveryMonthDto>> GetMissionOfEveryMonth(Guid? teamId)
     {
         return await _dashboardAppService.GetMissionOfEveryMonth(teamId);
+    }
+
+    /// <summary>
+    /// 根據時間成列任務和父子任務關係
+    /// </summary>
+    [HttpGet]
+    [Route("ganttData")]
+    public async Task<List<MissioGanttDto>> GetGanttData(Guid? teamId)
+    {
+        return await _dashboardAppService.GetGanttData(teamId);
+    }
+
+    /// <summary>
+    /// 根據時間成列任務和父子任務關係
+    /// </summary>
+    [HttpGet]
+    [Route("ganttData/order")]
+    public async Task<List<MissioGanttByOrderDto>> GetGanttDataByOrder(Guid? teamId)
+    {
+        return await _dashboardAppService.GetGanttDataByOrder(teamId);
     }
 }

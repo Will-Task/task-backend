@@ -32,4 +32,14 @@ public interface IDashboardAppService : IApplicationService
     /// 每月任務完成數
     /// </summary>
     Task<List<MissionOfEveryMonthDto>> GetMissionOfEveryMonth(Guid? teamId);
+
+    /// <summary>
+    /// 根據時間成列任務和父子任務關係
+    /// </summary>
+    Task<List<MissioGanttDto>> GetGanttData(Guid? teamId);
+
+    /// <summary>
+    /// 根據時間成列任務和父子任務關係
+    /// </summary>
+    Task<List<MissioGanttByOrderDto>> GetGanttDataByOrder(Guid? teamId);
 }

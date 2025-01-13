@@ -555,8 +555,10 @@ public class MissionAppService : ApplicationService, IMissionAppService
         var language = await _repositoys.Language.GetAsync(x => x.Code == code);
 
         // 取得父任務
-        var parent = await _repositoys.MissionView.FirstAsync(x =>
-            x.MissionId == parentId && x.Lang == language.Id);
+        var queryMission = await _repositoys.MissionView.GetQueryableAsync();
+        var parent = await queryMission.Where(x => x.MissionId == parentId).OrderBy(x => x.Lang == language.Id ? 0 : x.Lang)
+                                 .OrderBy(x => x.Lang).FirstAsync();
+
         var parentExportDto = ObjectMapper.Map<MissionView, MissionExportDto>(parent);
         // 取得parentId的子任務
         var subs = await _repositoys.MissionView.GetListAsync(x =>

@@ -193,4 +193,60 @@ public class DashboardAppService : ApplicationService , IDashboardAppService
         
         return dtos;
     }
+
+    /// <summary>
+    /// 根據時間成列任務和父子任務關係
+    /// </summary>
+    public async Task<List<MissioGanttDto>> GetGanttData(Guid? teamId)
+    {
+        var queryMission = await _repositorys.MissionView.GetQueryableAsync();
+        var defaultMissionMap = await _missionManager.GetDefaultLangData();
+
+        var dtos = queryMission.Where(new TeamOrUserMissionSpecification(teamId, CurrentUser.Id))
+            .Select(g => new MissioGanttDto()
+            {
+                Id = g.MissionId,
+                Title = g.MissionName,
+                ParentID = g.ParentMissionId,
+                Start = g.MissionStartTime, 
+                End = g.MissionEndTime,
+                Lang = g.Lang
+            }).ToList();
+
+        return dtos;
+    }
+
+    /// <summary>
+    /// 根據時間成列任務和父子任務關係
+    /// </summary>
+    public async Task<List<MissioGanttByOrderDto>> GetGanttDataByOrder(Guid? teamId)
+    {
+        var queryMission = await _repositorys.Mission.GetQueryableAsync();
+        queryMission = queryMission.Where(new Business.Specifications.Mission.TeamOrUserMissionSpecification(teamId, CurrentUser.Id));
+
+        var missionMap = queryMission.Where(x => x.ParentMissionId != null).GroupBy(x => x.ParentMissionId).ToDictionary(g => g.Key, x => x.OrderBy(x => x.MissionStartTime).ToList());
+        var dtos = new List<MissioGanttByOrderDto>();
+
+        foreach (var (key, values) in missionMap)
+        {
+            var parentDto = new MissioGanttByOrderDto
+            {
+                SuccessorID = values.First().Id,
+            };
+            dtos.Add(parentDto);
+            Guid? pre = key.Value;
+            for (int i = 0; i < values.Count; i++)
+            {
+                var dto = new MissioGanttByOrderDto
+                {
+                    PredecessorID = pre,
+                    SuccessorID =  i + 1 < values.Count ? values[i + 1].Id : null,
+                };
+                pre = values[i].Id;
+                dtos.Add(dto);
+            }
+        }
+
+        return dtos;
+    }
 }
