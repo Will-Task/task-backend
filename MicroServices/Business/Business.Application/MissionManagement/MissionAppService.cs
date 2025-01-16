@@ -30,6 +30,7 @@ using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Data;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.ObjectMapping;
 using Volo.Abp.Specifications;
 
 namespace Business.MissionManagement;
@@ -55,6 +56,8 @@ public class MissionAppService : ApplicationService, IMissionAppService
     private readonly ILogger<MissionAppService> _logger;
     private readonly IDataFilter _dataFilter;
     private readonly EmailUtils _emailUtils;
+    private MissionManager _missionManager;
+    private CategoryManager _categoryManager;
 
     // 設定定時任務最大數量
     private readonly int maxScheduleCount = 10;
@@ -78,7 +81,9 @@ public class MissionAppService : ApplicationService, IMissionAppService
         IConfiguration configuration,
         IDataFilter dataFilter,
         ILogger<MissionAppService> logger,
-        EmailUtils emailUtils)
+        EmailUtils emailUtils,
+        MissionManager missionManager,
+        CategoryManager categoryManager)
     {
         _repositoys = (Mission, MissionI18N, MissionView, MissionCategory, MissionCategoryI18N,
             MissionCategoryView, AbpUserView, LocalizationText, Language);
@@ -87,6 +92,8 @@ public class MissionAppService : ApplicationService, IMissionAppService
         _dataFilter = dataFilter;
         _logger = logger;
         _emailUtils = emailUtils;
+        _missionManager = missionManager;
+        _categoryManager = categoryManager;
     }
 
     #region CRUD方法
@@ -265,8 +272,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         var dtos = new List<MissionOverviewDto>();
         var queryMission = await _repositoys.MissionView.GetQueryableAsync();
         /// 預設多國語系資料
-        var missionMap = queryMission.OrderBy(x => x.Lang == 1 ? 0 : x.Lang).OrderBy(x => x.Lang)
-            .GroupBy(x => x.MissionId).ToDictionary(g => g.Key, x => x.First().MissionName);
+        var missionMap = await _missionManager.GetDefaultLangData();
         /// (當前使用者or所屬team) 且當前的任務類別
         queryMission = queryMission.Where(new TeamOrUserMissionSpecification(teamId, currentUserId)
             .And(new CategoryMissionSpecification(categoryId)).ToExpression()
@@ -282,7 +288,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
             ObjectMapper.Map(parent, dto);
             if (dto.MissionName.IsNullOrEmpty())
             {
-                dto.MissionName = missionMap[dto.MissionId];
+                dto.MissionName = missionMap[dto.MissionId].MissionName;
             }
 
             /// 父任務是否有子任務檢查
@@ -294,7 +300,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
                 {
                     if (sub.MissionName.IsNullOrEmpty())
                     {
-                        sub.MissionName = missionMap[sub.MissionId];
+                        sub.MissionName = missionMap[sub.MissionId].MissionName;
                     }
                 });
                 dto.SubMissions = subDtos;
@@ -546,6 +552,9 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// </summary>
     public async Task<MyFileInfoDto> ExportFile(Guid parentId, string code)
     {
+        /// 預設中文資料
+        var missionMap = await _missionManager.GetDefaultLangData();
+        var categoryMap = await _categoryManager.GetDefaultLangData();
         // 取得欲寫入的範本檔案
         var file = await _repositoys.LocalizationText.GetAsync(x =>
             x.LanguageCode == code && x.Category == "Template" && x.ItemKey == "2");
@@ -559,16 +568,38 @@ public class MissionAppService : ApplicationService, IMissionAppService
         var parent = await queryMission.Where(x => x.MissionId == parentId).OrderBy(x => x.Lang == language.Id ? 0 : x.Lang)
                                  .OrderBy(x => x.Lang).FirstAsync();
 
-        var parentExportDto = ObjectMapper.Map<MissionView, MissionExportDto>(parent);
+        var parentDto = ObjectMapper.Map<MissionView, MissionViewDto>(parent);
+        if (parentDto.MissionName.IsNullOrEmpty())
+        {
+            parentDto.MissionName = missionMap[parentDto.MissionId].MissionName;
+            parentDto.MissionDescription = missionMap[parentDto.MissionId].MissionDescription;
+            parentDto.MissionCategoryName = categoryMap[parentDto.MissionCategoryId];
+        }
+
+        var parentExportDto = ObjectMapper.Map<MissionViewDto, MissionExportDto>(parentDto);
+        /// 預設多國語系資料
+
         // 取得parentId的子任務
         var subs = await _repositoys.MissionView.GetListAsync(x =>
             x.ParentMissionId == parentId && x.Lang == language.Id);
-        var subExportDtos = ObjectMapper.Map<List<MissionView>, List<MissionExportDto>>(subs);
+        var dtos = ObjectMapper.Map<List<MissionView>, List<MissionViewDto>>(subs);
+        /// 預設多國語系資料
+        foreach (var dto in dtos)
+        {
+            if (dto.MissionName.IsNullOrEmpty())
+            {
+                dto.MissionName = missionMap[dto.MissionId].MissionName;
+                dto.MissionDescription = missionMap[dto.MissionId].MissionDescription;
+                dto.MissionCategoryName = categoryMap[dto.MissionCategoryId];
+            }
+        }
+        var subExportDtos = ObjectMapper.Map<List<MissionViewDto>, List<MissionExportDto>>(dtos);
         int start = 3;
         var nextChar = 'A';
 
         var worksheet = workBook.Worksheet(1);
-        worksheet.Name = parent.MissionName;
+        var parentName = parent.MissionName ?? missionMap[parent.MissionId].MissionName;
+        worksheet.Name = parentName;
 
         var propertys = typeof(MissionExportDto).GetProperties();
         foreach (var property in propertys)
@@ -593,7 +624,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         using var savingMemoryStream = new MemoryStream();
         workBook.SaveAs(savingMemoryStream);
         return new MyFileInfoDto
-            { FileContent = savingMemoryStream.ToArray(), FileName = $"{parent.MissionName}的匯出檔案.xlsx" };
+            { FileContent = savingMemoryStream.ToArray(), FileName = $"{parentName}的匯出檔案.xlsx" };
     }
 
     /// <summary>

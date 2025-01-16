@@ -25,5 +25,6 @@ public class MissionAutoMapperProfile: Profile
         CreateMap<MissionView, MissionOverviewDto>();
         CreateMap<MissionView, SubMissionOverviewDto>();
         CreateMap<MissionI18NDto, MissionI18N>();
+        CreateMap<MissionViewDto, MissionExportDto>();
     }
 }

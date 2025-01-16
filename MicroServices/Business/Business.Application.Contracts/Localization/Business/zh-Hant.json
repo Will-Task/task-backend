@@ -10,6 +10,12 @@
       "FinishReport:Column:isFinish": "是否完成",
       "FinishReport:Column:SubMission": "子任務",
       "FinishReport:Column:MissionFinishRate": "父任務完成狀態(%)",
-      "FinishReport:Team:Name": "我的"
+      "FinishReport:Team:Name": "我的",
+      "InvitationExport:Column:teamName": "團隊名稱",
+      "InvitationExport:Column:inviteName": "邀請人名稱",
+      "InvitationExport:Column:invitedName": "受邀請人名稱",
+      "InvitationExport:Column:stateName": "邀請狀態",
+      "InvitationExport:Column:responseTime": "回復時間",
+      "InvitationExport:Column:inviteTime": "邀請人時間"
     }
   }

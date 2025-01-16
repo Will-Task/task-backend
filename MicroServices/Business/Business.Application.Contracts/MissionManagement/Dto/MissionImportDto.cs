@@ -28,10 +28,10 @@ public class MissionImportDto : EntityDto<Int64?>
     public DateTime MissionEndTime { get; set; }
     
     public int? MissionBeforeEnd { get; set; }
-    
-    public int MissionPriority { get; set; }
 
-    public MissionState MissionState { get; set; }
+    public int MissionPriority { get; set; } = 5;
+
+    public MissionState MissionState { get; set; } = MissionState.TODO;
     
     public int Lang { get; set; }
 }

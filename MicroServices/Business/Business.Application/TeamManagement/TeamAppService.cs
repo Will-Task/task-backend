@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Business.Common;
 using Business.CommonManagement.Dto;
 using Business.Core.Enums;
 using Business.FileManagement;
 using Business.FileManagement.Dto;
+using Business.Localization;
 using Business.Models;
 using Business.Permissions;
 using Business.Specifications.TeamMember;
@@ -14,6 +17,7 @@ using Business.TeamManagement.Dto;
 using ClosedXML.Excel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
@@ -31,12 +35,15 @@ namespace Business.TeamManagement
             IRepository<TeamMember> TeamMember,
             IRepository<TeamInvitation, Guid> TeamInvitation,
             IRepository<AbpUserView, Guid> AbpUserView,
-            IRepository<LocalizationText> LocalizationText
+            IRepository<LocalizationText> LocalizationText,
+            IRepository<Language> Language
             ) _repositorys;
 
         private readonly IFileAppService _fileAppService;
 
         private readonly ILogger<TeamAppService> _logger;
+
+        private readonly IStringLocalizer<BusinessResource> _localizer;
 
         public TeamAppService(
             IRepository<Team, Guid> Team,
@@ -44,13 +51,16 @@ namespace Business.TeamManagement
             IRepository<TeamInvitation, Guid> TeamInvitation,
             IRepository<AbpUserView, Guid> AbpUserView,
             IRepository<LocalizationText> LocalizationText,
+            IRepository<Language> Language,
             IFileAppService fileAppService,
-            ILogger<TeamAppService> logger
+            ILogger<TeamAppService> logger,
+            IStringLocalizer<BusinessResource> localizer
             )
         {
-            _repositorys = (Team, TeamMember, TeamInvitation, AbpUserView, LocalizationText);
+            _repositorys = (Team, TeamMember, TeamInvitation, AbpUserView, LocalizationText, Language);
             _fileAppService = fileAppService;
             _logger = logger;
+            _localizer = localizer;
         }
 
         #region CRUD方法
@@ -219,6 +229,16 @@ namespace Business.TeamManagement
         /// </summary>
         public async Task<BlobDto> Export(int? state, string name, string code)
         {
+            int lang = 1;
+            var language = await _repositorys.Language.FindAsync(x => x.Code == code);
+            if (language != null)
+            {
+                lang = language.Id;
+            }
+            var culture = Utils.GetCulture(lang);
+            CultureInfo.CurrentCulture = new CultureInfo(culture);
+            CultureInfo.CurrentUICulture = new CultureInfo(culture);
+
             var file = await _repositorys.LocalizationText.GetAsync(x => x.LanguageCode == code
                                         && x.Category == "Template" && x.ItemKey == "21");
 
@@ -231,8 +251,23 @@ namespace Business.TeamManagement
             var dtos = await SearchInvitations(state, name);
             var exportDtos = ObjectMapper.Map<List<TeamInvitationDto>, List<ExportTeamInvitationDto>>(dtos);
 
+            /// 寫入Title
             var nextChar = 'A';
-            int row = 2;
+            int row = 1;
+            var titles = new List<string>
+            {
+                $"{_localizer["InvitationExport:Column:teamName"]}", $"{_localizer["InvitationExport:Column:inviteName"]}",
+                $"{_localizer["InvitationExport:Column:invitedName"]}",
+                $"{_localizer["InvitationExport:Column:stateName"]}", $"{_localizer["InvitationExport:Column:responseTime"]}",
+                $"{_localizer["InvitationExport:Column:inviteTime"]}"
+            };
+            foreach (var title in titles)
+            {
+                workSheet.Cell($"{nextChar++}{row}").Value = title;
+            }
+
+            nextChar = 'A';
+            row++;
             foreach (var dto in exportDtos)
             {
                 var props = dto.GetType().GetProperties();
