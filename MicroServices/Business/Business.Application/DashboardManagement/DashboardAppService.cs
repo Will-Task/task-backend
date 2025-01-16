@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic.Core;
+using System.Threading;
 using System.Threading.Tasks;
 using Business.DashboardManagement;
 using Business.DashboardManagement.Dto;
@@ -201,15 +202,19 @@ public class DashboardAppService : ApplicationService , IDashboardAppService
     {
         var queryMission = await _repositorys.MissionView.GetQueryableAsync();
         var defaultMissionMap = await _missionManager.GetDefaultLangData();
-
+        int count = 1;
         var dtos = queryMission.Where(new TeamOrUserMissionSpecification(teamId, CurrentUser.Id))
+            .Where(x => x.Lang == 1)
+            .AsEnumerable()
             .Select(g => new MissioGanttDto()
             {
                 Id = g.MissionId,
-                Title = g.MissionName,
-                ParentID = g.ParentMissionId,
-                Start = g.MissionStartTime, 
-                End = g.MissionEndTime,
+                Title = g.MissionName ?? string.Empty,
+                ParentId = g.ParentMissionId,
+                OrderId = count++,
+                Start = g.MissionStartTime.ToString("o"), 
+                End = g.MissionEndTime.ToString("o"),
+                Expanded = !g.ParentMissionId.HasValue,
                 Lang = g.Lang
             }).ToList();
 
@@ -226,23 +231,27 @@ public class DashboardAppService : ApplicationService , IDashboardAppService
 
         var missionMap = queryMission.Where(x => x.ParentMissionId != null).GroupBy(x => x.ParentMissionId).ToDictionary(g => g.Key, x => x.OrderBy(x => x.MissionStartTime).ToList());
         var dtos = new List<MissioGanttByOrderDto>();
+        int count = 1;
 
         foreach (var (key, values) in missionMap)
         {
             var parentDto = new MissioGanttByOrderDto
             {
-                SuccessorID = values.First().Id,
+                Id = count++,
+                SuccessorId = values.First().Id,
             };
             dtos.Add(parentDto);
             Guid? pre = key.Value;
             for (int i = 0; i < values.Count; i++)
             {
+                var missionId = values[i].Id;
                 var dto = new MissioGanttByOrderDto
                 {
-                    PredecessorID = pre,
-                    SuccessorID =  i + 1 < values.Count ? values[i + 1].Id : null,
+                    Id = count++,
+                    PredecessorId = pre,
+                    SuccessorId = i + 1 < values.Count ? values[i + 1].Id : null
                 };
-                pre = values[i].Id;
+                pre = missionId;
                 dtos.Add(dto);
             }
         }

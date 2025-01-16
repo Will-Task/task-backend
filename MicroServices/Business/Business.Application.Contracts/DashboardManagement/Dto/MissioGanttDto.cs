@@ -14,19 +14,25 @@ namespace Business.DashboardManagement.Dto
         /// </summary>
         public string Title { get; set; }
 
-        public Guid? ParentID { get; set; }
+        public Guid? ParentId { get; set; }
 
         public int OrderId { get; set; }
 
-        public DateTime Start { get; set; }
+        public string Start { get; set; }
 
-        public DateTime End { get; set; }
+        public string End { get; set; }
 
         public decimal PercentComplete { get; set; }
 
-        public bool Summary { get; set; } = true;
+        /// <summary>
+        /// 是否為匯總任務
+        /// </summary>
+        public bool Summary { get; set; }
 
-        public bool Expanded { get; set; } = true;
+        /// <summary>
+        /// 獨立任務要為 true
+        /// </summary>
+        public bool Expanded { get; set; }
 
         public int Lang { get; set; }
     }
