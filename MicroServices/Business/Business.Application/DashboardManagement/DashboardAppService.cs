@@ -204,12 +204,11 @@ public class DashboardAppService : ApplicationService , IDashboardAppService
         var defaultMissionMap = await _missionManager.GetDefaultLangData();
         int count = 1;
         var dtos = queryMission.Where(new TeamOrUserMissionSpecification(teamId, CurrentUser.Id))
-            .Where(x => x.Lang == 1)
             .AsEnumerable()
             .Select(g => new MissioGanttDto()
             {
                 Id = g.MissionId,
-                Title = g.MissionName ?? string.Empty,
+                Title = g.MissionName ?? defaultMissionMap[g.MissionId].MissionName,
                 ParentId = g.ParentMissionId,
                 OrderId = count++,
                 Start = g.MissionStartTime.ToString("o"), 
