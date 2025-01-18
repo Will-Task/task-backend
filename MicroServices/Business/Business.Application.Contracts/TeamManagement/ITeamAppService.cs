@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Business.CommonManagement.Dto;
 using Business.FileManagement.Dto;
@@ -71,5 +72,15 @@ namespace Business.TeamManagement
         /// 邀請記錄匯出
         /// </summary>
         Task<BlobDto> Export(int? state, string name, string code);
+
+        /// <summary>
+        /// 獲取所有成員的權限
+        /// </summary>
+        Task<List<MemberPermissionDto>> GetAllPersionOfMember(Guid teamId);
+
+        /// <summary>
+        /// 編輯成員的權限
+        /// </summary>
+        Task<List<MemberPermissionDto>> EditPersionOfMember(CreateOrUpdatePermissionOfMemberDto input);
     }
 }

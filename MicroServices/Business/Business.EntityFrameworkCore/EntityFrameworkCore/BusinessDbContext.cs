@@ -79,7 +79,13 @@ namespace Business.EntityFrameworkCore
             {
                 x.HasKey(k => new { k.LanguageCode, k.Category, k.ItemKey });
             });
+
             modelBuilder.Entity<TeamMember>().HasKey(c => new { c.TeamId, c.UserId });
+
+            modelBuilder.Entity<TeamPermission>(x =>
+            {
+                x.HasKey(k => new { k.UserId, k.TeamId, k.Permission });
+            });
         }
     }
 }

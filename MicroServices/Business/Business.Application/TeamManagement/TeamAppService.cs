@@ -291,6 +291,25 @@ namespace Business.TeamManagement
             return blobDto;
         }
 
+        /// <summary>
+        /// 獲取所有成員的權限
+        /// </summary>
+        public Task<List<MemberPermissionDto>> GetAllPersionOfMember(Guid teamId)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// 編輯成員的權限
+        /// </summary>
+        public Task<List<MemberPermissionDto>> EditPersionOfMember(CreateOrUpdatePermissionOfMemberDto input)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        #region 共用method
+
         private async Task<List<TeamInvitationDto>> SearchInvitations(int? state, string name)
         {
             var currentUserId = CurrentUser.Id;
@@ -319,5 +338,6 @@ namespace Business.TeamManagement
 
             return dtos;
         }
+        #endregion 共用method
     }
 }

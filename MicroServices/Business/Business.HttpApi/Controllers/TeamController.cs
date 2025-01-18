@@ -141,5 +141,25 @@ namespace Business.Controllers
             return File(blobDto.Content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                                 blobDto.Name);
         }
+
+        /// <summary>
+        /// 獲取所有成員的權限
+        /// </summary>
+        [HttpGet]
+        [Route("member/permission")]
+        public async Task<List<MemberPermissionDto>> GetAllPersionOfMember(Guid teamId)
+        {
+            return await _teamAppService.GetAllPersionOfMember(teamId);
+        }
+
+        /// <summary>
+        /// 編輯成員的權限
+        /// </summary>
+        [HttpPost]
+        [Route("member/permission")]
+        public async Task<List<MemberPermissionDto>> EditPersionOfMember(CreateOrUpdatePermissionOfMemberDto input)
+        {
+            return await _teamAppService.EditPersionOfMember(input);
+        }
     }
 }
