@@ -2,11 +2,22 @@
 # 此 .gitignore 文件已由 Microsoft(R) Visual Studio 自动创建。
 ################################################################################
 
+/Docker/src
+*.dll
+*.pdb
+*.so
+**/bin/Release
+*.pubxml
+*.pubxml.user
+
+/MicroServices/Business/Business.Batch.Trigger/obj
+/MicroServices/Business/Business.Batch.Trigger/bin
+AuthServer_x3f589t21e.ah
+AuthServer_x3f589t21e.ahi
+AuthServer_x3f589t21e.ahk
 /MicroServices/Business/Business.Host/wwwroot/**/*.jpg
 /MicroServices/Business/Business.Host/wwwroot/**/*.jpeg
 /MicroServices/Business/Business.Host/wwwroot/**/*.png
-/MicroServices/Business/Business.Batch.Trigger/bin/
-/MicroServices/Business/Business.Batch.Trigger/obj/
 /.vs
 /AuthServer/AuthServer.Host/node_modules
 /AuthServer/AuthServer.Host/.vs/AuthServer.Host
