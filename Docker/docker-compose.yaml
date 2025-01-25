@@ -1,0 +1,26 @@
+services:
+  mssql:
+    container_name: mssql
+    build: 
+      context: .
+      dockerfile: ./dockerfile/mssql.dockerfile
+    env_file:
+      - ./env/mssql.env
+    ports:
+      - "1433:1433"
+  redis:
+    container_name: redis
+    build: 
+      context: .
+      dockerfile: ./dockerfile/redis.dockerfile
+  business:
+    container_name: business_service
+    build: 
+      context: .
+      dockerfile: ./dockerfile/business.dockerfile
+    ports:
+      - "51186:8080"
+    env_file:
+      - ./env/business.env
+    depends_on:
+      - redis
