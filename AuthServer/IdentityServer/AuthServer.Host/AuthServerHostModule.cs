@@ -70,7 +70,7 @@ namespace AuthServer.Host
 
             Configure<AbpLocalizationOptions>(options =>
             {
-                options.Languages.Add(new LanguageInfo("zh-Hans", "zh-Hans", "¼òÌåÖÐÎÄ"));
+                options.Languages.Add(new LanguageInfo("zh-Hans", "zh-Hans", "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"));
             });
 
             context.Services.AddCors(options =>
