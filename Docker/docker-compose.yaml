@@ -1,26 +1,57 @@
-services:
-  mssql:
-    container_name: mssql
-    build: 
-      context: .
-      dockerfile: ./dockerfile/mssql.dockerfile
-    env_file:
-      - ./env/mssql.env
-    ports:
-      - "1433:1433"
-  redis:
-    container_name: redis
-    build: 
-      context: .
-      dockerfile: ./dockerfile/redis.dockerfile
-  business:
-    container_name: business_service
-    build: 
-      context: .
-      dockerfile: ./dockerfile/business.dockerfile
-    ports:
-      - "51186:8080"
-    env_file:
-      - ./env/business.env
-    depends_on:
-      - redis
+  services:
+    mssql:
+      container_name: mssql
+      build: 
+        context: .
+        dockerfile: ./dockerfile/mssql.dockerfile
+      env_file:
+        - ./env/mssql.env
+      ports:
+        - "1433:1433"
+    redis:
+      build: 
+        context: .
+        dockerfile: ./dockerfile/redis.dockerfile
+    nginx:
+      build: 
+        context: .
+        dockerfile: ./dockerfile/nginx.dockerfile
+      volumes:
+        - ./src/web:/app
+        - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      ports:
+      - '9527:80'
+      depends_on:
+        - business
+    auth:
+      build: 
+        context: .
+        dockerfile: ./dockerfile/auth.dockerfile
+      env_file:
+        - ./env/auth.env
+      depends_on:
+        - redis
+    gateway:
+      build: 
+        context: .
+        dockerfile: ./dockerfile/gateway.dockerfile
+      env_file:
+        - ./env/gateway.env
+      depends_on:
+        - auth
+    base:
+      build: 
+        context: .
+        dockerfile: ./dockerfile/base.dockerfile
+      env_file:
+        - ./env/base.env
+      depends_on:
+        - gateway
+    business:
+      build: 
+        context: .
+        dockerfile: ./dockerfile/business.dockerfile
+      env_file:
+        - ./env/business.env
+      depends_on:
+        - base
