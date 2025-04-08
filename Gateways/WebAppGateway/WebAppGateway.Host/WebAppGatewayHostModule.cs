@@ -41,6 +41,7 @@ namespace WebAppGateway
             //ConfigureSwaggerServices(context);
             ConfigureLocalization();
             context.Services.AddOcelot(context.Services.GetConfiguration());
+            context.Services.AddSignalR();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
@@ -60,7 +61,7 @@ namespace WebAppGateway
             //{
             //    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Business Service API");
             //});
-
+            app.UseWebSockets();
             app.UseOcelot().Wait();
             app.UseAbpSerilogEnrichers();
         }
