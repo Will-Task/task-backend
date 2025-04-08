@@ -27,7 +27,6 @@ namespace Business
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             ConfigureLocalization();
-            context.Services.AddSignalR();
         }
 
         private void ConfigureLocalization()
