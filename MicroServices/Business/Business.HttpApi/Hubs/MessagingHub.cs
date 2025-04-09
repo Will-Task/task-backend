@@ -27,14 +27,14 @@ namespace Business.Hubs
             return base.OnConnectedAsync();
         }
 
-        public async Task SendMessage(string message, Guid actionTeamId)
+        public async Task SendMessage(string message, Guid teamId)
         {
             var query = await _repository.GetQueryableAsync();
-            var userIds = await query.Where(x => x.TeamId == actionTeamId).Select(x => x.UserId).ToListAsync();
+            var userIds = await query.Where(x => x.TeamId == teamId).Select(x => x.UserId).ToListAsync();
 
             foreach (var userId in userIds)
             {
-                await Clients.User(userId.ToString()).SendAsync("ReceiveMessage", CurrentUser.UserName, message);
+                await Clients.User(userId.ToString()).SendAsync("ReceiveMessage", CurrentUser.UserName, message, teamId);
             }
         }
     }
