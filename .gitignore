@@ -10,6 +10,8 @@
 *.pubxml
 *.pubxml.user
 
+/K8S/src
+
 /MicroServices/Business/Business.Batch.Trigger/obj
 /MicroServices/Business/Business.Batch.Trigger/bin
 AuthServer_x3f589t21e.ah
