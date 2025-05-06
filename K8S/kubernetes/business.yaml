@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: business-deployment
+  labels:
+    app: business
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: business
+  template:
+    metadata:
+      labels:
+        app: business
+    spec:
+      volumes:
+      - name: task-pv-storage
+        persistentVolumeClaim:
+          claimName: task-pv-claim
+      containers:
+      - name: business
+        image: will1233/business:v3
+        volumeMounts:
+        - mountPath: "/data"
+          name: task-pv-storage
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: business-service
+spec:
+  selector:
+    app: business
+  ports:
+    - port: 51187
+      targetPort: 51187
+  type: ClusterIP

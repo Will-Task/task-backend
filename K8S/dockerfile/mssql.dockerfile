@@ -1,0 +1,7 @@
+FROM mcr.microsoft.com/mssql/server:2022-latest
+
+ENV ACCEPT_EULA=Y
+ENV SA_PASSWORD=Az@98198506
+ENV MSSQL_PID=Developer
+
+EXPOSE 1433

@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mssql-deployment
+  labels:
+    app: mssql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mssql
+  template:
+    metadata:
+      labels:
+        app: mssql
+    spec:
+      securityContext:
+        fsGroup: 10001
+        runAsUser: 0
+      volumes:
+      - name: task-pv-storage
+        persistentVolumeClaim:
+          claimName: task-pv-claim
+      containers:
+      - name: mssql
+        image: will1233/mssql:v4
+        volumeMounts:
+          - mountPath: "/var/opt/mssql"
+            name: task-pv-storage
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mssql-service
+spec:
+  selector:
+    app: mssql
+  ports:
+    - port: 1433
+      targetPort: 1433
+  type: ClusterIP
