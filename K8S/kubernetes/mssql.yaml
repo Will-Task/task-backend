@@ -1,3 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mssql-service
+spec:
+  selector:
+    app: mssql
+  ports:
+    - port: 1433
+      targetPort: 1433
+  type: ClusterIP
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -23,19 +35,7 @@ spec:
           claimName: task-pv-claim
       containers:
       - name: mssql
-        image: will1233/mssql:v4
+        image: will1233/mssql:v1
         volumeMounts:
           - mountPath: "/var/opt/mssql"
             name: task-pv-storage
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: mssql-service
-spec:
-  selector:
-    app: mssql
-  ports:
-    - port: 1433
-      targetPort: 1433
-  type: ClusterIP
