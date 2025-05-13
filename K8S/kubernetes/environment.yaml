@@ -1,6 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: env-map
-data:
-  auth_url: http://0.0.0.0:53363
