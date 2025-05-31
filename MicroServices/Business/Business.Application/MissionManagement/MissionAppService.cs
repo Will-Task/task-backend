@@ -638,12 +638,20 @@ public class MissionAppService : ApplicationService, IMissionAppService
     [AllowAnonymous]
     private async Task SendEmail(string subject, string body, string email, MyFileInfoDto fileInfoDto = null)
     {
+        using var client = new SmtpClient("smtp.gmail.com")
+        {
+            Port = 587,
+            UseDefaultCredentials = false,
+            Credentials = new NetworkCredential(_configuration["EmailSettings:From"], _configuration["EmailSettings:Password"]),
+            EnableSsl = true
+        };
+
         // 為了讓mailMessage中的附件stream可以被釋放
         using var mailMessage = new MailMessage()
         {
             Subject = subject,
             Body = body,
-            From = new MailAddress(_configuration["Email:UserName"]),
+            From = new MailAddress(_configuration["EmailSettings:From"]),
             To = { email },
         };
 
@@ -657,16 +665,8 @@ public class MissionAppService : ApplicationService, IMissionAppService
                 new Attachment(memoryStream, fileInfoDto.FileName + ".xlsx", "application/xlsx"));
         }
 
-        var client = new SmtpClient();
-        client.Host = "smtp.gmail.com";
-        client.Port = 587;
-        client.UseDefaultCredentials = false;
-        // 密碼是應用程式密碼
-        client.Credentials =
-            new NetworkCredential(_configuration["Email:UserName"], _configuration["Email:Password"]);
-        client.EnableSsl = true;
         await client.SendMailAsync(mailMessage);
-        client.Dispose();
+
     }
 
     /// <summary>
@@ -718,9 +718,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         // 過期 -> 期限內未完成 ， 輸出報告也需顯示
         // 拿到輸入的報告範本
         var blobDto = await _fileAppService.GetTemplate("每周輸出報告.xlsx");
-        using var memoryStream = new MemoryStream(blobDto.Content);
-        using var workBook = new XLWorkbook(memoryStream);
-        var worksheet = workBook.Worksheet(1);
+        var templateBytes = blobDto.Content;
 
         // 根據不同子任務寫不同tab中，tab以父任務名稱為主
         var query = await _repositoys.MissionView.GetQueryableAsync();
@@ -735,6 +733,10 @@ public class MissionAppService : ApplicationService, IMissionAppService
         foreach (var key in submissions.Keys)
         {
             int i = WorkBook.ExcelBeginLine;
+
+            using var inputStream = new MemoryStream(templateBytes);
+            using var workBook = new XLWorkbook(inputStream);
+            var worksheet = workBook.Worksheet(1);
 
             foreach (var submission in submissions[key])
             {
@@ -770,11 +772,13 @@ public class MissionAppService : ApplicationService, IMissionAppService
             }
 
             var parentMissionName = worksheet.Name;
-            using var savingMemoryStream = new MemoryStream();
-            workBook.SaveAs(savingMemoryStream);
+            var outputStream = new MemoryStream();
+            workBook.SaveAs(outputStream);
 
             var fileDto = new MyFileInfoDto
-                { FileContent = savingMemoryStream.ToArray(), FileName = parentMissionName };
+                { FileContent = outputStream.ToArray(), FileName = parentMissionName };
+
+
 
             await SendEmail("每周任務報告", "這是你一周以來完成和過期的任務統計", emailMap[key.Value], fileDto);
         }

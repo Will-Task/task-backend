@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Business.EntityFrameworkCore;
 using Business.Hangfire;
@@ -17,7 +19,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Serilog.Core;
 using StackExchange.Redis;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.MultiTenancy;
@@ -286,12 +290,11 @@ namespace Business
             app.UseAbpSerilogEnrichers();
             app.UseUnitOfWork();
 
-            //var backgroundJobManager = context.ServiceProvider.GetRequiredService<IBackgroundJobManager>();
             //app.UseHangfireServer();s
             AsyncHelper.RunSync(async () =>
             {
                 await context.AddBackgroundWorkerAsync<Hangfire.BackgroundWorkerManager>();
-                //await backgroundJobManager.EnqueueAsync(new EmptyArg());
+                await context.AddBackgroundWorkerAsync<WeeklyReportBackgroundWorkerManager>();
             });
 
             app.UseHangfireDashboard(options: new DashboardOptions
