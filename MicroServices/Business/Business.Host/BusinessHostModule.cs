@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Business.EntityFrameworkCore;
+using Business.Hangfire;
 using Business.Hubs;
 using Business.MultiTenancy;
 using Hangfire;
@@ -23,9 +24,14 @@ using Volo.Abp.AspNetCore.MultiTenancy;
 using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.AspNetCore.Serilog;
 using Volo.Abp.Autofac;
+using Volo.Abp.BackgroundJobs;
+using Volo.Abp.BackgroundJobs.Hangfire;
+using Volo.Abp.BackgroundWorkers;
+using Volo.Abp.BackgroundWorkers.Hangfire;
 using Volo.Abp.Caching;
 using Volo.Abp.Data;
 using Volo.Abp.EntityFrameworkCore.SqlServer;
+using Volo.Abp.Hangfire;
 using Volo.Abp.Localization;
 using Volo.Abp.Modularity;
 using Volo.Abp.MultiTenancy;
@@ -41,7 +47,10 @@ namespace Business
         typeof(BusinessApplicationModule),
         typeof(BusinessEntityFrameworkCoreModule),
         typeof(AbpAspNetCoreMultiTenancyModule),
-        typeof(AbpAspNetCoreSerilogModule)
+        typeof(AbpAspNetCoreSerilogModule),
+        typeof(AbpBackgroundJobsModule),
+        typeof(AbpBackgroundWorkersHangfireModule),
+        typeof(AbpBackgroundJobsHangfireModule)
     )]
     public class BusinessHostModule : AbpModule
     {
@@ -87,6 +96,17 @@ namespace Business
             {
                 config.UseSqlServerStorage(configuration.GetConnectionString("Business"));
             });
+
+            Configure<AbpHangfireOptions>(options =>
+            {
+                // If no ServerOptions is set, ABP will use the default BackgroundJobServerOptions instance.
+                options.ServerOptions = new BackgroundJobServerOptions
+                {
+                    Queues = ["default", "alpha"],
+                    //... other properties
+                };
+            });
+
         }
 
         private void ConfigureCache(IConfiguration configuration)
@@ -265,8 +285,15 @@ namespace Business
             app.UseAuditing();
             app.UseAbpSerilogEnrichers();
             app.UseUnitOfWork();
-            app.UseConfiguredEndpoints();
-            //app.UseHangfireServer();
+
+            //var backgroundJobManager = context.ServiceProvider.GetRequiredService<IBackgroundJobManager>();
+            //app.UseHangfireServer();s
+            AsyncHelper.RunSync(async () =>
+            {
+                await context.AddBackgroundWorkerAsync<Hangfire.BackgroundWorkerManager>();
+                //await backgroundJobManager.EnqueueAsync(new EmptyArg());
+            });
+
             app.UseHangfireDashboard(options: new DashboardOptions
             {
                 Authorization = new[]
@@ -288,6 +315,7 @@ namespace Business
                 },
                 DashboardTitle = "任务调度中心"
             });
+            app.UseConfiguredEndpoints();
 
             AsyncHelper.RunSync(async () =>
             {

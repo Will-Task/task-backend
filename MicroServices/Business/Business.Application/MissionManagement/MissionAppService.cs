@@ -28,6 +28,7 @@ using NUglify.Helpers;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
+using Volo.Abp.BackgroundJobs;
 using Volo.Abp.Data;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.ObjectMapping;
@@ -55,9 +56,9 @@ public class MissionAppService : ApplicationService, IMissionAppService
     private readonly IConfiguration _configuration;
     private readonly ILogger<MissionAppService> _logger;
     private readonly IDataFilter _dataFilter;
-    private readonly EmailUtils _emailUtils;
     private MissionManager _missionManager;
     private CategoryManager _categoryManager;
+    private IBackgroundJobManager backgroundJobManager;
 
     // 設定定時任務最大數量
     private readonly int maxScheduleCount = 10;
@@ -81,9 +82,9 @@ public class MissionAppService : ApplicationService, IMissionAppService
         IConfiguration configuration,
         IDataFilter dataFilter,
         ILogger<MissionAppService> logger,
-        EmailUtils emailUtils,
         MissionManager missionManager,
-        CategoryManager categoryManager)
+        CategoryManager categoryManager,
+        IBackgroundJobManager _backgroundJobManager)
     {
         _repositoys = (Mission, MissionI18N, MissionView, MissionCategory, MissionCategoryI18N,
             MissionCategoryView, AbpUserView, LocalizationText, Language);
@@ -91,9 +92,9 @@ public class MissionAppService : ApplicationService, IMissionAppService
         _configuration = configuration;
         _dataFilter = dataFilter;
         _logger = logger;
-        _emailUtils = emailUtils;
         _missionManager = missionManager;
         _categoryManager = categoryManager;
+        backgroundJobManager = _backgroundJobManager;
     }
 
     #region CRUD方法
@@ -334,8 +335,12 @@ public class MissionAppService : ApplicationService, IMissionAppService
             {
                 continue;
             }
-
-            _emailUtils.SendAsync("任務提醒通知", "你的任務快到期了喔，趕緊完成!", emailMap[mission.UserId.Value]);
+            await backgroundJobManager.EnqueueAsync(new EmailArg
+            {
+                To = emailMap[mission.UserId.Value] ,
+                Subject = "任務提醒通知",
+                Body = "你的任務快到期了喔，趕緊完成!"
+            });
         }
     }
 

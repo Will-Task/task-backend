@@ -2,7 +2,7 @@
 
 namespace Business.Enums;
 
-public class EmailSendingArgsEmailSendingArgs
+public class EmailSendingArgs
 {
     public string EmailAddress { get; set; }
     
