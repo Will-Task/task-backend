@@ -1,4 +1,5 @@
 ﻿using Business.Models;
+using EasyAbp.NotificationService.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
@@ -19,7 +20,8 @@ namespace Business.EntityFrameworkCore
         typeof(AbpAuditLoggingEntityFrameworkCoreModule),
         typeof(AbpTenantManagementEntityFrameworkCoreModule),
         typeof(FormEntityFrameworkCoreModule),
-        typeof(FlowEntityFrameworkCoreModule)
+        typeof(FlowEntityFrameworkCoreModule),
+        typeof(NotificationServiceEntityFrameworkCoreModule)
     )]
     public class BusinessEntityFrameworkCoreModule : AbpModule
     {

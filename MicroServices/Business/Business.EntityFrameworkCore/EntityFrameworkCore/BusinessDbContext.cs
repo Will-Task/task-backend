@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Business.Models;
+using EasyAbp.NotificationService.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.Data;
 using Volo.Abp.EntityFrameworkCore;
@@ -56,6 +57,7 @@ namespace Business.EntityFrameworkCore
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.ConfigureBusiness();
+            modelBuilder.ConfigureNotificationService();
 
             // 透過中間表維繫兩邊關聯，不手動寫可能會出錯(會一直去抓MissionMissionTag table)
             modelBuilder.Entity<Mission>()
