@@ -11,14 +11,17 @@
 
   <ItemGroup>
     <PackageReference Include="ClosedXML" Version="0.104.2" />
+    <PackageReference Include="EasyAbp.NotificationService.Application" Version="3.0.0" />
+    <PackageReference Include="EasyAbp.NotificationService.Application.Contracts" Version="3.0.0" />
+    <PackageReference Include="EasyAbp.NotificationService.EntityFrameworkCore" Version="3.0.0" />
     <PackageReference Include="Google.Apis.Calendar.v3" Version="1.68.0.3592" />
     <PackageReference Include="Magicodes.IE.Pdf" Version="2.7.5.1" />
-    <PackageReference Include="Volo.Abp.AutoMapper" Version="8.1.1" />
-    <PackageReference Include="Volo.Abp.BackgroundJobs.HangFire" Version="8.1.1" />
-    <PackageReference Include="Volo.Abp.Http.Client.IdentityModel" Version="8.1.1" />
-	<PackageReference Include="Volo.Abp.Ddd.Application" Version="8.1.1" />
-	<PackageReference Include="Volo.Abp.Identity.Domain" Version="8.1.1" />
-    <PackageReference Include="Volo.Abp.Identity.HttpApi.Client" Version="8.1.1" />
+    <PackageReference Include="Volo.Abp.AutoMapper" Version="8.2.0" />
+    <PackageReference Include="Volo.Abp.BackgroundJobs.HangFire" Version="8.2.0" />
+    <PackageReference Include="Volo.Abp.Http.Client.IdentityModel" Version="8.2.0" />
+	<PackageReference Include="Volo.Abp.Ddd.Application" Version="8.2.0" />
+	<PackageReference Include="Volo.Abp.Identity.Domain" Version="8.2.0" />
+    <PackageReference Include="Volo.Abp.Identity.HttpApi.Client" Version="8.2.0" />
     <PackageReference Include="XCZ.FlowManagement.Application" Version="3.1.1" />
     <PackageReference Include="XCZ.FormManagement.Application" Version="3.1.1" />
   </ItemGroup>

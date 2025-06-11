@@ -10,16 +10,20 @@ using Business.Localization;
 using Business.MissionCategoryManagement.Dto;
 using Business.MissionManagement;
 using Business.Models;
+using Business.Notification.factory;
+using Business.Notification.notify;
 using Business.Permissions;
 using Business.ReportManagement.Dto;
 using Business.Specifications.CategoryView;
 using ClosedXML.Excel;
+using EasyAbp.NotificationService.IntegrationServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.EventBus.Distributed;
 using XCZ.Extensions;
 
 namespace Business.ReportManagement;
@@ -42,6 +46,8 @@ public class ReportAppService : ApplicationService, IReportAppService
 
     private readonly ILogger<MissionAppService> _logger;
     private readonly IStringLocalizer<BusinessResource> _localizer;
+    private readonly MessageNotificationFactory _messageNotificationFactory;
+    private readonly IDistributedEventBus _distributedEventBus;
 
     public ReportAppService(
         IRepository<Language> Langugage,
@@ -54,12 +60,16 @@ public class ReportAppService : ApplicationService, IReportAppService
         IRepository<MissionCategoryI18N> MissionCategoryI18N,
         IRepository<Team, Guid> Team,
         ILogger<MissionAppService> logger,
-        IStringLocalizer<BusinessResource> localizer)
+        IStringLocalizer<BusinessResource> localizer,
+        MessageNotificationFactory messageNotificationFactory,
+        IDistributedEventBus distributedEventBus)
     {
         _repositorys = (Langugage, MissionOverAllView, MissionCategoryView, MissionView, Language, LocalizationText,
             MissionI18N, MissionCategoryI18N, Team);
         _logger = logger;
         _localizer = localizer;
+        _messageNotificationFactory = messageNotificationFactory;
+        _distributedEventBus = distributedEventBus;
     }
 
     /// <summary>
@@ -265,5 +275,17 @@ public class ReportAppService : ApplicationService, IReportAppService
         }
 
         return dtos;
+    }
+
+    [AllowAnonymous]
+    public async Task SendMessage()
+    {
+        IEnumerable<Guid> userIds = new List<Guid>() { Guid.Parse("0AE4B4A2-6F2E-F840-BA41-3A14A539BE4D") };
+        var eto = await _messageNotificationFactory.CreateAsync(new MessageNotification
+        {
+            UserName = "admin"
+        }, userIds);
+
+        await _distributedEventBus.PublishAsync(eto);
     }
 }

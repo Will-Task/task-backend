@@ -1,12 +1,13 @@
-﻿using Volo.Abp.AuditLogging;
+﻿using EasyAbp.NotificationService.Provider.PrivateMessaging;
+using Volo.Abp.AuditLogging;
 using Volo.Abp.Modularity;
-using Volo.Abp.SettingManagement;
 
 namespace Business
 {
     [DependsOn(
         typeof(AbpAuditLoggingDomainModule),
-        typeof(AbpSettingManagementDomainModule)
+        //typeof(AbpSettingManagementDomainModule),
+        typeof(NotificationServiceProviderPrivateMessagingModule)
     )]
     public class BusinessDomainModule : AbpModule
     {

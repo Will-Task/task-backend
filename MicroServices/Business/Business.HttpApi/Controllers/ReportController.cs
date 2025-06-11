@@ -39,4 +39,14 @@ public class ReportController : AbpController
     {
         return await _reportAppService.GetReportData(teamId);
     }
+
+    /// <summary>
+    /// 獲取可匯出任務完成度報告的類別
+    /// </summary>
+    [Route("notification")]
+    [HttpGet]
+    public async Task Notification()
+    {
+        await _reportAppService.SendMessage();
+    }
 }

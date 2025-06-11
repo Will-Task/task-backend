@@ -1,5 +1,7 @@
 ﻿//using BaseService.HttpApi.Client;
 
+using EasyAbp.NotificationService;
+using EasyAbp.NotificationService.EntityFrameworkCore;
 using Volo.Abp.Application;
 using Volo.Abp.AutoMapper;
 using Volo.Abp.BackgroundJobs.Hangfire;
@@ -20,7 +22,9 @@ namespace Business
         typeof(FormApplicationModule),
         typeof(FlowApplicationModule),
         typeof(AbpAutoMapperModule),
-        typeof(AbpBackgroundJobsHangfireModule)
+        typeof(AbpBackgroundJobsHangfireModule),
+        typeof(NotificationServiceApplicationModule),
+        typeof(NotificationServiceEntityFrameworkCoreModule)
     )]
     public class BusinessApplicationModule : AbpModule
     {

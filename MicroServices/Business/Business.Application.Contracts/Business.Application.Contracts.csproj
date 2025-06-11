@@ -34,9 +34,11 @@
 
   <ItemGroup>
     
+    <PackageReference Include="EasyAbp.NotificationService.Application.Contracts" Version="3.0.0" />
+    
     <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
     
-    <PackageReference Include="Volo.Abp.PermissionManagement.Application.Contracts" Version="8.1.1" />
+    <PackageReference Include="Volo.Abp.PermissionManagement.Application.Contracts" Version="8.2.0" />
   </ItemGroup>
 
   <ItemGroup>

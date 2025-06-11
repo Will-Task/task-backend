@@ -1,4 +1,5 @@
 ﻿using Business.Localization;
+using EasyAbp.NotificationService;
 using Volo.Abp.Localization;
 using Volo.Abp.Modularity;
 using Volo.Abp.PermissionManagement;
@@ -9,7 +10,8 @@ namespace Business
 {
     [DependsOn(
         typeof(AbpLocalizationModule),
-        typeof(AbpPermissionManagementApplicationContractsModule)
+        typeof(AbpPermissionManagementApplicationContractsModule),
+        typeof(NotificationServiceApplicationContractsModule)
     )]
     public class BusinessApplicationContractsModule : AbpModule
     {

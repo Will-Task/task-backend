@@ -1,10 +1,12 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using EasyAbp.NotificationService;
+using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
 namespace Business
 {
     [DependsOn(
-        typeof(BusinessApplicationContractsModule)
+        typeof(BusinessApplicationContractsModule),
+        typeof(NotificationServiceHttpApiClientModule)
     )]
     public class BusinessHttpApiClientModule : AbpModule
     {

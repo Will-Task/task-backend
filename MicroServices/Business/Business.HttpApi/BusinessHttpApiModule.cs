@@ -1,4 +1,5 @@
 ﻿using Business.Localization;
+using EasyAbp.NotificationService;
 using Localization.Resources.AbpUi;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.AspNetCore.SignalR;
@@ -12,7 +13,8 @@ namespace Business
         typeof(BusinessApplicationContractsModule),
         typeof(FormHttpApiModule),
         typeof(FlowHttpApiModule),
-        typeof(AbpAspNetCoreSignalRModule)
+        typeof(AbpAspNetCoreSignalRModule),
+        typeof(NotificationServiceHttpApiModule)
     )]
     public class BusinessHttpApiModule : AbpModule
     {

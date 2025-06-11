@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Hangfire.Core" Version="1.8.12" />
+    <PackageReference Include="Hangfire.Core" Version="1.8.14" />
     <PackageReference Include="Hangfire.Dashboard.BasicAuthorization" Version="1.0.2" />
 	<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.StackExchangeRedis" Version="8.0.4" />
@@ -22,13 +22,13 @@
     <PackageReference Include="Serilog.Sinks.Async" Version="1.5.0" />
     <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="10.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
-    <PackageReference Include="Volo.Abp.AspNetCore.MultiTenancy" Version="8.1.1" />
-    <PackageReference Include="Volo.Abp.AspNetCore.Serilog" Version="8.1.1" />
-    <PackageReference Include="Volo.Abp.Autofac" Version="8.1.1" />
-    <PackageReference Include="Volo.Abp.BackgroundJobs" Version="8.1.1" />
-    <PackageReference Include="Volo.Abp.BackgroundJobs.HangFire" Version="8.1.1" />
-    <PackageReference Include="Volo.Abp.BackgroundWorkers.Hangfire" Version="8.1.1" />
-    <PackageReference Include="Volo.Abp.Caching" Version="8.1.1" />
+    <PackageReference Include="Volo.Abp.AspNetCore.MultiTenancy" Version="8.2.0" />
+    <PackageReference Include="Volo.Abp.AspNetCore.Serilog" Version="8.2.0" />
+    <PackageReference Include="Volo.Abp.Autofac" Version="8.2.0" />
+    <PackageReference Include="Volo.Abp.BackgroundJobs" Version="8.2.0" />
+    <PackageReference Include="Volo.Abp.BackgroundJobs.HangFire" Version="8.2.0" />
+    <PackageReference Include="Volo.Abp.BackgroundWorkers.Hangfire" Version="8.2.0" />
+    <PackageReference Include="Volo.Abp.Caching" Version="8.2.0" />
     <PackageReference Include="Volo.Abp.Caching.StackExchangeRedis" Version="8.0.2" />
   </ItemGroup>
 

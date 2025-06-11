@@ -18,4 +18,6 @@ public interface IReportAppService : IApplicationService
     /// 獲取可匯出任務完成度報告的類別
     /// </summary>
     Task<List<MissionCategoryViewDto>> GetReportData(Guid? teamId);
+
+    Task SendMessage();
 }
