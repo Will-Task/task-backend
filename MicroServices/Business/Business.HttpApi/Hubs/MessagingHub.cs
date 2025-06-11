@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Business.Models;
 using Microsoft.AspNetCore.SignalR;
@@ -9,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.AspNetCore.SignalR;
 using Volo.Abp.Domain.Repositories;
-using Volo.Abp.Users;
 
 namespace Business.Hubs
 {

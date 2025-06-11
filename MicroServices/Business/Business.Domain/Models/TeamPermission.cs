@@ -1,5 +1,5 @@
-﻿using Business.Core.Enums;
-using System;
+﻿using System;
+using Business.Core.Enums;
 using Volo.Abp.Domain.Entities;
 
 namespace Business.Models

@@ -2,12 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Business.EntityFrameworkCore;
 using Business.Hangfire;
-using Business.Hubs;
 using Business.MultiTenancy;
 using Hangfire;
 using Hangfire.Dashboard.BasicAuthorization;
@@ -19,9 +16,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Serilog.Core;
 using StackExchange.Redis;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.MultiTenancy;
@@ -41,6 +36,7 @@ using Volo.Abp.Modularity;
 using Volo.Abp.MultiTenancy;
 using Volo.Abp.Threading;
 using Volo.Abp.VirtualFileSystem;
+using BackgroundWorkerManager = Business.Hangfire.BackgroundWorkerManager;
 
 namespace Business
 {
@@ -293,7 +289,7 @@ namespace Business
             //app.UseHangfireServer();s
             AsyncHelper.RunSync(async () =>
             {
-                await context.AddBackgroundWorkerAsync<Hangfire.BackgroundWorkerManager>();
+                await context.AddBackgroundWorkerAsync<BackgroundWorkerManager>();
                 await context.AddBackgroundWorkerAsync<WeeklyReportBackgroundWorkerManager>();
             });
 

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Dynamic.Core;
-using System.Threading;
 using System.Threading.Tasks;
 using Business.DashboardManagement;
 using Business.DashboardManagement.Dto;
@@ -14,7 +12,6 @@ using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
-using XCZ.Extensions;
 
 namespace Business.Dashboard;
 
@@ -226,7 +223,7 @@ public class DashboardAppService : ApplicationService , IDashboardAppService
     public async Task<List<MissioGanttByOrderDto>> GetGanttDataByOrder(Guid? teamId)
     {
         var queryMission = await _repositorys.Mission.GetQueryableAsync();
-        queryMission = queryMission.Where(new Business.Specifications.Mission.TeamOrUserMissionSpecification(teamId, CurrentUser.Id));
+        queryMission = queryMission.Where(new Specifications.Mission.TeamOrUserMissionSpecification(teamId, CurrentUser.Id));
 
         var missionMap = queryMission.Where(x => x.ParentMissionId != null).GroupBy(x => x.ParentMissionId).ToDictionary(g => g.Key, x => x.OrderBy(x => x.MissionStartTime).ToList());
         var dtos = new List<MissioGanttByOrderDto>();
