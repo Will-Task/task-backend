@@ -15,7 +15,7 @@ namespace Business.Hangfire
         {
             RecurringJobId = nameof(WeeklyReportBackgroundWorkerManager);
             
-            CronExpression = Cron.Weekly(DayOfWeek.Saturday);
+            CronExpression = Cron.Weekly(DayOfWeek.Sunday);
             missionAppService = _missionAppService;
         }
 
