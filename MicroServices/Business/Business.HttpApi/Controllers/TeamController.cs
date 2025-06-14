@@ -161,5 +161,15 @@ namespace Business.Controllers
         {
             return await _teamAppService.EditPersionOfMember(input);
         }
+        
+        /// <summary>
+        /// 取得團隊中所有成員資訊
+        /// </summary>
+        [HttpPost]
+        [Route("member/all")]
+        public async Task<List<UserDto>> GetAllUsersOfTeam(Guid? teamId)
+        {
+            return await _teamAppService.GetAllUsersOfTeam(teamId);
+        }
     }
 }

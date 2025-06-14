@@ -81,5 +81,10 @@ namespace Business.TeamManagement
         /// 編輯成員的權限
         /// </summary>
         Task<List<MemberPermissionDto>> EditPersionOfMember(CreateOrUpdatePermissionOfMemberDto input);
+
+        /// <summary>
+        /// 取得團隊中所有成員資訊
+        /// </summary>
+        Task<List<UserDto>> GetAllUsersOfTeam(Guid? teamId);
     }
 }

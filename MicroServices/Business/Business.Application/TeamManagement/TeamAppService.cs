@@ -55,7 +55,7 @@ namespace Business.TeamManagement
             IFileAppService fileAppService,
             ILogger<TeamAppService> logger,
             IStringLocalizer<BusinessResource> localizer
-            )
+        )
         {
             _repositorys = (Team, TeamMember, TeamInvitation, AbpUserView, LocalizationText, Language);
             _fileAppService = fileAppService;
@@ -240,7 +240,7 @@ namespace Business.TeamManagement
             CultureInfo.CurrentUICulture = new CultureInfo(culture);
 
             var file = await _repositorys.LocalizationText.GetAsync(x => x.LanguageCode == code
-                                        && x.Category == "Template" && x.ItemKey == "21");
+                                                                         && x.Category == "Template" && x.ItemKey == "21");
 
             var blobDto = await _fileAppService.GetTemplate(file.ItemValue);
 
@@ -307,6 +307,20 @@ namespace Business.TeamManagement
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// 取得團隊中所有成員資訊
+        /// </summary>
+        public async Task<List<UserDto>> GetAllUsersOfTeam(Guid? teamId)
+        {
+            var query = await _repositorys.AbpUserView.GetQueryableAsync();
+            var users = query.Select(x => new UserDto
+            {
+                Id = x.Id,
+                Name = x.UserName
+            }).ToList();
+            
+            return users;
+        }
 
         #region 共用method
 

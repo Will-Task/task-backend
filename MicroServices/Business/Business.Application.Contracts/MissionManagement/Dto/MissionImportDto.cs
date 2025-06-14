@@ -33,5 +33,10 @@ public class MissionImportDto : EntityDto<Int64?>
 
     public MissionState MissionState { get; set; } = MissionState.TODO;
     
+    /// <summary>
+    /// 被分配任務者
+    /// </summary>
+    public Guid Assignee { get; set; }
+    
     public int Lang { get; set; }
 }
