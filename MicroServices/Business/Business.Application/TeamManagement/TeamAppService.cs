@@ -134,9 +134,9 @@ namespace Business.TeamManagement
         /// 1. 受邀人為當前使用者
         /// 2. 邀請人為當前使用者
         /// </summary>
-        public async Task<List<TeamInvitationDto>> GetInvitations(int? state, string name)
+        public async Task<List<TeamInvitationDto>> GetInvitations(int? state, string name, Guid? teamId)
         {
-            var dtos = await SearchInvitations(state, name);
+            var dtos = await SearchInvitations(state, name, teamId);
             dtos.ForEach(x =>
             {
                 x.IsShow = x.ResponseTime.HasValue ? 3 : x.UserId == CurrentUser.Id ? 2 : 1;
@@ -227,7 +227,7 @@ namespace Business.TeamManagement
         /// <summary>
         /// 邀請記錄匯出
         /// </summary>
-        public async Task<BlobDto> Export(int? state, string name, string code)
+        public async Task<BlobDto> Export(int? state, string name, string code, Guid? teamId)
         {
             int lang = 1;
             var language = await _repositorys.Language.FindAsync(x => x.Code == code);
@@ -248,7 +248,7 @@ namespace Business.TeamManagement
             using var workBook = new XLWorkbook(memoryStream);
             var workSheet = workBook.Worksheet(1);
 
-            var dtos = await SearchInvitations(state, name);
+            var dtos = await SearchInvitations(state, name, teamId);
             var exportDtos = ObjectMapper.Map<List<TeamInvitationDto>, List<ExportTeamInvitationDto>>(dtos);
 
             /// 寫入Title
@@ -338,7 +338,7 @@ namespace Business.TeamManagement
 
         #region 共用method
 
-        private async Task<List<TeamInvitationDto>> SearchInvitations(int? state, string name)
+        private async Task<List<TeamInvitationDto>> SearchInvitations(int? state, string name, Guid? teamId)
         {
             var currentUserId = CurrentUser.Id;
             var queryUser = await _repositorys.AbpUserView.GetQueryableAsync();
@@ -350,7 +350,7 @@ namespace Business.TeamManagement
             var queryInvitation = await _repositorys.TeamInvitation.GetQueryableAsync();
             var invitations = await queryInvitation
                 .WhereIf(state.HasValue, x => x.State == (Invitation)state)
-                .Where(x => x.InvitedUserId == currentUserId || x.UserId == currentUserId)
+                .Where(x => teamId.HasValue ? x.TeamId == teamId : x.InvitedUserId == currentUserId || x.UserId == currentUserId)
                 .WhereIf(!name.IsNullOrEmpty(),
                     x => userIds.Contains(x.UserId) || userIds.Contains(x.InvitedUserId))
                 .ToListAsync();
