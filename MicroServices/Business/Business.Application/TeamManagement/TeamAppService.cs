@@ -312,12 +312,26 @@ namespace Business.TeamManagement
         /// </summary>
         public async Task<List<UserDto>> GetAllUsersOfTeam(Guid? teamId)
         {
+            var userInTeam = await _repositorys.TeamMember.GetListAsync(x => x.TeamId == teamId);
+            var userIds = userInTeam.Select(x => x.UserId).ToList();
             var query = await _repositorys.AbpUserView.GetQueryableAsync();
-            var users = query.Select(x => new UserDto
+            var users = query.Where(x => userIds.Contains(x.Id)).Select(x => new UserDto
             {
                 Id = x.Id,
-                Name = x.UserName
+                Name = x.UserName 
             }).ToList();
+
+            var currentUser = users.Find(x => x.Id == CurrentUser.Id);
+            if (currentUser == null)
+            {
+                currentUser = new UserDto
+                {
+                    Id = CurrentUser.Id.Value
+                };
+                
+                users.Add(currentUser);
+            }
+            currentUser.Name = "me";
             
             return users;
         }

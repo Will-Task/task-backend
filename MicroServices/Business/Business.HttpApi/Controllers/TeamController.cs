@@ -165,7 +165,7 @@ namespace Business.Controllers
         /// <summary>
         /// 取得團隊中所有成員資訊
         /// </summary>
-        [HttpPost]
+        [HttpGet]
         [Route("member/all")]
         public async Task<List<UserDto>> GetAllUsersOfTeam(Guid? teamId)
         {
