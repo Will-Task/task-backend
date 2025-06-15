@@ -57,4 +57,9 @@ public class MissionView: Entity<Int64>
     /// Google Calendar 的任務Id
     /// </summary>
     public string EventId { get; set; }
+    
+    /// <summary>
+    /// 被分配任務者
+    /// </summary>
+    public Guid Assignee { get; set; }
 }
