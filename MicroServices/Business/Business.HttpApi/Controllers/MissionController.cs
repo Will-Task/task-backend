@@ -6,6 +6,7 @@ using Business.MissionManagement;
 using Business.MissionManagement.Dto;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.AspNetCore.Mvc;
 
@@ -13,6 +14,7 @@ namespace Business.Controllers;
 
 [Area("Mission")]
 [Route("api/business/mission")]
+[RemoteService(false)]
 public class MissionController : AbpController
 {
     private readonly IMissionAppService _missionAppService;

@@ -56,6 +56,17 @@ namespace Business
     {
         private const string DefaultCorsPolicyName = "Default";
 
+        public override void PreConfigureServices(ServiceConfigurationContext context)
+        {
+            // Configures all the application services in the assembly containing the class BusinessApplicationModule
+            PreConfigure<AbpAspNetCoreMvcOptions>(options =>
+            {
+                options
+                    .ConventionalControllers
+                    .Create(typeof(BusinessApplicationModule).Assembly);
+            });
+        }
+        
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var configuration = context.Services.GetConfiguration();

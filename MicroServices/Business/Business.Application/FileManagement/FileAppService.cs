@@ -17,6 +17,13 @@ using FileInfo = Business.Models.FileInfo;
 
 namespace Business.FileManagement;
 
+/*
+ * Disabled IsMetadataEnabled which hides this service from API explorer
+ * and it will not be discoverable.
+ * However, it still can be usable for the clients
+ * know the exact API path/route.
+ */
+[RemoteService(IsMetadataEnabled = false)]
 public class FileAppService : ApplicationService, IFileAppService
 {
     private readonly IRepository<FileInfo, Guid> _repository;
