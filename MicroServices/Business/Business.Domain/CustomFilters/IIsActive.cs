@@ -1,4 +1,4 @@
-﻿namespace Business;
+﻿namespace Business.CustomFilters;
 
 public interface IIsActive
 {

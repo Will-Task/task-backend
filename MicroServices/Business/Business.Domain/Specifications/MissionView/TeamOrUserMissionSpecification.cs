@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Linq.Expressions;
-using Business.Models;
 using Volo.Abp.Specifications;
 
-namespace Business.Specifications;
+namespace Business.Specifications.MissionView;
 
-public class TeamOrUserMissionSpecification : Specification<MissionView>
+public class TeamOrUserMissionSpecification : Specification<Models.MissionView>
 {
     private Guid? TeamId { get; set; }
     
@@ -17,7 +16,7 @@ public class TeamOrUserMissionSpecification : Specification<MissionView>
         UserId = _UserId;
     }
 
-    public override Expression<Func<MissionView, bool>> ToExpression()
+    public override Expression<Func<Models.MissionView, bool>> ToExpression()
     {
         // 屬於某團隊 or 不屬於團隊但屬於某個人
         return x => (TeamId.HasValue && x.TeamId == TeamId) || (!TeamId.HasValue && x.TeamId == TeamId && x.UserId == UserId);

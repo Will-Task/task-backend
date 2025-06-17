@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Linq.Expressions;
-using Business.Models;
 using Volo.Abp.Specifications;
 
-namespace Business.Specifications;
+namespace Business.Specifications.MissionI18N;
 
-public class MissionI18NSpecification : Specification<MissionI18N>
+public class MissionI18NSpecification : Specification<Models.MissionI18N>
 {
     public Guid _id;
     public int? _lang;
@@ -21,7 +20,7 @@ public class MissionI18NSpecification : Specification<MissionI18N>
         _id = id;
     }
 
-    public override Expression<Func<MissionI18N, bool>> ToExpression()
+    public override Expression<Func<Models.MissionI18N, bool>> ToExpression()
     {
         return x => x.MissionId == _id && (!_lang.HasValue || x.Lang == _lang);
     }

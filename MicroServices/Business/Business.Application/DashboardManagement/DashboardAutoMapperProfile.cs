@@ -2,7 +2,7 @@
 using Business.MissionManagement.Dto;
 using Business.Models;
 
-namespace Business.Dashboard;
+namespace Business.DashboardManagement;
 
 public class DashboardAutoMapperProfile : Profile
 {

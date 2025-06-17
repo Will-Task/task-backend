@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Linq.Expressions;
-using Business.Models;
 using Volo.Abp.Specifications;
 
-namespace Business.Specifications;
+namespace Business.Specifications.MissionView;
 
-public class MissionSpecification : Specification<MissionView>
+public class MissionSpecification : Specification<Models.MissionView>
 {
     public Guid _id;
 
@@ -14,7 +13,7 @@ public class MissionSpecification : Specification<MissionView>
         _id = id;
     }
 
-    public override Expression<Func<MissionView, bool>> ToExpression()
+    public override Expression<Func<Models.MissionView, bool>> ToExpression()
     {
         return x => x.MissionId == _id;
     }

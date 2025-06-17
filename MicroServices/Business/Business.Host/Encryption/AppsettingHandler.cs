@@ -2,7 +2,7 @@
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 
-namespace AuthServer.Encryption;
+namespace Business.Encryption;
 
 public class AppsettingHandler
 {

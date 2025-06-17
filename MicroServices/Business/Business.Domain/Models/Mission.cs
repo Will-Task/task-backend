@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Business.CustomFilters;
 using Business.Enums;
 using Volo.Abp;
 using Volo.Abp.Domain.Entities.Auditing;

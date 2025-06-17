@@ -1,4 +1,4 @@
-﻿namespace Business
+﻿namespace Business.Core.Consts
 {
     public static class BusinessConsts
     {

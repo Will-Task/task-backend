@@ -1,4 +1,4 @@
-﻿namespace Business.MultiTenancy
+﻿namespace Business.Core.Consts
 {
     public static class MultiTenancyConsts
     {
