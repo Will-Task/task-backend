@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
+using System.Linq;
+using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
 using Business.Enums;
 using Business.FileManagement.Dto;
@@ -201,9 +203,10 @@ public class FileAppService : ApplicationService, IFileAppService
     /// 獲取某特定任務的附件數量
     /// </summary>
     /// <param name="id"> 任務id </param>
-    public async Task<int> GetAttachmentCount(Guid id)
+    public async Task<Dictionary<Guid?, int>> GetAttachmentCountAsync()
     {
-        return await _repository.CountAsync(x => x.MissionId == id);
+        var query = await _repository.GetQueryableAsync();
+        return query.GroupBy(x => x.MissionId).ToDictionary(g => g.Key, x => x.Count());
     }
 
     #endregion 附件相關操作

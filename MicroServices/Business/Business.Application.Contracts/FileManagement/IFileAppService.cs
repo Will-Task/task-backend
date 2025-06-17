@@ -53,5 +53,5 @@ public interface IFileAppService : IApplicationService
     /// 獲取某特定任務的附件數量
     /// </summary>
     /// <param name="id"> 任務id </param>
-    Task<int> GetAttachmentCount(Guid id);
+    Task<Dictionary<Guid?, int>> GetAttachmentCountAsync();
 }

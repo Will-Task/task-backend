@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
 using Business.Common;
+using Business.DomainServices;
 using Business.Enums;
 using Business.FileManagement;
 using Business.FileManagement.Dto;
@@ -14,6 +15,8 @@ using Business.MissionManagement.Dto;
 using Business.Models;
 using Business.Permissions;
 using Business.Specifications;
+using Business.Specifications.MissionI18N;
+using Business.Specifications.MissionView;
 using ClosedXML.Excel;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Calendar.v3;
@@ -54,7 +57,6 @@ public class MissionAppService : ApplicationService, IMissionAppService
     private readonly IFileAppService _fileAppService;
     private readonly IConfiguration _configuration;
     private readonly ILogger<MissionAppService> _logger;
-    private readonly IDataFilter _dataFilter;
     private MissionManager _missionManager;
     private CategoryManager _categoryManager;
     private IBackgroundJobManager backgroundJobManager;
@@ -79,7 +81,6 @@ public class MissionAppService : ApplicationService, IMissionAppService
         IRepository<Language> Language,
         IFileAppService fileAppService,
         IConfiguration configuration,
-        IDataFilter dataFilter,
         ILogger<MissionAppService> logger,
         MissionManager missionManager,
         CategoryManager categoryManager,
@@ -89,7 +90,6 @@ public class MissionAppService : ApplicationService, IMissionAppService
             MissionCategoryView, AbpUserView, LocalizationText, Language);
         _fileAppService = fileAppService;
         _configuration = configuration;
-        _dataFilter = dataFilter;
         _logger = logger;
         _missionManager = missionManager;
         _categoryManager = categoryManager;
@@ -103,6 +103,11 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// </summary>
     public async Task<MissionI18NDto> DataPost(CreateOrUpdateMissionDto input)
     {
+        // 新增時，任務狀態即為完成順便給完成時間
+        if (input.MissionState == MissionState.COMPLETED)
+        {
+            input.MissionFinishTime = Clock.Now;
+        }
         var newI18N = ObjectMapper.Map<CreateOrUpdateMissionDto, MissionI18N>(input);
 
         // 判斷修改(對現有任務增加別的語系)或新增
@@ -117,8 +122,10 @@ public class MissionAppService : ApplicationService, IMissionAppService
             // I18N存在 => 修改現有語系資料
             if (missionI18N != null)
             {
+                /*
                 Guid nowId = input.Id.Value;
                 // 定時任務新增
+
                 if (mission.Schedule != input.Schedule)
                 {
                     input.ScheduleMissionId = mission.ScheduleMissionId;
@@ -126,29 +133,19 @@ public class MissionAppService : ApplicationService, IMissionAppService
                     await CreateTaskSchedule(input);
                     input.Id = nowId;
                 }
-                /// 新增時，任務狀態極為完成順便給完成時間
-                if (input.MissionState == MissionState.COMPLETED)
-                {
-                    input.MissionFinishTime = Clock.Now;
-                }
+                */
 
                 // 更新資料
                 missionI18N.MissionName = input.MissionName;
                 missionI18N.MissionDescription = input.MissionDescription;
                 ObjectMapper.Map(input, mission);
-
-                if ((int)input.MissionState == 3)
-                {
-                    mission.MissionFinishTime = Clock.Now;
-                }
             }
             // 不存在 => 增加現有任務的語系
             else
             {
                 mission.AddMissionI18N(newI18N);
             }
-
-            await _repositoys.Mission.UpdateAsync(mission);
+            
         }
         // 新增任務
         else
@@ -159,17 +156,14 @@ public class MissionAppService : ApplicationService, IMissionAppService
             newMission.TeamId = input.TeamId;
             newMission.AddMissionI18N(newI18N);
 
+            /*
             // 定時任務新增
             if (input.Schedule.HasValue)
             {
                 input.ScheduleMissionId = newMission.Id;
                 await CreateTaskSchedule(input);
             }
-            /// 新增時，任務狀態極為完成順便給完成時間
-            if (input.MissionState == MissionState.COMPLETED)
-            {
-                newMission.MissionFinishTime = Clock.Now;
-            }
+            */
 
             await _repositoys.Mission.InsertAsync(newMission);
         }
@@ -192,11 +186,9 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// </summary>
     public async Task Delete(Guid id, int lang)
     {
-        // 透過missionId和lang共同判斷要刪除的I18N
         await _repositoys.MissionI18N.DeleteAsync(new MissionI18NSpecification(id, lang), autoSave: true);
         // 若該任務不存在任何語系則刪除任務本體
-        var count = await _repositoys.MissionI18N.CountAsync(new MissionI18NSpecification(id));
-        if (count == 0)
+        if (!await _missionManager.IsExistMissionI18NAsync(id))
         {
             await _repositoys.Mission.DeleteAsync(id);
         }
@@ -207,11 +199,8 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// </summary>
     public async Task<MissionViewDto> Get(Guid id)
     {
-        // 1. 撈特定類別的任務(直接透過sql中的view抓)
         var mission = await _repositoys.MissionView.GetAsync(new MissionSpecification(id));
         var dto = ObjectMapper.Map<MissionView, MissionViewDto>(mission);
-        dto.ParentCategoryId =
-            (await _repositoys.MissionCategory.GetAsync(mission.MissionCategoryId, includeDetails: false)).ParentId;
         return dto;
     }
 
@@ -225,7 +214,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
         var currentUserId = CurrentUser.Id;
         var query = await _repositoys.MissionView.GetQueryableAsync();
         // (當前使用者or所屬team) 且當前的任務類別且當前的parentId
-        query = query.Where(new TeamOrUserMissionSpecification(teamId, currentUserId)
+        query = query.AsNoTracking().Where(new TeamOrUserMissionSpecification(teamId, currentUserId)
             .And(new ParentMissionSpecification(parentId))
             .And(new CategoryMissionSpecification(categoryId.HasValue ? categoryId : null)).ToExpression()
         );
@@ -234,29 +223,16 @@ public class MissionAppService : ApplicationService, IMissionAppService
         var parents = allData
             ? await query.ToListAsync()
             : await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+        await _missionManager.GetAllLangDataOfMissionAsync(parents);
         var dtos = ObjectMapper.Map<List<MissionView>, List<MissionViewDto>>(parents);
-        dtos = allData ? dtos : dtos.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-        var queryMission = await _repositoys.MissionI18N.GetQueryableAsync();
-
-        // 指定語系 -> 中文 -> 任一語系 ， 符合規則的第一筆
-        var defaultMission = queryMission.OrderBy(x => x.Lang == 1 ? 0 : x.Lang)
-            .OrderBy(x => x.Lang).GroupBy(x => x.MissionId)
-            .ToDictionary(g => g.Key, x => x.First());
-
+        var attachmentMap = await _fileAppService.GetAttachmentCountAsync();
         foreach (var dto in dtos)
         {
-            if (dto.MissionName.IsNullOrEmpty())
+            if (attachmentMap.TryGetValue(dto.MissionId, out var noOfAttachment))
             {
-                dto.MissionName = defaultMission[dto.MissionId].MissionName;
+                dto.AttachmentCount = noOfAttachment;
             }
-
-            if (dto.MissionDescription.IsNullOrEmpty())
-            {
-                dto.MissionDescription = defaultMission[dto.MissionId].MissionDescription;
-            }
-
-            dto.AttachmentCount = await _fileAppService.GetAttachmentCount(dto.MissionId);
         }
 
         return new PagedResultDto<MissionViewDto>(count, dtos);
@@ -271,16 +247,16 @@ public class MissionAppService : ApplicationService, IMissionAppService
         var currentUserId = CurrentUser.Id;
         var dtos = new List<MissionOverviewDto>();
         var queryMission = await _repositoys.MissionView.GetQueryableAsync();
-        /// 預設多國語系資料
+        // 預設多國語系資料
         var missionMap = await _missionManager.GetDefaultLangData();
-        /// (當前使用者or所屬team) 且當前的任務類別
+        // (當前使用者or所屬team) 且當前的任務類別
         queryMission = queryMission.Where(new TeamOrUserMissionSpecification(teamId, currentUserId)
             .And(new CategoryMissionSpecification(categoryId)).ToExpression()
         );
         var parents = await queryMission.Where(x => x.ParentMissionId == null).ToListAsync();
         var subMap = queryMission.Where(x => x.ParentMissionId != null)
-            .GroupBy(x => x.ParentMissionId)
-            .ToDictionary(x => x.Key);
+            .GroupBy(x => new { x.ParentMissionId, x.Lang } )
+            .ToDictionary(x => (x.Key.ParentMissionId, x.Key.Lang), x => x.ToList());
 
         foreach (var parent in parents)
         {
@@ -291,10 +267,9 @@ public class MissionAppService : ApplicationService, IMissionAppService
                 dto.MissionName = missionMap[dto.MissionId].MissionName;
             }
 
-            /// 父任務是否有子任務檢查
-            if (subMap.ContainsKey(parent.MissionId))
+            // 父任務是否有子任務檢查
+            if (subMap.TryGetValue((parent.MissionId, parent.Lang), out var subs))
             {
-                var subs = subMap[parent.MissionId].Where(x => x.Lang == parent.Lang).ToList();
                 var subDtos = ObjectMapper.Map<List<MissionView>, List<SubMissionOverviewDto>>(subs);
                 subDtos.ForEach(sub =>
                 {
@@ -504,7 +479,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
                 }
                 else if (property.PropertyType == typeof(DateTime))
                 {
-                    string format = "yyyy/M/d tt h:mm:ss";
+                    string format = "yyyy/M/d HH:mm:ss";
                     var culture = new CultureInfo("zh-TW");
                     DateTime.TryParseExact(value, format, culture,
                         DateTimeStyles.AllowWhiteSpaces, out DateTime dateTime);
