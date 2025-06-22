@@ -13,7 +13,7 @@ namespace Business.Hangfire
         public BackgroundWorkerManager(IMissionAppService _missionAppService)
         {
             RecurringJobId = nameof(BackgroundWorkerManager);
-            CronExpression = Cron.MinuteInterval(1);
+            CronExpression = Cron.Daily();
             missionAppService = _missionAppService;
         }
 
