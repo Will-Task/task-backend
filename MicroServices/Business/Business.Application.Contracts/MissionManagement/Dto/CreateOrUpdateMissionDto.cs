@@ -2,6 +2,8 @@
 using System.ComponentModel.DataAnnotations;
 using Business.Enums;
 using Volo.Abp.Application.Dtos;
+using Volo.Abp.Timing;
+using Volo.Abp.Validation;
 
 namespace Business.MissionManagement.Dto;
 
@@ -20,8 +22,8 @@ public class CreateOrUpdateMissionDto : EntityDto<Guid?>
     
     [Required]
     public Guid MissionCategoryId { get; set; }
-    
-    [Required] 
+
+    [Required]
     public DateTime MissionStartTime { get; set; }
 
     [Required] 
@@ -34,7 +36,7 @@ public class CreateOrUpdateMissionDto : EntityDto<Guid?>
     /// </summary>
     public int? MissionBeforeEnd { get; set; }
 
-    [Required] 
+    [Required]
     public MissionState MissionState { get; set; }
     
     /// <summary>
@@ -70,4 +72,20 @@ public class CreateOrUpdateMissionDto : EntityDto<Guid?>
     /// 對應語系
     /// </summary>
     public int Lang { get; set; }
+    
+    public void SetMissionState(DateTime currentTime)
+    {
+        if (this.MissionState == MissionState.COMPLETED && MissionFinishTime == null)
+        {
+            MissionFinishTime = currentTime;
+        }
+    }
+    
+    public void CheckStartLessEnd()
+    {
+        if (this.MissionStartTime > this.MissionEndTime)
+        {
+            throw new AbpValidationException("任務開始時間大於結果時間");
+        }
+    }
 }

@@ -103,11 +103,9 @@ public class MissionAppService : ApplicationService, IMissionAppService
     /// </summary>
     public async Task<MissionI18NDto> DataPost(CreateOrUpdateMissionDto input)
     {
+        input.CheckStartLessEnd();
         // 新增時，任務狀態即為完成順便給完成時間
-        if (input.MissionState == MissionState.COMPLETED)
-        {
-            input.MissionFinishTime = Clock.Now;
-        }
+        input.SetMissionState(Clock.Now);
         var newI18N = ObjectMapper.Map<CreateOrUpdateMissionDto, MissionI18N>(input);
 
         // 判斷修改(對現有任務增加別的語系)或新增
@@ -492,7 +490,7 @@ public class MissionAppService : ApplicationService, IMissionAppService
 
                 nextchar++;
             }
-
+            dto.CheckStartLessEnd();
             dtos.Add(dto);
         }
 

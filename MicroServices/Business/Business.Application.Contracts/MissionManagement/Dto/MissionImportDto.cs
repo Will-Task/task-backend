@@ -1,6 +1,7 @@
 ﻿using System;
 using Business.Enums;
 using Volo.Abp.Application.Dtos;
+using Volo.Abp.Validation;
 
 namespace Business.MissionManagement.Dto;
 
@@ -25,6 +26,8 @@ public class MissionImportDto : EntityDto<Int64?>
     
     public DateTime? MissionFinishTime { get; set; }
     
+    private DateTime _MissionEndTime;
+    
     public DateTime MissionEndTime { get; set; }
     
     public int? MissionBeforeEnd { get; set; }
@@ -34,4 +37,12 @@ public class MissionImportDto : EntityDto<Int64?>
     public MissionState MissionState { get; set; } = MissionState.TODO;
     
     public int Lang { get; set; }
+    
+    public void CheckStartLessEnd()
+    {
+        if (this.MissionStartTime > this.MissionEndTime)
+        {
+            throw new AbpValidationException("任務開始時間大於結果時間");
+        }
+    }
 }
