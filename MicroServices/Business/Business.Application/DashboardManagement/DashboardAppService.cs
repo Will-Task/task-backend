@@ -106,6 +106,7 @@ public class DashboardAppService : ApplicationService , IDashboardAppService
         var defaultMissionMap = await _missionManager.GetDefaultLangData();
 
         var dtos = queryMission.Where(new TeamOrUserMissionSpecification(teamId, CurrentUser.Id))
+            .Where(x => x.MissionStartTime > DateTime.Now)
             .GroupBy(x => new {x.MissionId, x.Lang})
             .Select(g => new MissionRecentDto()
             {

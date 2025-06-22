@@ -169,35 +169,33 @@ public class MissionCategoryAppService : ApplicationService, IMissionCategoryApp
     /// </summary>
     public async Task Delete(Guid id, int lang)
     {
-        try
+        // 若刪除為父類別，判斷是否有子類別
+        int subCategoryCount = await _repositorys.MissionCategory.CountAsync(x => x.ParentId == id);
+        if (subCategoryCount != 0)
         {
-            // 判斷是否任務是此類別(不管語系)
-            var queryMission = await _repositorys.Mission.GetQueryableAsync();
-            var missionCount = await queryMission.Where(x => x.MissionCategoryId == id).CountAsync();
-            if (missionCount != 0)
-            {
-                throw new BusinessException("有任務根據此任務類別，刪除失敗!!");
-            }
-
-            var query = await _repositorys.MissionCategoryI18N.GetQueryableAsync();
-            // 1. 刪除任務類別I18N
-            await _repositorys.MissionCategoryI18N.DeleteAsync(new CategoryI18NSpecification(id, lang),
-                autoSave: true);
-
-            query = query.Where(new CategoryI18NSpecification(id));
-            var count = await query.CountAsync();
-
-            // 2. 沒有關聯I18N刪除
-            if (count == 0)
-            {
-                await _repositorys.MissionCategory.DeleteAsync(id);
-            }
+            throw new BusinessException("有子類別，刪除失敗!!");
         }
-        catch (Exception e)
+            
+        // 判斷是否任務是此類別(不管語系)
+        var queryMission = await _repositorys.Mission.GetQueryableAsync();
+        var missionCount = await queryMission.Where(x => x.MissionCategoryId == id).CountAsync();
+        if (missionCount != 0)
         {
-            _logger.LogError(
-                $"========================= 刪除任務類別失敗 !!!!!!!!!==================== {e.StackTrace.ToString()}");
-            throw new BusinessException("刪除任務類別失敗");
+            throw new BusinessException("有任務根據此任務類別，刪除失敗!!");
+        }
+
+        var query = await _repositorys.MissionCategoryI18N.GetQueryableAsync();
+        // 1. 刪除任務類別I18N
+        await _repositorys.MissionCategoryI18N.DeleteAsync(new CategoryI18NSpecification(id, lang),
+            autoSave: true);
+
+        query = query.Where(new CategoryI18NSpecification(id));
+        var count = await query.CountAsync();
+
+        // 2. 沒有關聯I18N刪除
+        if (count == 0)
+        {
+            await _repositorys.MissionCategory.DeleteAsync(id);
         }
     }
 

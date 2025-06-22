@@ -81,9 +81,9 @@ namespace Business.Controllers
         /// </summary>
         [HttpGet]
         [Route("invites")]
-        public async Task<List<TeamInvitationDto>> GetInvitations(int? state, string name)
+        public async Task<List<TeamInvitationDto>> GetInvitations(int? state, string name, Guid? teamId)
         {
-            return await _teamAppService.GetInvitations(state, name);
+            return await _teamAppService.GetInvitations(state, name, teamId);
         }
 
         /// <summary>
@@ -135,9 +135,9 @@ namespace Business.Controllers
         /// </summary>
         [HttpPost]
         [Route("export")]
-        public async Task<IActionResult> Export(int? state, string name, string code)
+        public async Task<IActionResult> Export(int? state, string name, string code, Guid? teamId)
         {
-            var blobDto = await _teamAppService.Export(state, name, code);
+            var blobDto = await _teamAppService.Export(state, name, code, teamId);
             return File(blobDto.Content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                                 blobDto.Name);
         }
@@ -160,6 +160,16 @@ namespace Business.Controllers
         public async Task<List<MemberPermissionDto>> EditPersionOfMember(CreateOrUpdatePermissionOfMemberDto input)
         {
             return await _teamAppService.EditPersionOfMember(input);
+        }
+        
+        /// <summary>
+        /// 取得團隊中所有成員資訊
+        /// </summary>
+        [HttpGet]
+        [Route("member/all")]
+        public async Task<List<UserDto>> GetAllUsersOfTeam(Guid? teamId)
+        {
+            return await _teamAppService.GetAllUsersOfTeam(teamId);
         }
     }
 }

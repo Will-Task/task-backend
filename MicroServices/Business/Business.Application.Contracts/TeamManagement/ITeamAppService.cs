@@ -47,7 +47,7 @@ namespace Business.TeamManagement
         /// 1. 受邀人為當前使用者
         /// 2. 邀請人為當前使用者
         /// </summary>
-        Task<List<TeamInvitationDto>> GetInvitations(int? state, string name);
+        Task<List<TeamInvitationDto>> GetInvitations(int? state, string name, Guid? teamId);
 
         /// <summary>
         /// 取消團隊邀請請求
@@ -70,7 +70,7 @@ namespace Business.TeamManagement
         /// <summary>
         /// 邀請記錄匯出
         /// </summary>
-        Task<BlobDto> Export(int? state, string name, string code);
+        Task<BlobDto> Export(int? state, string name, string code, Guid? teamId);
 
         /// <summary>
         /// 獲取所有成員的權限
@@ -81,5 +81,10 @@ namespace Business.TeamManagement
         /// 編輯成員的權限
         /// </summary>
         Task<List<MemberPermissionDto>> EditPersionOfMember(CreateOrUpdatePermissionOfMemberDto input);
+
+        /// <summary>
+        /// 取得團隊中所有成員資訊
+        /// </summary>
+        Task<List<UserDto>> GetAllUsersOfTeam(Guid? teamId);
     }
 }

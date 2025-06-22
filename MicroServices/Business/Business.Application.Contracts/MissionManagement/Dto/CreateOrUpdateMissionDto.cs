@@ -65,6 +65,11 @@ public class CreateOrUpdateMissionDto : EntityDto<Guid?>
     /// 任務說明
     /// </summary>
     public string? MissionDescription { get; set; }
+    
+    /// <summary>
+    /// 被分配任務者
+    /// </summary>
+    public Guid Assignee { get; set; }
 
     /// <summary>
     /// 對應語系

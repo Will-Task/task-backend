@@ -57,4 +57,9 @@ public class MissionViewDto : EntityDto<Int64>
     public Guid? TeamId { get; set; }
 
     public int AttachmentCount { get; set; }
+    
+    /// <summary>
+    /// 被分配任務者
+    /// </summary>
+    public Guid Assignee { get; set; }
 }

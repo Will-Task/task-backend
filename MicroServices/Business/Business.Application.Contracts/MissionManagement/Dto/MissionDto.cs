@@ -59,4 +59,9 @@ public class MissionDto : EntityDto<Guid>
     /// 所屬哪個Team的任務
     /// </summary>
     public Guid? TeamId { get; set; }
+    
+    /// <summary>
+    /// 被分配任務者
+    /// </summary>
+    public Guid Assignee { get; set; }
 }
