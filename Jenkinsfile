@@ -101,7 +101,7 @@ spec:
         container('docker-client') {
           sh """
             docker login -u ${dockerUser} -p ${dockerPwd}
-            docker push ${dockerRegistry/business1:${imageTag}
+            docker push ${dockerRegistry}/business1:${imageTag}
           """
         }
         echo '將image推送到harbor - SUCCESS'
