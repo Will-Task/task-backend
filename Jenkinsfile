@@ -9,7 +9,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   namespace: devops-tools
-  serviceAccount: 'jenkins-admin',
+  serviceAccount: 'jenkins-admin'
   labels:
     some-label: docker
 spec:
