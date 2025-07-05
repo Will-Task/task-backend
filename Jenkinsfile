@@ -2,10 +2,11 @@ def GetVersion() {
   return new Date().format("yyyyMMdd.HHmmss", TimeZone.getTimeZone('Asia/Taipei'))
 }
 def imageTag = GetVersion()
-pipeline{
+
+pipeline {
   agent {
     kubernetes {
-	  yaml """
+      yaml """
 apiVersion: v1
 kind: Pod
 metadata:
@@ -22,13 +23,20 @@ spec:
   containers:
     - name: docker
       image: docker:24.0-dind
+      securityContext:
+        privileged: true
+      resources:
+        requests:
+          memory: "512Mi"
+          cpu: "500m"
+        limits:
+          memory: "1Gi"
+          cpu: "1"
       volumeMounts:
         - mountPath: /var/lib/docker
           name: docker-graph-storage
         - mountPath: /home/jenkins/agent
           name: workspace-volume
-      securityContext:
-        privileged: true
       env:
         - name: DOCKER_TLS_CERTDIR
           value: ""
@@ -44,7 +52,7 @@ spec:
         - cat
       env:
         - name: DOCKER_HOST
-          value: tcp://localhost:2375
+          value: tcp://docker:2375
       tty: true
     - name: kubectl
       image: bitnami/kubectl:latest
@@ -53,53 +61,52 @@ spec:
       tty: true
   restartPolicy: Never
 """
-
     }
   }
 
   environment {
-      dockerUser = 'will1233'
-      dockerPwd = 'Az@98198506'
-      dockerUrl = 'will1233'
-      dockerRepo = 'business'
-
+    dockerUser = 'will1233'
+    dockerPwd = 'Az@98198506'
+    dockerRegistry = 'will1233'  // 這裡要填你的 Harbor registry domain or IP
+    dockerRepo = 'business'
   }
 
   stages {
-  
-	stage('pull code') {
+    stage('pull code') {
       steps {
         echo '---start pull code from git-hub---'
-		echo "BRANCH_NAME = ${env.BRANCH_NAME}"
-        checkout([$class: 'GitSCM', 
-		  branches: [[name: "refs/heads/main"]], 
-		  userRemoteConfigs: [[
-			url: 'https://github.com/Will-Task/task-backend.git',
-			credentialsId: 'e3f8dace-8572-41ff-9852-648dd73db06e'
-		  ]],
-		  extensions: []
-		])
-
+        echo "BRANCH_NAME = ${env.BRANCH_NAME}"
+        checkout([
+          $class: 'GitSCM',
+          branches: [[name: "refs/heads/main"]],
+          userRemoteConfigs: [[
+            url: 'https://github.com/Will-Task/task-backend.git',
+            credentialsId: 'e3f8dace-8572-41ff-9852-648dd73db06e'
+          ]]
+        ])
         echo '---pull code from git-hub success---'
       }
     }
 
     stage('通過Docker構建image') {
       steps {
-		container('docker-client') {
-		  sh "docker build -t ${dockerUrl}/business1:${imageTag} ."
-		  echo '通過Docker構建image - SUCCESS'
-		}
+        container('docker-client') {
+          sh "docker build -t ${dockerRegistry}/${dockerRepo}/business1:${imageTag} ."
+          echo '通過Docker構建image - SUCCESS'
+        }
       }
     }
+
     stage('將image推送到harbor') {
       steps {
-	    container('docker-client') {
-		  sh """docker login -u ${dockerUrl} -p  ${dockerPwd} ${dockerUrl}
-                docker push ${dockerUrl}/business1:${imageTag}"""
-		}
-		echo '將image推送到harbor - SUCCESS'
+        container('docker-client') {
+          sh """
+            docker login -u ${dockerUser} -p ${dockerPwd} ${dockerRegistry}
+            docker push ${dockerRegistry}/${dockerRepo}/business1:${imageTag}
+          """
+        }
+        echo '將image推送到harbor - SUCCESS'
       }
-	}
+    }
   }
 }
