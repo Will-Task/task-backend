@@ -50,7 +50,7 @@ spec:
         echo '---start pull code from git-hub---'
 		echo "BRANCH_NAME = ${env.BRANCH_NAME}"
         checkout([$class: 'GitSCM', 
-		  branches: [[name: "refs/heads/${env.BRANCH_NAME}"]], 
+		  branches: [[name: "refs/heads/main"]], 
 		  userRemoteConfigs: [[
 			url: 'https://github.com/Will-Task/task-backend.git',
 			credentialsId: 'e3f8dace-8572-41ff-9852-648dd73db06e'
