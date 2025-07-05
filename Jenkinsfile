@@ -48,7 +48,16 @@ spec:
 	stage('pull code') {
       steps {
         echo '---start pull code from git-hub---'
-        checkout scmGit(branches: [[name: "${env.BRANCH_NAME}"]], extensions: [], userRemoteConfigs: [[credentialsId: '	e3f8dace-8572-41ff-9852-648dd73db06e', url: 'https://github.com/Will-Task/task-backend.git']])
+		echo "BRANCH_NAME = ${env.BRANCH_NAME}"
+        checkout([$class: 'GitSCM', 
+		  branches: [[name: "refs/heads/${env.BRANCH_NAME}"]], 
+		  userRemoteConfigs: [[
+			url: 'https://github.com/Will-Task/task-backend.git',
+			credentialsId: 'e3f8dace-8572-41ff-9852-648dd73db06e'
+		  ]],
+		  extensions: []
+		])
+
         echo '---pull code from git-hub success---'
       }
     }
