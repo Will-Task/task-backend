@@ -4,7 +4,7 @@ def GetVersion() {
 pipeline{
   agent {
     kubernetes {
-      yaml """
+	  yaml """
 apiVersion: v1
 kind: Pod
 metadata:
@@ -14,28 +14,29 @@ metadata:
     some-label: docker
 spec:
   containers:
-  - name: docker
-    image: docker:24.0-dind
-    command:
-    - cat
-    tty: true
-    securityContext:
-      privileged: true
-  - name: docker-client
-    image: docker:24.0-cli
-    command:
-    - cat
-	env:
-    - name: DOCKER_HOST
-      value: tcp://docker:2375
-    tty: true
-  - name: kubectl
-    image: bitnami/kubectl:latest
-    command:
-    - cat
-    tty: true
+    - name: docker
+      image: docker:24.0-dind
+      command:
+        - cat
+      tty: true
+      securityContext:
+        privileged: true
+    - name: docker-client
+      image: docker:24.0-cli
+      command:
+        - cat
+      env:
+        - name: DOCKER_HOST
+          value: tcp://docker:2375
+      tty: true
+    - name: kubectl
+      image: bitnami/kubectl:latest
+      command:
+        - cat
+      tty: true
   restartPolicy: Never
 """
+
     }
   }
 
@@ -44,6 +45,7 @@ spec:
       dockerPwd = 'Az@98198506'
       dockerUrl = 'will1233'
       dockerRepo = 'business'
+
   }
 
   stages {
