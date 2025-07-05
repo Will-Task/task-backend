@@ -87,7 +87,7 @@ spec:
     stage('通過Docker構建image') {
       steps {
 		container('docker-client') {
-		  sh "docker build -t ${dockerUrl}/${JOB_NAME}:${imageTag} ."
+		  sh "docker build -t ${dockerUrl}/business1:${imageTag} ."
 		  echo '通過Docker構建image - SUCCESS'
 		}
       }
@@ -96,7 +96,7 @@ spec:
       steps {
 	    container('docker-client') {
 		  sh """docker login -u ${dockerUrl} -p  ${dockerPwd} ${dockerUrl}
-                docker push ${dockerUrl}/${JOB_NAME}:${imageTag}"""
+                docker push ${dockerUrl}/business1:${imageTag}"""
 		}
 		echo '將image推送到harbor - SUCCESS'
       }
