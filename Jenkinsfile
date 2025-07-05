@@ -52,7 +52,7 @@ spec:
         - cat
       env:
         - name: DOCKER_HOST
-          value: tcp://docker:2375
+          value: tcp://localhost:2375
       tty: true
     - name: kubectl
       image: bitnami/kubectl:latest
