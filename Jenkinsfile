@@ -16,7 +16,7 @@ pipeline{
     stage('pull code') {
       steps {
         echo '---start pull code from git-hub---'
-        checkout scmGit(branches: [[name: "${env.BRANCH_NAME}"]], extensions: [], userRemoteConfigs: [[credentialsId: 'f21bd5fe-ed95-4595-b31a-21c07fb88107', url: 'https://github.com/Will-Task/task-backend.git']])
+        checkout scm
         script {
           env.imageTag = GetVersion()
           echo "Image tag: ${env.imageTag}"
