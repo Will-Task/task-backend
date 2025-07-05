@@ -1,6 +1,7 @@
 def GetVersion() {
   return new Date().format("yyyyMMdd.HHmmss", TimeZone.getTimeZone('Asia/Taipei'))
 }
+def imageTag = GetVersion()
 pipeline{
   agent {
     kubernetes {
@@ -13,9 +14,19 @@ metadata:
   labels:
     some-label: docker
 spec:
+  volumes:
+    - name: docker-graph-storage
+	  emptyDir: {}
+    - name: workspace-volume
+      emptyDir: {}
   containers:
     - name: docker
       image: docker:24.0-dind
+	  volumeMounts:
+        - mountPath: /var/lib/docker
+          name: docker-graph-storage
+        - mountPath: /home/jenkins/agent
+          name: workspace-volume
       securityContext:
         privileged: true
       env:
@@ -76,7 +87,7 @@ spec:
     stage('通過Docker構建image') {
       steps {
 		container('docker-client') {
-		  sh "docker build -t ${dockerUrl}/${JOB_NAME}:${GetVersion()} ."
+		  sh "docker build -t ${dockerUrl}/${JOB_NAME}:${imageTag} ."
 		  echo '通過Docker構建image - SUCCESS'
 		}
       }
@@ -84,8 +95,8 @@ spec:
     stage('將image推送到harbor') {
       steps {
 	    container('docker-client') {
-		  sh """docker login -u ${harborUser} -p  ${harborPwd} ${harborUrl}
-                docker push ${dockerUrl}/${JOB_NAME}:${tag}"""
+		  sh """docker login -u ${dockerUrl} -p  ${dockerPwd} ${dockerUrl}
+                docker push ${dockerUrl}/${JOB_NAME}:${imageTag}"""
 		}
 		echo '將image推送到harbor - SUCCESS'
       }
