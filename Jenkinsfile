@@ -16,11 +16,17 @@ spec:
   containers:
     - name: docker
       image: docker:24.0-dind
-      command:
-        - cat
-      tty: true
       securityContext:
         privileged: true
+      env:
+        - name: DOCKER_TLS_CERTDIR
+          value: ""
+      command:
+        - dockerd-entrypoint.sh
+      args:
+        - --host=tcp://0.0.0.0:2375
+        - --host=unix:///var/run/docker.sock
+      tty: true
     - name: docker-client
       image: docker:24.0-cli
       command:
