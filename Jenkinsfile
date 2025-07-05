@@ -91,7 +91,7 @@ spec:
     stage('通過Docker構建image') {
       steps {
         container('docker-client') {
-          sh "docker build -t ${dockerRegistry}/${dockerRepo}/business1:${imageTag} ."
+          sh "docker build f ${env.WORKSPACE}/MicroServices/Business/Dockerfile -t ${dockerRegistry}/${dockerRepo}/business1:${imageTag} ."
           echo '通過Docker構建image - SUCCESS'
         }
       }
