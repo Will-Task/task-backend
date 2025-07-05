@@ -8,6 +8,7 @@ pipeline{
 apiVersion: v1
 kind: Pod
 metadata:
+  namespace: devops-tools
   labels:
     some-label: docker
 spec:
