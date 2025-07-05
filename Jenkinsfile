@@ -91,7 +91,7 @@ spec:
     stage('通過Docker構建image') {
       steps {
         container('docker-client') {
-          sh "docker build -f MicroServices/Business/Dockerfile -t ${dockerRegistry}/${dockerRepo}/business1:${imageTag} MicroServices/Business"
+          sh "docker build -f MicroServices/Business/Dockerfile -t ${dockerRegistry}/business1:${imageTag} MicroServices/Business"
           echo '通過Docker構建image - SUCCESS'
         }
       }
@@ -102,7 +102,7 @@ spec:
         container('docker-client') {
           sh """
             docker login -u ${dockerUser} -p ${dockerPwd} ${dockerRegistry}
-            docker push ${dockerRegistry}/${dockerRepo}/business1:${imageTag}
+            docker push ${dockerRegistry/business1:${imageTag}
           """
         }
         echo '將image推送到harbor - SUCCESS'
