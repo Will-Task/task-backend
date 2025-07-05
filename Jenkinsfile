@@ -25,6 +25,9 @@ spec:
     image: docker:24.0-cli
     command:
     - cat
+	env:
+    - name: DOCKER_HOST
+      value: tcp://docker:2375
     tty: true
   - name: kubectl
     image: bitnami/kubectl:latest
