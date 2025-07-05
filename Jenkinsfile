@@ -30,7 +30,7 @@ pipeline{
     stage('將image推送到harbor') {
       steps {
           sh """echo $DOCKERHUB_PASS | docker login -u $DOCKERHUB_USER --password-stdin
-                docker push ${dockerUrl}/${JOB_NAME}:${tag}"""
+                docker push ${dockerUrl}/${JOB_NAME}:${GetVersion()}"""
         echo '將image推送到harbor - SUCCESS'
       }
 	}
