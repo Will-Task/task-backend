@@ -16,13 +16,13 @@ metadata:
 spec:
   volumes:
     - name: docker-graph-storage
-	  emptyDir: {}
+      emptyDir: {}
     - name: workspace-volume
       emptyDir: {}
   containers:
     - name: docker
       image: docker:24.0-dind
-	  volumeMounts:
+      volumeMounts:
         - mountPath: /var/lib/docker
           name: docker-graph-storage
         - mountPath: /home/jenkins/agent
@@ -44,7 +44,7 @@ spec:
         - cat
       env:
         - name: DOCKER_HOST
-          value: tcp://docker:2375
+          value: tcp://localhost:2375
       tty: true
     - name: kubectl
       image: bitnami/kubectl:latest
