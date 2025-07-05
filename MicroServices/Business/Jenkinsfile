@@ -1,0 +1,67 @@
+pipeline{
+  agent any
+  
+  environment {
+      harborUser = 'admin'
+      harborPwd = 'Harbor12345'
+      harborUrl = '192.168.2.60:80'
+      harborRepo = 'goal-life'
+  }
+
+  stages {
+    stage('pull code') {
+      steps {
+        echo '---start pull code from git-hub---'
+        checkout scmGit(branches: [[name: '${tag}']], extensions: [], userRemoteConfigs: [[credentialsId: '	f21bd5fe-ed95-4595-b31a-21c07fb88107', url: 'https://github.com/Will-Task/task-backend.git']])
+        echo '---pull code from git-hub success---'
+      }
+    }
+    stage('通過Docker構建image') {
+      steps {
+		sh 'docker build -t ${JOB_NAME}:${tag} .'
+        echo '通過Docker構建image - SUCCESS'
+      }
+    }
+    stage('將image推送到harbor') {
+      steps {
+          sh '''docker login -u ${harborUser} -p  ${harborPwd} ${harborUrl}
+                docker tag ${JOB_NAME}:${tag} ${harborUrl}/${harborRepo}/${JOB_NAME}:${tag}
+                docker push ${harborUrl}/${harborRepo}/${JOB_NAME}:${tag}'''
+        echo '將image推送到harbor - SUCCESS'
+      }
+}
+    stage('Deploy') {
+      agent {
+        kubernetes {
+          yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kubectl-apply
+spec:
+  containers:
+  - name: kubectl
+    image: bitnami/kubectl:latest
+    command: ['sleep']
+    args: ['infinity']
+"""
+                }
+             }
+        steps {
+            script {
+                echo '---start pull code from git-hub---'
+                checkout scmGit(branches: [[name: '${tag}']], extensions: [], userRemoteConfigs: [[credentialsId: 'f21bd5fe-ed95-4595-b31a-21c07fb88107', url: 'https://github.com/luluchen622/goal-life-deployment.git']])
+                echo '---pull code from git-hub success---'
+                
+                echo '---install kubectl---'
+                sh 'curl -LO "https://storage.googleapis.com/kubernetes-release/release/v1.20.5/bin/linux/amd64/kubectl"'
+                sh 'chmod u+x ./kubectl'
+                
+                echo '---deploy goal-life---'
+                sh './kubectl apply -f /home/jenkins/agent/workspace/goal-life/deploy/goal-life-deployment.yml'
+                echo '---deploy success---'
+            }
+        }
+    }
+  }
+}
