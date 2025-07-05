@@ -30,7 +30,7 @@ spec:
           memory: "512Mi"
           cpu: "500m"
         limits:
-          memory: "1Gi"
+          memory: "2Gi"
           cpu: "1"
       volumeMounts:
         - mountPath: /var/lib/docker
