@@ -75,7 +75,6 @@ spec:
     stage('pull code') {
       steps {
         echo '---start pull code from git-hub---'
-        echo "BRANCH_NAME = ${env.BRANCH_NAME}"
         checkout([
           $class: 'GitSCM',
           branches: [[name: "refs/heads/main"]],
@@ -101,7 +100,7 @@ spec:
       steps {
         container('docker-client') {
           sh """
-            docker login -u ${dockerUser} -p ${dockerPwd} ${dockerRegistry}
+            docker login -u ${dockerUser} -p ${dockerPwd}
             docker push ${dockerRegistry/business1:${imageTag}
           """
         }
