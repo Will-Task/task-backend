@@ -37,4 +37,5 @@ spec:
   ports:
     - port: 51187
       targetPort: 51187
-  type: LoadBalancer
+      nodePort: 31187
+  type: NodePort
