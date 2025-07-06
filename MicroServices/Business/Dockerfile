@@ -11,13 +11,14 @@ EXPOSE 8080
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Business.Host/Business.Host.csproj", "Business.Host/"]
+
 COPY ["Business.Application/Business.Application.csproj", "Business.Application/"]
 COPY ["Business.Application.Contracts/Business.Application.Contracts.csproj", "Business.Application.Contracts/"]
 COPY ["Business.Domain/Business.Domain.csproj", "Business.Domain/"]
 COPY ["Business.Core/Business.Core.csproj", "Business.Core/"]
 COPY ["Business.HttpApi/Business.HttpApi.csproj", "Business.HttpApi/"]
 COPY ["Business.EntityFrameworkCore/Business.EntityFrameworkCore.csproj", "Business.EntityFrameworkCore/"]
+COPY ["Business.Host/Business.Host.csproj", "Business.Host/"]
 RUN dotnet restore "./Business.Host/Business.Host.csproj"
 COPY . .
 WORKDIR "/src/Business.Host"

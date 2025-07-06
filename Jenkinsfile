@@ -27,11 +27,11 @@ spec:
         privileged: true
       resources:
         requests:
-          memory: "512Mi"
-          cpu: "500m"
+          memory: "1Gi"
+          cpu: "1"
         limits:
           memory: "2Gi"
-          cpu: "1"
+          cpu: "2"
       volumeMounts:
         - mountPath: /var/lib/docker
           name: docker-graph-storage
