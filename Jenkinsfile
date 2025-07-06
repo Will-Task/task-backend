@@ -86,6 +86,27 @@ spec:
         echo '---pull code from git-hub success---'
       }
     }
+
+    stage('通過Docker構建image') {
+      steps {
+        container('docker-client') {
+          sh "docker build -f ${WORKSPACE}/MicroServices/Business/Dockerfile -t ${dockerRegistry}/business1:latest ${WORKSPACE}/MicroServices/Business"
+          echo '通過Docker構建image - SUCCESS'
+        }
+      }
+    }
+
+    stage('將image推送到harbor') {
+      steps {
+        container('docker-client') {
+          sh """
+            docker login -u ${dockerUser} -p ${dockerPwd}
+            docker push ${dockerRegistry}/business1:latest
+          """
+        }
+        echo '將image推送到harbor - SUCCESS'
+      }
+    }
 	
 	stage('Deploy') {
 	  steps {

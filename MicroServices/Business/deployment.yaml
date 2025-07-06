@@ -21,7 +21,7 @@ spec:
           claimName: task-pv-claim
       containers:
       - name: business
-        image: will1233/business1:20250706.112536
+        image: will1233/business1:latest
         volumeMounts:
         - mountPath: "/data"
           name: task-pv-storage
@@ -37,5 +37,4 @@ spec:
   ports:
     - port: 51187
       targetPort: 51187
-      nodePort: 31187
-  type: NodePort
+    type: LoadBalancer

@@ -4,7 +4,7 @@
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 USER $APP_UID
 WORKDIR /app
-EXPOSE 8080
+EXPOSE 51187
 
 
 # 此階段是用來組建服務專案
@@ -31,6 +31,7 @@ RUN dotnet publish "./Business.Host.csproj" -c $BUILD_CONFIGURATION -o /app/publ
 
 # 此階段用於生產環境，或以一般模式從 VS 執行時 (未使用偵錯設定時的預設值)
 FROM base AS final
+ENV ASPNETCORE_URLS=http://0.0.0.0:51187
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "Business.Host.dll"]
