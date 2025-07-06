@@ -21,7 +21,7 @@ spec:
           claimName: task-pv-claim
       containers:
       - name: business
-        image: will1233/business1:latest
+        image: will1233/business1:20250706.112536
         volumeMounts:
         - mountPath: "/data"
           name: task-pv-storage
