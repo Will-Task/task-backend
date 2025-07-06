@@ -11,10 +11,10 @@ apiVersion: v1
 kind: Pod
 metadata:
   namespace: devops-tools
-  serviceAccount: 'jenkins-admin'
   labels:
     some-label: docker
 spec:
+  serviceAccountName: jenkins-admin
   volumes:
     - name: docker-graph-storage
       emptyDir: {}
