@@ -107,5 +107,28 @@ spec:
         echo '將image推送到harbor - SUCCESS'
       }
     }
+	
+	stage('Deploy') {
+	  steps {
+		container('kubectl') {
+		  script {
+			echo '---start pull deployment repo---'
+			checkout([
+			  $class: 'GitSCM',
+			  branches: [[name: "refs/heads/main"]],
+			  userRemoteConfigs: [[
+				url: 'https://github.com/Will-Task/task-backend.git',
+				credentialsId: 'e3f8dace-8572-41ff-9852-648dd73db06e'
+			  ]]
+			])
+			echo '---pull deployment repo success---'
+
+			echo '---deploy goal-life---'
+			sh 'kubectl apply -f ${WORKSPACE}/MicroServices/Business/deployment.yaml'
+			echo '---deploy success---'
+		  }
+		}
+	  }
+	}
   }
 }
