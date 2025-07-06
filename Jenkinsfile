@@ -55,7 +55,7 @@ spec:
           value: tcp://localhost:2375
       tty: true
     - name: kubectl
-      image: lachlanevenson/k8s-kubectl:v1.27.1
+      image: lachlanevenson/k8s-kubectl
       command:
         - cat
       tty: true
